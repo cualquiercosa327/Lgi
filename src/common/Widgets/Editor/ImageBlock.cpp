@@ -583,7 +583,7 @@ ssize_t GRichTextPriv::ImageBlock::Length()
 	return IsDeleted ? 0 : 1;
 }
 
-bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
+bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng)
 {
 	if (Media)
 	{

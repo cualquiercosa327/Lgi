@@ -1953,19 +1953,30 @@ GHtmlElement *GRichTextPriv::CreateElement(GHtmlElement *Parent)
 	return new GRichEditElem(Parent);
 }
 
-bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
+bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media, BlockCursor *From, BlockCursor *To)
 {
+	UtfNameCache.Reset();
+	if (!Blocks.Length())
+		return false;
+
 	GStringPipe p(256);
-		
+
 	p.Print("<html>\n"
 			"<head>\n"
 			"\t<meta name=\"charset\" content=\"utf-8\">\n");
 	
 	ZeroRefCounts();
-	for (size_t i=0; i<Blocks.Length(); i++)
+
+	ssize_t Start = From ? Blocks.IndexOf(From->Blk) : 0;
+	ssize_t End = To ? Blocks.IndexOf(To->Blk) : Blocks.Length() - 1;
+	ssize_t StartIdx = From ? From->Offset : 0;
+	ssize_t EndIdx = To ? To->Offset : Blocks.Last()->Length();
+
+	for (size_t i=Start; i<=End; i++)
 	{
 		Blocks[i]->IncAllStyleRefs();
 	}
+
 	if (GetStyles())
 	{
 		p.Print("\t<style>\n");
@@ -1976,10 +1987,16 @@ bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 	p.Print("</head>\n"
 			"<body>\n");
 		
-	for (size_t i=0; i<Blocks.Length(); i++)
+	for (size_t i=Start; i<=End; i++)
 	{
 		Block *b = Blocks[i];
-		b->ToHtml(p, Media);
+		GRange r;
+		if (i == Start)
+			r.Start = StartIdx;
+		if (i == End)
+			r.Len = EndIdx - r.Start;
+
+		b->ToHtml(p, Media, r.Valid() ? &r : NULL);
 	}
 		
 	p.Print("</body>\n</html>\n");
@@ -2307,49 +2324,60 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 	return true;
 }
 
-bool GRichTextPriv::GetSelection(GArray<char16> &Text)
+bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 {
 	GArray<uint32> Utf32;
 
 	bool Cf = CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
 	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
-	if (Start->Blk == End->Blk)
-	{
-		// In the same block... just copy
-		ssize_t Len = End->Offset - Start->Offset;
-		Start->Blk->CopyAt(Start->Offset, Len, &Utf32);
+
+	if (Html)
+	{		
+		if (ToHtml(NULL, Start, End))
+			*Html = UtfNameCache;
 	}
-	else
+	else if (Text)
 	{
-		// Multi-block delete...
-
-		// 1) Copy the content to the end of the first block
-		Start->Blk->CopyAt(Start->Offset, -1, &Utf32);
-
-		// 2) Copy any blocks between 'Start' and 'End'
-		ssize_t i = Blocks.IndexOf(Start->Blk);
-		ssize_t EndIdx = Blocks.IndexOf(End->Blk);
-		if (i >= 0 && EndIdx >= i)
+		if (Start->Blk == End->Blk)
 		{
-			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
-			{
-				GRichTextPriv::Block *&b = Blocks[i];
-				b->CopyAt(0, -1, &Utf32);
-			}
+			// In the same block... just copy
+			ssize_t Len = End->Offset - Start->Offset;
+			Start->Blk->CopyAt(Start->Offset, Len, &Utf32);
 		}
-		else return Error(_FL, "Blocks missing index: %i, %i.", i, EndIdx);
+		else
+		{
+			// Multi-block copy...
 
-		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->CopyAt(0, End->Offset, &Utf32);
+			// 1) Copy the content to the end of the first block
+			Start->Blk->CopyAt(Start->Offset, -1, &Utf32);
+
+			// 2) Copy any blocks between 'Start' and 'End'
+			ssize_t i = Blocks.IndexOf(Start->Blk);
+			ssize_t EndIdx = Blocks.IndexOf(End->Blk);
+			if (i >= 0 && EndIdx >= i)
+			{
+				for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
+				{
+					GRichTextPriv::Block *&b = Blocks[i];
+					b->CopyAt(0, -1, &Utf32);
+				}
+			}
+			else return Error(_FL, "Blocks missing index: %i, %i.", i, EndIdx);
+
+			// 3) Delete any text up to the Cursor in the 'End' block
+			End->Blk->CopyAt(0, End->Offset, &Utf32);
+		}
+
+		char16 *w = (char16*)LgiNewConvertCp(LGI_WideCharset, &Utf32[0], "utf-32", Utf32.Length() * sizeof(uint32));
+		if (!w)
+			return Error(_FL, "Failed to convert %i utf32 to wide.", Utf32.Length());
+
+		Text->Add(w, Strlen(w));
+		Text->Add(0);
 	}
+	else return false;
 
-	char16 *w = (char16*)LgiNewConvertCp(LGI_WideCharset, &Utf32[0], "utf-32", Utf32.Length() * sizeof(uint32));
-	if (!w)
-		return Error(_FL, "Failed to convert %i utf32 to wide.", Utf32.Length());
-
-	Text.Add(w, Strlen(w));
-	Text.Add(0);
 	return true;
 }
 

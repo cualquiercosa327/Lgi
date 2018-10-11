@@ -60,7 +60,7 @@ ssize_t GRichTextPriv::HorzRuleBlock::Length()
 	return IsDeleted ? 0 : 1;
 }
 
-bool GRichTextPriv::HorzRuleBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
+bool GRichTextPriv::HorzRuleBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng)
 {
 	s.Print("<hr>\n");
 	return true;

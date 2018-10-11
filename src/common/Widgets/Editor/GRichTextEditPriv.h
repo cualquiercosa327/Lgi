@@ -719,7 +719,7 @@ public:
 			virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
 			virtual bool OnLayout(Flow &f) = 0;
 			virtual void OnPaint(PaintContext &Ctx) = 0;
-			virtual bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media) = 0;
+			virtual bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rgn) = 0;
 			virtual bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY) = 0;
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
@@ -1039,7 +1039,7 @@ public:
 		GNamedStyle *GetStyle(ssize_t At = -1);
 		void SetStyle(GNamedStyle *s);
 		ssize_t Length();
-		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1093,7 +1093,7 @@ public:
 		GNamedStyle *GetStyle(ssize_t At = -1);
 		void SetStyle(GNamedStyle *s);
 		ssize_t Length();
-		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1185,7 +1185,7 @@ public:
 		GNamedStyle *GetStyle(ssize_t At = -1);
 		void SetStyle(GNamedStyle *s);
 		ssize_t Length();
-		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1226,7 +1226,7 @@ public:
 	bool CursorFirst();
 	bool SetCursor(GAutoPtr<BlockCursor> c, bool Select = false);
 	GRect SelectionRect();
-	bool GetSelection(GArray<char16> &Text);
+	bool GetSelection(GArray<char16> *Text, GAutoString *Html);
 	ssize_t IndexOfCursor(BlockCursor *c);
 	ssize_t HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, ssize_t *GlobalIdx);
@@ -1312,7 +1312,7 @@ public:
 	
 	GAutoPtr<CreateContext> CreationCtx;
 
-	bool ToHtml(GArray<GDocView::ContentMedia> *Media = NULL);
+	bool ToHtml(GArray<GDocView::ContentMedia> *Media = NULL, BlockCursor *From = NULL, BlockCursor *To = NULL);
 	void DumpBlocks();
 	bool FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle = NULL, int Depth = 0);
 

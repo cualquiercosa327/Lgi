@@ -447,7 +447,7 @@ char *GRichTextEdit::GetSelection()
 		return NULL;
 
 	GArray<char16> Text;
-	if (!d->GetSelection(Text))
+	if (!d->GetSelection(&Text, NULL))
 		return NULL;
 	
 	return WideToUtf8(&Text[0]);
@@ -665,13 +665,16 @@ bool GRichTextEdit::Copy()
 	if (!HasSelection())
 		return false;
 
-	GArray<char16> Text;
-	if (!d->GetSelection(Text))
+	GArray<char16> PlainText;
+	GAutoString Html;
+	if (!d->GetSelection(&PlainText, &Html))
 		return false;
 
 	// Put on the clipboard
 	GClipBoard Cb(this);
-	return Cb.TextW(&Text[0]);
+	bool Status = Cb.TextW(PlainText.AddressOf());
+	Cb.Html(Html, false);
+	return Status;
 }
 
 bool GRichTextEdit::Paste()
@@ -995,7 +998,7 @@ bool GRichTextEdit::DoFind()
 {
 	GArray<char16> Sel;
 	if (HasSelection())
-		d->GetSelection(Sel);
+		d->GetSelection(&Sel, NULL);
 	GAutoString u(Sel.Length() ? WideToUtf8(&Sel.First()) : NULL);
 	GFindDlg Dlg(this, u, RichText_FindCallback, this);
 	Dlg.DoModal();	

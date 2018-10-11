@@ -342,9 +342,15 @@ HtmlTag IsDefaultStyle(HtmlTag Id, GCss *Css)
 	return CONTENT;
 }
 
-bool GRichTextPriv::TextBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
+bool GRichTextPriv::TextBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media, GRange *Rng)
 {
 	s.Print("<p>");
+
+	GRange All(0, Txt.Length());
+	if (!Rng)
+		Rng = &All;
+
+	size_t Pos = 0;
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
@@ -352,91 +358,97 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia>
 		ssize_t tlen = t->Length();
 		if (!tlen)
 			continue;
-		
-		GString utf(
-			#ifndef WINDOWS
-			(char16*)
-			#endif
-			t->At(0), t->Length());
-		char *str = utf;
+		GRange TxtRange(Pos, tlen);
+		GRange Common = TxtRange.Overlap(*Rng);
+		if (Common.Valid())
+		{		
+			GString utf(
+				#ifndef WINDOWS
+				(char16*)
+				#endif
+				t->At(Common.Start - Pos), Common.Len);
+			char *str = utf;
 
-		const char *ElemName = NULL;
-		if (t->Element != CONTENT)
-		{
-			GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(t->Element);
-			if (!e)
-				return false;
-			ElemName = e->Tag;
-			if (style)
+			const char *ElemName = NULL;
+			if (t->Element != CONTENT)
+			{
+				GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(t->Element);
+				if (!e)
+					return false;
+				ElemName = e->Tag;
+				if (style)
+				{
+					HtmlTag tag = IsDefaultStyle(t->Element, style);
+					if (tag == t->Element)
+						style = NULL;
+				}
+			}
+			else
 			{
 				HtmlTag tag = IsDefaultStyle(t->Element, style);
-				if (tag == t->Element)
-					style = NULL;
-			}
-		}
-		else
-		{
-			HtmlTag tag = IsDefaultStyle(t->Element, style);
-			if (tag != CONTENT)
-			{
-				GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(tag);
-				if (e)
+				if (tag != CONTENT)
 				{
-					ElemName = e->Tag;
-					style = NULL;
-				}
-			}			
-		}
-
-		if (style && !ElemName)
-			ElemName = "span";
-		if (ElemName)
-			s.Print("<%s", ElemName);
-		if (style)
-			s.Print(" class='%s'", style->Name.Get());
-		if (t->Element == TAG_A && t->Param)
-			s.Print(" href='%s'", t->Param.Get());
-		if (ElemName)
-			s.Print(">");
-		
-		// Encode entities...
-		GUtf8Ptr last(str);
-		GUtf8Ptr cur(str);
-		GUtf8Ptr end(str + utf.Length());
-		while (cur < end)
-		{
-			int32 ch = cur;
-			switch (ch)
-			{
-				case '<':
-					s.Print("%.*s&lt;", cur - last, last.GetPtr());
-					last = ++cur;
-					break;
-				case '>':
-					s.Print("%.*s&gt;", cur - last, last.GetPtr());
-					last = ++cur;
-					break;
-				case '\n':
-					s.Print("%.*s<br>\n", cur - last, last.GetPtr());
-					last = ++cur;
-					break;
-				case '&':
-					s.Print("%.*s&amp;", cur - last, last.GetPtr());
-					last = ++cur;
-					break;
-				case 0xa0:
-					s.Print("%.*s&nbsp;", cur - last, last.GetPtr());
-					last = ++cur;
-					break;
-				default:
-					cur++;
-					break;
+					GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(tag);
+					if (e)
+					{
+						ElemName = e->Tag;
+						style = NULL;
+					}
+				}			
 			}
-		}
-		s.Print("%.*s", cur - last, last.GetPtr());
 
-		if (ElemName)
-			s.Print("</%s>", ElemName);
+			if (style && !ElemName)
+				ElemName = "span";
+			if (ElemName)
+				s.Print("<%s", ElemName);
+			if (style)
+				s.Print(" class='%s'", style->Name.Get());
+			if (t->Element == TAG_A && t->Param)
+				s.Print(" href='%s'", t->Param.Get());
+			if (ElemName)
+				s.Print(">");
+		
+			// Encode entities...
+			GUtf8Ptr last(str);
+			GUtf8Ptr cur(str);
+			GUtf8Ptr end(str + utf.Length());
+			while (cur < end)
+			{
+				int32 ch = cur;
+				switch (ch)
+				{
+					case '<':
+						s.Print("%.*s&lt;", cur - last, last.GetPtr());
+						last = ++cur;
+						break;
+					case '>':
+						s.Print("%.*s&gt;", cur - last, last.GetPtr());
+						last = ++cur;
+						break;
+					case '\n':
+						s.Print("%.*s<br>\n", cur - last, last.GetPtr());
+						last = ++cur;
+						break;
+					case '&':
+						s.Print("%.*s&amp;", cur - last, last.GetPtr());
+						last = ++cur;
+						break;
+					case 0xa0:
+						s.Print("%.*s&nbsp;", cur - last, last.GetPtr());
+						last = ++cur;
+						break;
+					default:
+						cur++;
+						break;
+				}
+			}
+			s.Print("%.*s", cur - last, last.GetPtr());
+
+			if (ElemName)
+				s.Print("</%s>", ElemName);
+		}
+
+		Pos += tlen;
 	}
 	s.Print("</p>\n");
 	return true;

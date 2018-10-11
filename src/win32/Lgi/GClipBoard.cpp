@@ -537,7 +537,7 @@ bool GClipBoard::Html(const char *Doc, bool AutoEmpty)
 	s += p[1] + n + p[2];
 
 	auto Len = Strlen(Doc);
-	return Binary(CF_HTML, (uchar*) n.Get(), n.Length(), AutoEmpty);
+	return Binary(CF_HTML, (uchar*) s.Get(), s.Length(), AutoEmpty);
 }
 
 GString GClipBoard::Html()
