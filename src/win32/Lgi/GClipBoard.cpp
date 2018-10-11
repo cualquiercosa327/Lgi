@@ -509,6 +509,64 @@ char16 *GClipBoard::TextW()
 	return NULL;
 }
 
+#ifndef CF_HTML
+#define CF_HTML RegisterClipboardFormatA("HTML Format")
+#endif
+
+bool GClipBoard::Html(const char *Doc, bool AutoEmpty)
+{
+	if (!Doc)
+		return false;
+
+	GString s;
+	s.Printf("Version:0.9\n"
+			"StartHTML:000000\n"
+			"EndHTML:000000\n"
+			"<!DOCTYPE>");
+	auto Start = s.Length();
+	s += Doc;
+	auto End = s.Length();
+	auto p = s.Split("000000", 2);
+	if (p.Length() != 3)
+		return false;
+
+	GString n;
+	n.Printf("%06i", (int)Start);
+	s = p[0] + n;
+	n.Printf("%06i", (int)End);
+	s += p[1] + n + p[2];
+
+	auto Len = Strlen(Doc);
+	return Binary(CF_HTML, (uchar*) n.Get(), n.Length(), AutoEmpty);
+}
+
+GString GClipBoard::Html()
+{
+	GAutoPtr<uint8> Buf;
+	ssize_t Len;
+	if (!Binary(CF_HTML, Buf, &Len))
+		return NULL;
+
+	GString Txt((char*)Buf.Get(), Len);
+	auto Ln = Txt.Split("\n", 20);
+	ssize_t Start = -1, End = -1;
+	for (auto l : Ln)
+	{
+		auto p = l.Strip().Split(":", 1);
+		if (p.Length() == 0)
+			;
+		else if (p[0].Equals("StartHTML"))
+			Start = (ssize_t)p[1].Int();
+		else if (p[0].Equals("EndHTML"))
+			End = (ssize_t)p[1].Int();
+	}
+	if (Start <= 0 || End <= 0)
+		return false;
+	
+	return Txt(Start, End).Strip();
+}
+
+
 // Bitmap
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {

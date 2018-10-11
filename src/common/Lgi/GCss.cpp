@@ -358,6 +358,7 @@ bool GCss::Len::ToString(GStream &p)
 		case LenEm:			Unit = "em"; break;
 		case LenEx:			Unit = "ex"; break;
 		case LenPercent:	Unit = "%"; break;
+		case LenCm:			Unit = "cm"; break;
 		default: break;
 	}
 	if (Unit)

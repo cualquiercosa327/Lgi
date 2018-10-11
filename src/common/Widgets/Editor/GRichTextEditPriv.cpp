@@ -2059,7 +2059,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			for (auto s : Matches)
 			{
 				const char *p = s->Style;
-				Style->Parse(p);
+				Style->Parse(p, GCss::ParseRelaxed);
 			}
 		}
 			
@@ -2083,6 +2083,14 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 					Style.Reset(new GCss);
 				if (Style)
 					Style->FontWeight(GCss::FontWeightBold);
+				break;
+			}
+			case TAG_I:
+			{
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
+					Style->FontStyle(GCss::FontStyleItalic);
 				break;
 			}
 			case TAG_BLOCKQUOTE:
@@ -2153,7 +2161,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 							if (!Style)
 								Style.Reset(new GCss);
 							if (Style)
-								Style->Parse(s);
+								Style->Parse(s, GCss::ParseRelaxed);
 						}
 					}
 				}
@@ -2243,11 +2251,24 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			{
 				if (CachedStyle != ctx.Tb->GetStyle())
 				{
-					// Start a new block because the styles are different...
-					EndStyleChange = true;
-					Blocks.Add(ctx.Tb = new TextBlock(this));					
-					if (CachedStyle)
+					if (ctx.Tb->Length() == 0)
+					{
 						ctx.Tb->SetStyle(CachedStyle);
+					}
+					else
+					{
+						// Start a new block because the styles are different...
+						EndStyleChange = true;
+						auto Idx = Blocks.IndexOf(ctx.Tb);
+						ctx.Tb = new TextBlock(this);
+						if (Idx >= 0)
+							Blocks.AddAt(Idx+1, ctx.Tb);
+						else
+							Blocks.Add(ctx.Tb);
+
+						if (CachedStyle)
+							ctx.Tb->SetStyle(CachedStyle);
+					}
 				}
 			}
 

@@ -31,11 +31,15 @@ public:
 	bool EnumFormats(GArray<FormatType> &Formats);
 
 	// Text
-	bool Text(char *Str, bool AutoEmpty = true); // ptr returned is still owned by this object
-	char *Text();
+	bool Text(char *Str, bool AutoEmpty = true);
+	char *Text(); // ptr returned is still owned by this object
 
-	bool TextW(char16 *Str, bool AutoEmpty = true); // ptr returned is still owned by this object
-	char16 *TextW();
+	bool TextW(char16 *Str, bool AutoEmpty = true);
+	char16 *TextW(); // ptr returned is still owned by this object
+
+	// HTML
+	bool Html(const char *doc, bool AutoEmpty = true);
+	GString Html();
 
 	// Bitmap
 	bool Bitmap(GSurface *pDC, bool AutoEmpty = true);

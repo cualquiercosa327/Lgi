@@ -676,12 +676,22 @@ bool GRichTextEdit::Copy()
 
 bool GRichTextEdit::Paste()
 {
-	GClipBoard Cb(this);
-	GAutoWString Text(NewStrW(Cb.TextW()));
+	GString Html;
+	GAutoWString Text;
 	GAutoPtr<GSurface> Img;
-	if (!Text)
-		Img.Reset(Cb.Bitmap());
-	if (!Text && !Img)
+
+	{
+		GClipBoard Cb(this);	
+		Html = Cb.Html();
+		if (!Html)
+		{
+			Text.Reset(NewStrW(Cb.TextW()));
+			if (!Text)
+				Img.Reset(Cb.Bitmap());
+		}
+	}
+
+	if (!Html && !Text && !Img)
 		return false;
 	
 	if (!d->Cursor ||
@@ -699,7 +709,47 @@ bool GRichTextEdit::Paste()
 			return false;
 	}
 
-	if (Text)
+	if (Html)
+	{
+		GHtmlElement Root(NULL);
+
+		if (!d->CreationCtx.Reset(new GRichTextPriv::CreateContext(d)))
+			return false;
+
+		if (!d->GHtmlParser::Parse(&Root, Html))
+			return d->Error(_FL, "Failed to parse HTML.");
+	
+		GHtmlElement *Body = FindElement(&Root, TAG_BODY);
+		if (!Body)
+			Body = &Root;
+
+		if (d->Cursor)
+		{
+			auto *b = d->Cursor->Blk;
+			ssize_t BlkIdx = d->Blocks.IndexOf(b);
+			GRichTextPriv::Block *After = NULL;
+			ssize_t AddIndex = BlkIdx;;
+
+			// Split 'b' to make room for pasted objects
+			if (d->Cursor->Offset > 0)
+			{
+				After = b->Split(Trans, d->Cursor->Offset);
+				AddIndex = BlkIdx+1;									
+			}
+			// else Insert before cursor block
+
+			auto *PastePoint = new GRichTextPriv::TextBlock(d);
+			if (PastePoint)
+			{
+				d->Blocks.AddAt(AddIndex++, PastePoint);
+				if (After) d->Blocks.AddAt(AddIndex++, After);
+
+				d->CreationCtx->Tb = PastePoint;
+				d->FromHtml(Body, *d->CreationCtx);
+			}
+		}
+	}
+	else if (Text)
 	{
 		GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
 		ptrdiff_t Len = Strlen(Utf32.Get());
