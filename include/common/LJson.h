@@ -308,6 +308,7 @@ public:
 
 	bool SetJson(const char *c)
 	{
+		Empty();
 		return c ? Parse(Root.Obj, c) : false;
 	}
 
