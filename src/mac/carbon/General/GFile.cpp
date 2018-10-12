@@ -1224,7 +1224,12 @@ const char *GDirectory::FullPath()
 	auto n = GetName();
 	if (!n)
 		return NULL;
-	strncpy(d->BaseEnd, n, sizeof(d->BasePath) - (d->BaseEnd - d->BasePath));
+	
+	char *a = d->BaseEnd;
+	if (a[-1] != DIR_CHAR)
+		*a++ = DIR_CHAR;
+		
+	strncpy(a, n, sizeof(d->BasePath) - (a - d->BasePath));
 	return d->BasePath;
 }
 
