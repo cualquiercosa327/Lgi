@@ -576,6 +576,12 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 			SetOnDelete = NULL;
 			break;
 		}
+		case WM_CTLCOLOREDIT:
+		case WM_CTLCOLORSTATIC:
+		{
+			return GView::OnEvent(Msg);
+			break;
+		}
 		case WM_NCDESTROY:
 		{
 			Status = GView::OnEvent(Msg);

@@ -8,6 +8,7 @@
 #include "GRadioGroup.h"
 #include "GDisplayString.h"
 #include "GNotifications.h"
+#include "GCss.h"
 
 #define RADIO_GRID  2
 static int PadXPx = 30;
@@ -79,8 +80,10 @@ GMessage::Result GRadioGroup::OnEvent(GMessage *Msg)
 		case WM_ERASEBKGND:
 		{
 			GScreenDC Dc((HDC)Msg->A(), _View);
-			Dc.Colour(LC_MED, 24);
+			GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+			Dc.Colour(cBack);
 			Dc.Rectangle();
+			return true;
 			break;
 		}
    		case WM_DESTROY:

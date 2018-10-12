@@ -1244,7 +1244,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				GView *gv = v ? v->GetGView() : NULL;
 				if (gv)
 				{
-					int Depth = dynamic_cast<GEdit*>(gv) ? 1 : 5;
+					int Depth = dynamic_cast<GEdit*>(gv) ? 1 : 10;
 					GColour Fore = gv->StyleColour(GCss::PropColor, GColour(), Depth);
 					GColour Back = gv->StyleColour(GCss::PropBackgroundColor, GColour(), Depth);
 						

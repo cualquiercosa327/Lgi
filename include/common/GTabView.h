@@ -16,7 +16,10 @@ class LgiClass GTabView :
 {
 	friend class GTabPage;
 	class GTabViewPrivate *d;
+
+protected:
 	int TabY();
+	GRect &CalcInset();
 
 public:
 	enum

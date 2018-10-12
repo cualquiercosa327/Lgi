@@ -212,18 +212,12 @@ void GBox::OnPaint(GSurface *pDC)
 	GCssTools tools(GetCss(), GetFont());
 	cli = tools.PaintBorderAndPadding(pDC, cli);
 
-	GCss::ColorDef Bk(LC_MED);
-	if (GetCss())
-	{
-		GCss::ColorDef c = GetCss()->BackgroundColor();
-		if (c.IsValid())
-			Bk = c;
-	}
+	GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 
 	size_t ChildViews = Children.Length();
 	if (ChildViews == 0)
 	{
-		pDC->Colour(Bk);
+		pDC->Colour(cBack);
 		pDC->Rectangle(&cli);
 	}
 	else
@@ -239,7 +233,7 @@ void GBox::OnPaint(GSurface *pDC)
 			if (s.Colour.IsValid())
 				pDC->Colour(s.Colour);
 			else
-				pDC->Colour(Bk);
+				pDC->Colour(cBack);
 			pDC->Rectangle(&s.Pos);
 		}
 	}

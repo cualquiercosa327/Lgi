@@ -127,6 +127,15 @@ GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case WM_ERASEBKGND:
+		{
+			GScreenDC Dc((HDC)Msg->A(), _View);
+			GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24), 10);
+			Dc.Colour(cBack);
+			Dc.Rectangle();
+			return true;
+			break;
+		}
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:

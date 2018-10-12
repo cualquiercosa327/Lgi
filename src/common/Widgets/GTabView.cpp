@@ -71,7 +71,7 @@ public:
 	bool PourChildren;
 
 	// Painting
-	GRect Inset;
+	GRect Inset, Tabs;
 	int Depth;
 	TabViewStyle Style;
 	GAutoPtr<GSurface> Corners[2]; // { unselected/white, selected/grey }
@@ -171,7 +171,7 @@ GTabPage *GTabView::GetCurrent()
 
 int GTabView::TabY()
 {
-	return GetFont()->GetHeight() + 4;
+	return GetFont()->GetHeight() + 6;
 }
 
 void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
@@ -383,15 +383,19 @@ bool GTabView::Delete(GTabPage *Page)
 
 GRect &GTabView::GetTabClient()
 {
-	d->TabClient = GView::GetClient();
-	d->TabClient.Offset(-d->TabClient.x1, -d->TabClient.y1);
-
 	if (d->Style == TvMac)
-		d->TabClient.Size(8, 8);
+	{
+		d->TabClient = CalcInset();
+		d->TabClient.y1 = d->Tabs.y2 + 1;
+	}
 	else
+	{
+		d->TabClient = GView::GetClient();
+		d->TabClient.Offset(-d->TabClient.x1, -d->TabClient.y1);
 		d->TabClient.Size(2, 2);
+		d->TabClient.y1 += TabY();
+	}
 	
-	d->TabClient.y1 += TabY();
 
 	return d->TabClient;
 }
@@ -576,6 +580,33 @@ uint32 Corners248Data[] = {
 
 GInlineBmp Corners248 = {14, 14, 32, Corners248Data};
 
+GRect &GTabView::CalcInset()
+{
+	GRect Padding(6, 6, 6, 6);
+	d->Inset = GetClient();
+	auto f = GetFont();
+	if (GetCss())
+	{
+		auto l = GetCss()->Padding();
+		int Px = l.ToPx(d->Inset.X(), f);
+		if (l.IsValid())
+			Padding.Set(Px, Px, Px, Px);
+	}
+
+	int FnHalf = (f->GetHeight() + 3) / 2;
+	d->Inset.x1 += Padding.x1;
+	d->Inset.x2 -= Padding.x2;
+	d->Inset.y1 += Padding.y1;
+	d->Inset.y2 -= Padding.y2;
+
+	d->Tabs.ZOff(d->Inset.X() - 20, TabY() - 1);
+	d->Tabs.Offset(d->Inset.x1 + 10, d->Inset.y1);
+
+	d->Inset.y1 += FnHalf;
+
+	return d->Inset;
+}
+
 void GTabView::OnPaint(GSurface *pDC)
 {
 	TabIterator it(Children);
@@ -584,7 +615,7 @@ void GTabView::OnPaint(GSurface *pDC)
 
 	if (d->Style == TvMac)
 	{
-		GRect Margin(6, 6, 6, 6);
+		CalcInset();
 
 		GViewI *Pv = GetParent();
 		GColour NoPaint = (Pv && Pv->GetGView() ? Pv->GetGView() : this)->StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
@@ -593,14 +624,6 @@ void GTabView::OnPaint(GSurface *pDC)
 			pDC->Colour(NoPaint);
 			pDC->Rectangle();
 		}
-		
-		auto f = GetFont();
-		d->Inset = GetClient();
-		int FnHalf = (f->GetHeight() + 3) / 2;
-		d->Inset.x1 += Margin.x1;
-		d->Inset.x2 -= Margin.x2;
-		d->Inset.y1 += Margin.y1 + FnHalf;
-		d->Inset.y2 -= Margin.y2;
 
 		#ifdef LGI_CARBON
 
@@ -630,8 +653,9 @@ void GTabView::OnPaint(GSurface *pDC)
 
 		#endif
 
-		int x = 20, y = d->Inset.y1 - FnHalf;
+		int x = d->Tabs.x1, y = d->Tabs.y1;
 		GSurface *pScreen = pDC;
+		auto f = GetFont();
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
 			GFont *tf = it[i]->GetFont();

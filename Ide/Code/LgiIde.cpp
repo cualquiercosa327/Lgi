@@ -593,6 +593,7 @@ public:
 					
 				if ((DebugTab = new GTabView(IDC_DEBUG_TAB)))
 				{
+					DebugTab->GetCss(true)->Padding("0px");
 					DebugTab->SetFont(&Small);
 					DebugBox->AddView(DebugTab);
 
