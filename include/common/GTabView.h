@@ -79,6 +79,7 @@ public:
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
 	void OnCreate();
+	void OnAttach();
 };
 
 class LgiClass GTabPage :

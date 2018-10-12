@@ -502,11 +502,10 @@ public:
 	}
 };
 
-class IdeOutput : public GView
+class IdeOutput : public GTabView
 {
 public:
 	AppWnd *App;
-	GTabView *Tab;
 	GTabPage *Build;
 	GTabPage *Output;
 	GTabPage *Debug;
@@ -564,242 +563,238 @@ public:
 			Fixed.Create();			
 		}		
 
-		Children.Insert(Tab = new GTabView(100, 18, 3, 200, 200, "Output"));
-		if (Tab)
-		{
-			Build = Tab->Append("Build");
-			Output = Tab->Append("Output");
-			Find = Tab->Append("Find");
-			Ftp = Tab->Append("Ftp");
-			Debug = Tab->Append("Debug");
+		Build = Append("Build");
+		Output = Append("Output");
+		Find = Append("Find");
+		Ftp = Append("Ftp");
+		Debug = Append("Debug");
 
-			Tab->SetFont(&Small);
-			Build->SetFont(&Small);
-			Output->SetFont(&Small);
-			Find->SetFont(&Small);
-			Ftp->SetFont(&Small);
-			Debug->SetFont(&Small);
+		SetFont(&Small);
+		Build->SetFont(&Small);
+		Output->SetFont(&Small);
+		Find->SetFont(&Small);
+		Ftp->SetFont(&Small);
+		Debug->SetFont(&Small);
 			
-			if (Build)
-				Build->Append(Txt[AppWnd::BuildTab] = new BuildLog(IDC_BUILD_LOG));
-			if (Output)
-				Output->Append(Txt[AppWnd::OutputTab] = new GTextLog(IDC_OUTPUT_LOG));
-			if (Find)
-				Find->Append(Txt[AppWnd::FindTab] = new GTextLog(IDC_FIND_LOG));
-			if (Ftp)
-				Ftp->Append(FtpLog = new LList(104, 0, 0, 100, 100));
-			if (Debug)
+		if (Build)
+			Build->Append(Txt[AppWnd::BuildTab] = new BuildLog(IDC_BUILD_LOG));
+		if (Output)
+			Output->Append(Txt[AppWnd::OutputTab] = new GTextLog(IDC_OUTPUT_LOG));
+		if (Find)
+			Find->Append(Txt[AppWnd::FindTab] = new GTextLog(IDC_FIND_LOG));
+		if (Ftp)
+			Ftp->Append(FtpLog = new LList(104, 0, 0, 100, 100));
+		if (Debug)
+		{
+			Debug->Append(DebugBox = new GBox);
+			if (DebugBox)
 			{
-				Debug->Append(DebugBox = new GBox);
-				if (DebugBox)
-				{
-					DebugBox->SetVertical(false);
+				DebugBox->SetVertical(false);
 					
-					if ((DebugTab = new GTabView(IDC_DEBUG_TAB)))
+				if ((DebugTab = new GTabView(IDC_DEBUG_TAB)))
+				{
+					DebugTab->SetFont(&Small);
+					DebugBox->AddView(DebugTab);
+
+					GTabPage *Page;
+					if ((Page = DebugTab->Append("Locals")))
 					{
-						DebugTab->SetFont(&Small);
-						DebugBox->AddView(DebugTab);
-
-						GTabPage *Page;
-						if ((Page = DebugTab->Append("Locals")))
+						Page->SetFont(&Small);
+						if ((Locals = new LList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
 						{
-							Page->SetFont(&Small);
-							if ((Locals = new LList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
-							{
-								Locals->SetFont(&Small);
-								Locals->AddColumn("", 30);
-								Locals->AddColumn("Type", 50);
-								Locals->AddColumn("Name", 50);
-								Locals->AddColumn("Value", 1000);
-								Locals->SetPourLargest(true);
+							Locals->SetFont(&Small);
+							Locals->AddColumn("", 30);
+							Locals->AddColumn("Type", 50);
+							Locals->AddColumn("Name", 50);
+							Locals->AddColumn("Value", 1000);
+							Locals->SetPourLargest(true);
 
-								Page->Append(Locals);
-							}
+							Page->Append(Locals);
 						}
-						if ((Page = DebugTab->Append("Object")))
+					}
+					if ((Page = DebugTab->Append("Object")))
+					{
+						Page->SetFont(&Small);
+						if ((ObjectDump = new GTextLog(IDC_OBJECT_DUMP)))
 						{
-							Page->SetFont(&Small);
-							if ((ObjectDump = new GTextLog(IDC_OBJECT_DUMP)))
-							{
-								ObjectDump->SetFont(&Fixed);
-								ObjectDump->SetPourLargest(true);
-								Page->Append(ObjectDump);
-							}
+							ObjectDump->SetFont(&Fixed);
+							ObjectDump->SetPourLargest(true);
+							Page->Append(ObjectDump);
 						}
-						if ((Page = DebugTab->Append("Watch")))
+					}
+					if ((Page = DebugTab->Append("Watch")))
+					{
+						Page->SetFont(&Small);
+						if ((Watch = new GTree(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
 						{
-							Page->SetFont(&Small);
-							if ((Watch = new GTree(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
-							{
-								Watch->SetFont(&Small);
-								Watch->ShowColumnHeader(true);
-								Watch->AddColumn("Watch", 80);
-								Watch->AddColumn("Type", 100);
-								Watch->AddColumn("Value", 600);
-								Watch->SetPourLargest(true);
+							Watch->SetFont(&Small);
+							Watch->ShowColumnHeader(true);
+							Watch->AddColumn("Watch", 80);
+							Watch->AddColumn("Type", 100);
+							Watch->AddColumn("Value", 600);
+							Watch->SetPourLargest(true);
 
-								Page->Append(Watch);
+							Page->Append(Watch);
 								
-								GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
-								if (!w)
+							GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
+							if (!w)
+							{
+								App->GetOptions()->CreateTag("watches");
+								w = App->GetOptions()->LockTag("watches", _FL);
+							}
+							if (w)
+							{
+								for (GXmlTag *c = w->Children.First(); c; c = w->Children.Next())
 								{
-									App->GetOptions()->CreateTag("watches");
-									w = App->GetOptions()->LockTag("watches", _FL);
-								}
-								if (w)
-								{
-									for (GXmlTag *c = w->Children.First(); c; c = w->Children.Next())
+									if (c->IsTag("watch"))
 									{
-										if (c->IsTag("watch"))
-										{
-											Watch->Insert(new WatchItem(this, c->GetContent()));
-										}
+										Watch->Insert(new WatchItem(this, c->GetContent()));
 									}
+								}
 									
-									App->GetOptions()->Unlock();
-								}
-							}
-						}
-						if ((Page = DebugTab->Append("Memory")))
-						{
-							Page->SetFont(&Small);
-							
-							if ((MemTable = new GTableLayout(IDC_MEMORY_TABLE)))
-							{
-								GCombo *cbo;
-								GCheckBox *chk;
-								GTextLabel *txt;
-								GEdit *ed;
-								MemTable->SetFont(&Small);
-							
-								int x = 0, y = 0;
-								GLayoutCell *c = MemTable->GetCell(x++, y);
-								if (c)
-								{
-									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Address:"));
-									txt->SetFont(&Small);
-								}
-								c = MemTable->GetCell(x++, y);
-								if (c)
-								{
-									c->PaddingRight(GCss::Len("1em"));
-									c->Add(ed = new GEdit(IDC_MEM_ADDR, 0, 0, 60, 20));
-									ed->SetFont(&Small);
-								}								
-								c = MemTable->GetCell(x++, y);
-								if (c)
-								{
-									c->PaddingRight(GCss::Len("1em"));
-									c->Add(cbo = new GCombo(IDC_MEM_SIZE, 0, 0, 60, 20));
-									cbo->SetFont(&Small);
-									cbo->Insert("1 byte");
-									cbo->Insert("2 bytes");
-									cbo->Insert("4 bytes");
-									cbo->Insert("8 bytes");
-								}
-								c = MemTable->GetCell(x++, y);
-								if (c)
-								{
-									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
-									txt->SetFont(&Small);
-								}
-								c = MemTable->GetCell(x++, y);
-								if (c)
-								{
-									c->PaddingRight(GCss::Len("1em"));
-									c->Add(ed = new GEdit(IDC_MEM_ROW_LEN, 0, 0, 60, 20));
-									ed->SetFont(&Small);
-								}
-								c = MemTable->GetCell(x++, y);								
-								if (c)
-								{
-									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(chk = new GCheckBox(IDC_MEM_HEX, 0, 0, -1, -1, "Show Hex"));
-									chk->SetFont(&Small);
-									chk->Value(true);
-								}
-
-								int cols = x;
-								x = 0;
-								c = MemTable->GetCell(x++, ++y, true, cols);
-								if ((MemoryDump = new GTextLog(IDC_MEMORY_DUMP)))
-								{
-									MemoryDump->SetFont(&Fixed);
-									MemoryDump->SetPourLargest(true);
-									c->Add(MemoryDump);
-								}
-
-								Page->Append(MemTable);
-							}
-						}
-						if ((Page = DebugTab->Append("Threads")))
-						{
-							Page->SetFont(&Small);
-							if ((Threads = new LList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
-							{
-								Threads->SetFont(&Small);
-								Threads->AddColumn("", 20);
-								Threads->AddColumn("Thread", 1000);
-								Threads->SetPourLargest(true);
-								Threads->MultiSelect(false);
-
-								Page->Append(Threads);
-							}
-						}
-						if ((Page = DebugTab->Append("Call Stack")))
-						{
-							Page->SetFont(&Small);
-							if ((CallStack = new LList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
-							{
-								CallStack->SetFont(&Small);
-								CallStack->AddColumn("", 20);
-								CallStack->AddColumn("Call Stack", 1000);
-								CallStack->SetPourLargest(true);
-								CallStack->MultiSelect(false);
-
-								Page->Append(CallStack);
-							}
-						}
-
-						if ((Page = DebugTab->Append("Registers")))
-						{
-							Page->SetFont(&Small);
-							if ((Registers = new GTextLog(IDC_REGISTERS)))
-							{
-								Registers->SetFont(&Small);
-								Registers->SetPourLargest(true);
-								Page->Append(Registers);
+								App->GetOptions()->Unlock();
 							}
 						}
 					}
-					
-					if ((DebugLog = new GBox))
+					if ((Page = DebugTab->Append("Memory")))
 					{
-						DebugLog->SetVertical(true);
-						DebugBox->AddView(DebugLog);
-						DebugLog->AddView(DebuggerLog = new DebugTextLog(IDC_DEBUGGER_LOG));
-						DebuggerLog->SetFont(&Small);
-						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
-						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)(SysFont->GetHeight() + 8)));
+						Page->SetFont(&Small);
+							
+						if ((MemTable = new GTableLayout(IDC_MEMORY_TABLE)))
+						{
+							GCombo *cbo;
+							GCheckBox *chk;
+							GTextLabel *txt;
+							GEdit *ed;
+							MemTable->SetFont(&Small);
+							
+							int x = 0, y = 0;
+							GLayoutCell *c = MemTable->GetCell(x++, y);
+							if (c)
+							{
+								c->VerticalAlign(GCss::VerticalMiddle);
+								c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+								txt->SetFont(&Small);
+							}
+							c = MemTable->GetCell(x++, y);
+							if (c)
+							{
+								c->PaddingRight(GCss::Len("1em"));
+								c->Add(ed = new GEdit(IDC_MEM_ADDR, 0, 0, 60, 20));
+								ed->SetFont(&Small);
+							}								
+							c = MemTable->GetCell(x++, y);
+							if (c)
+							{
+								c->PaddingRight(GCss::Len("1em"));
+								c->Add(cbo = new GCombo(IDC_MEM_SIZE, 0, 0, 60, 20));
+								cbo->SetFont(&Small);
+								cbo->Insert("1 byte");
+								cbo->Insert("2 bytes");
+								cbo->Insert("4 bytes");
+								cbo->Insert("8 bytes");
+							}
+							c = MemTable->GetCell(x++, y);
+							if (c)
+							{
+								c->VerticalAlign(GCss::VerticalMiddle);
+								c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+								txt->SetFont(&Small);
+							}
+							c = MemTable->GetCell(x++, y);
+							if (c)
+							{
+								c->PaddingRight(GCss::Len("1em"));
+								c->Add(ed = new GEdit(IDC_MEM_ROW_LEN, 0, 0, 60, 20));
+								ed->SetFont(&Small);
+							}
+							c = MemTable->GetCell(x++, y);								
+							if (c)
+							{
+								c->VerticalAlign(GCss::VerticalMiddle);
+								c->Add(chk = new GCheckBox(IDC_MEM_HEX, 0, 0, -1, -1, "Show Hex"));
+								chk->SetFont(&Small);
+								chk->Value(true);
+							}
+
+							int cols = x;
+							x = 0;
+							c = MemTable->GetCell(x++, ++y, true, cols);
+							if ((MemoryDump = new GTextLog(IDC_MEMORY_DUMP)))
+							{
+								MemoryDump->SetFont(&Fixed);
+								MemoryDump->SetPourLargest(true);
+								c->Add(MemoryDump);
+							}
+
+							Page->Append(MemTable);
+						}
+					}
+					if ((Page = DebugTab->Append("Threads")))
+					{
+						Page->SetFont(&Small);
+						if ((Threads = new LList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
+						{
+							Threads->SetFont(&Small);
+							Threads->AddColumn("", 20);
+							Threads->AddColumn("Thread", 1000);
+							Threads->SetPourLargest(true);
+							Threads->MultiSelect(false);
+
+							Page->Append(Threads);
+						}
+					}
+					if ((Page = DebugTab->Append("Call Stack")))
+					{
+						Page->SetFont(&Small);
+						if ((CallStack = new LList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
+						{
+							CallStack->SetFont(&Small);
+							CallStack->AddColumn("", 20);
+							CallStack->AddColumn("Call Stack", 1000);
+							CallStack->SetPourLargest(true);
+							CallStack->MultiSelect(false);
+
+							Page->Append(CallStack);
+						}
+					}
+
+					if ((Page = DebugTab->Append("Registers")))
+					{
+						Page->SetFont(&Small);
+						if ((Registers = new GTextLog(IDC_REGISTERS)))
+						{
+							Registers->SetFont(&Small);
+							Registers->SetPourLargest(true);
+							Page->Append(Registers);
+						}
 					}
 				}
+					
+				if ((DebugLog = new GBox))
+				{
+					DebugLog->SetVertical(true);
+					DebugBox->AddView(DebugLog);
+					DebugLog->AddView(DebuggerLog = new DebugTextLog(IDC_DEBUGGER_LOG));
+					DebuggerLog->SetFont(&Small);
+					DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
+					DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)(SysFont->GetHeight() + 8)));
+				}
 			}
+		}
 
-			if (FtpLog)
-			{
-				FtpLog->SetPourLargest(true);
-				FtpLog->Sunken(true);
-				FtpLog->AddColumn("Entry", 1000);
-				FtpLog->ShowColumnHeader(false);
-			}
+		if (FtpLog)
+		{
+			FtpLog->SetPourLargest(true);
+			FtpLog->Sunken(true);
+			FtpLog->AddColumn("Entry", 1000);
+			FtpLog->ShowColumnHeader(false);
+		}
 
-			for (int n=0; n<CountOf(Txt); n++)
-			{
-				Txt[n]->SetTabSize(8);
-				Txt[n]->Sunken(true);
-			}
+		for (int n=0; n<CountOf(Txt); n++)
+		{
+			Txt[n]->SetTabSize(8);
+			Txt[n]->Sunken(true);
 		}
 	}
 
@@ -812,11 +807,13 @@ public:
 		return "IdeOutput";
 	}
 
+	/*
 	void OnPaint(GSurface *pDC)
 	{
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle();
 	}
+	*/
 	
 	void Save()
 	{
@@ -939,9 +936,10 @@ public:
 		}
 		
 		if (Changed >= 0)
-			Tab->Value(Changed);
+			Value(Changed);
 	}
 
+	/*
 	void OnPosChange()
 	{
 		GRect c = GetClient();
@@ -966,6 +964,7 @@ public:
 			FtpLog->SetPos(c);
 		}
 	}
+	*/
 };
 
 int DocSorter(IdeDoc *a, IdeDoc *b, NativeInt d)
@@ -1232,10 +1231,10 @@ public:
 			p ->GetSettings()->GetStr(ProjCompiler);
 		// bool IsIAR = Comp.Equals("IAR");
 		
-		if (!Output || !Output->Tab)
+		if (!Output)
 			return;
 
-		int64 Current = Output->Tab->Value();
+		int64 Current = Output->Value();
 		GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
 		if (!o)
 			return;
@@ -3222,7 +3221,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				
 				d->DbgContext->OnCommand(IDM_START_DEBUG);
 				
-				d->Output->Tab->Value(AppWnd::DebugTab);
+				d->Output->Value(AppWnd::DebugTab);
 				d->Output->DebugEdit->Focus(true);
 			}
 			break;
