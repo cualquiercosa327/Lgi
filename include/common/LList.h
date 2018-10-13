@@ -441,7 +441,7 @@ public:
 	/// Return the index of the item 'Obj' or -1 if not present
 	int IndexOf(LListItem *Obj);
 	/// Returns the item at index 'Index'
-	LListItem *ItemAt(int Index);
+	LListItem *ItemAt(size_t Index);
 
 	/*
 	/// Sort the list

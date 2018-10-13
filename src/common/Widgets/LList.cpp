@@ -2123,7 +2123,7 @@ int LList::IndexOf(LListItem *Obj)
 	return (int)Items.IndexOf(Obj);
 }
 
-LListItem *LList::ItemAt(int Index)
+LListItem *LList::ItemAt(size_t Index)
 {
 	return Items.ItemAt(Index);
 }

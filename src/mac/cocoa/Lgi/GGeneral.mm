@@ -276,7 +276,7 @@ bool LgiPlaySound(const char *FileName, int ASync)
 
 OSErr FinderLaunch(long nTargets, FSRef *targetList)
 {
-	OSErr err;
+	OSErr err = unimpErr;
 	
 	#if COCOA
 	#warning FIXME

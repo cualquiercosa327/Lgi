@@ -130,6 +130,14 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
+void GUiEvent::SetModifer(uint32 modifierKeys)
+{
+	System(modifierKeys & NSEventModifierFlagCommand);
+	Shift(modifierKeys & NSEventModifierFlagShift);
+	Alt(modifierKeys & NSEventModifierFlagOption);
+	Ctrl(modifierKeys & NSEventModifierFlagControl);
+}
+
 void GMessage::Set(int msg, Param A, Param B)
 {
 	m = msg;

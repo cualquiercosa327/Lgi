@@ -118,21 +118,18 @@ public:
 		#endif
 	}
 	
+	#if defined COCOA
+	void SetModifer(uint32 modifierKeys);
+	#else
 	void SetModifer(uint32 modifierKeys)
 	{
 		#if defined(MAC)
 
-			#if defined COCOA
-		
-				#warning FIXME
-		
-			#else
-
+			#if !defined COCOA
 				System(modifierKeys & cmdKey);
 				Shift(modifierKeys & shiftKey);
 				Alt(modifierKeys & optionKey);
 				Ctrl(modifierKeys & controlKey);
-	
 			#endif
 
 		#elif defined(__GTK_H__)
@@ -144,6 +141,7 @@ public:
 		
 		#endif
 	}
+	#endif
 };
 
 /// All the information related to a keyboard event

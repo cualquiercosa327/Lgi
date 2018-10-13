@@ -79,6 +79,16 @@ char16 *GClipBoard::TextW()
 	return wTxt;
 }
 
+bool GClipBoard::Html(const char *doc, bool AutoEmpty)
+{
+	return false;
+}
+
+GString GClipBoard::Html()
+{
+	return GString();
+}
+
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {
 	bool Status = false;

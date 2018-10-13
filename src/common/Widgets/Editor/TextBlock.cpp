@@ -1467,7 +1467,7 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 				int i = (int)Msg->A() - SPELLING_BASE;
 				if (i >= 0 && i < (int)e->Suggestions.Length())
 				{
-					int Start = e->Start;
+					auto Start = e->Start;
 					GString s = e->Suggestions[i];
 					AutoTrans t(new GRichTextPriv::Transaction);
 					
