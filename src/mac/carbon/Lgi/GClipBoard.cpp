@@ -230,6 +230,16 @@ char16 *GClipBoard::TextW()
 	return wTxt;
 }
 
+bool GClipBoard::Html(const char *doc, bool AutoEmpty)
+{
+	return false;
+}
+
+GString GClipBoard::Html()
+{
+	return GString();
+}
+
 GString::Array GClipBoard::Files()
 {
 	GString::Array a;
