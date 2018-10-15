@@ -307,7 +307,7 @@ bool DocEdit::Pour(GRegion &r)
 	return true;
 }
 
-bool DocEdit::Insert(size_t At, char16 *Data, ssize_t Len)
+bool DocEdit::Insert(size_t At, const char16 *Data, ssize_t Len)
 {
 	int Old = PourEnabled ? CountRefreshEdges(At, 0) : 0;
 	bool Status = GTextView3::Insert(At, Data, Len);

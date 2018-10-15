@@ -1042,14 +1042,15 @@ public:
 		return s;
 	}
 
-	static GString UnEscape(const char *In, ssize_t Len = -1)
+	template<typename T>
+	static GString UnEscape(const T *In, ssize_t Len = -1)
 	{
 		GString s;
 		if (In)
 		{
-			char Buf[256];
+			T Buf[256];
 			int Ch = 0;
-			const char *End = Len >= 0 ? In + Len : NULL;
+			const T *End = Len >= 0 ? In + Len : NULL;
 		
 			while
 			(

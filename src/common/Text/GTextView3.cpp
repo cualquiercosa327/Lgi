@@ -1408,7 +1408,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	#endif
 }
 
-bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
+bool GTextView3::Insert(size_t At, const char16 *Data, ssize_t Len)
 {
 	GProfile Prof("GTextView3::Insert");
 	Prof.HideResultsIfBelow(1000);
@@ -2815,7 +2815,7 @@ void GTextView3::SelectWord(size_t From)
 
 typedef int (*StringCompareFn)(const char16 *a, const char16 *b, ssize_t n);
 
-ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
+ptrdiff_t GTextView3::MatchText(const char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	if (!ValidStrW(Find))
 		return -1;
@@ -2903,7 +2903,7 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 	return -1;
 }
 
-bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
+bool GTextView3::OnFind(const char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 
@@ -2968,7 +2968,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	return false;
 }
 
-bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
+bool GTextView3::OnReplace(const char16 *Find, const char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 

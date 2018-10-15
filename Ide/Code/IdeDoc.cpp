@@ -1440,13 +1440,13 @@ void IdeDoc::EscapeSelection(bool ToEscaped)
 		{
 			GInput Inp(this, GString::Escape(Delim, -1, "\\"), "Delimiter chars:", "Escape");
 			if (Inp.DoModal())
-				Delim = GString::UnEscape(Inp.GetStr(), -1);
+				Delim = GString::UnEscape(Inp.GetStr().Get(), -1);
 		}
 		s = GString::Escape(s, -1, Delim);
 	}
 	else
 	{
-		s = GString::UnEscape(s, -1);
+		s = GString::UnEscape(s.Get(), -1);
 	}
 
 	auto r = d->Edit->GetSelectionRange();

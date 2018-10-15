@@ -282,7 +282,7 @@ protected:
 	int ScrollYLine();
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
-	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
+	ptrdiff_t MatchText(const char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
@@ -396,8 +396,18 @@ public:
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);
 
 	// Object Events
-	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
-	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
+	virtual bool OnFind(	const char16 *Find,
+							bool MatchWord,
+							bool MatchCase,
+							bool SelectionOnly,
+							bool SearchUpwards);
+	virtual bool OnReplace(	const char16 *Find,
+							const char16 *Replace,
+							bool All,
+							bool MatchWord,
+							bool MatchCase,
+							bool SelectionOnly,
+							bool SearchUpwards);
 	bool OnMultiLineTab(bool In);
 	void OnSetHidden(int Hidden);
 	void OnPosChange();
@@ -421,7 +431,7 @@ public:
 	LgiCursor GetCursor(int x, int y);
 
 	// Virtuals
-	virtual bool Insert(size_t At, char16 *Data, ssize_t Len);
+	virtual bool Insert(size_t At, const char16 *Data, ssize_t Len);
 	virtual bool Delete(size_t At, ssize_t Len);
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);

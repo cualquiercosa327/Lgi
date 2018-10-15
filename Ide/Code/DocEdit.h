@@ -189,7 +189,7 @@ public:
 	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override;
 	void PourStyle(size_t Start, ssize_t EditSize) override;
 	bool Pour(GRegion &r) override;
-	bool Insert(size_t At, char16 *Data, ssize_t Len) override;
+	bool Insert(size_t At, const char16 *Data, ssize_t Len) override;
 	bool Delete(size_t At, ssize_t Len) override;
 };
 
