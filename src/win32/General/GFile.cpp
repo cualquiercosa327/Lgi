@@ -612,7 +612,7 @@ GVolume *GFileSystem::GetRootVolume()
 	return Root;
 }
 
-bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(const char *From, const char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
@@ -857,31 +857,24 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	return true;
 }
 
-bool GFileSystem::SetCurrentFolder(char *PathName)
+GString GFileSystem::GetCurrentFolder()
+{
+	GString Cwd;
+
+	char16 w[DIR_PATH_SIZE+1];
+	if (::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
+		Cwd = w;
+
+	return Cwd;
+}
+
+bool GFileSystem::SetCurrentFolder(const char *PathName)
 {
 	bool Status = false;
 	
 	GAutoWString w(Utf8ToWide(PathName));
 	if (w)
 		Status = ::SetCurrentDirectoryW(w) != 0;
-
-	return Status;
-}
-
-bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
-{
-	bool Status = false;
-
-	GAutoWString w(new char16[DIR_PATH_SIZE+1]);
-	if (w && ::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
-	{
-		GAutoString s(WideToUtf8(w));
-		if (s)
-		{
-			strcpy_s(PathName, Length, s);
-			Status = true;
-		}
-	}
 
 	return Status;
 }

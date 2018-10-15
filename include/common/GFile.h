@@ -289,8 +289,8 @@ public:
 		bool Recurse = false
 	);
 	
-	bool SetCurrentFolder(char *PathName);
-	bool GetCurrentFolder(char *PathName, int Length);
+	GString GetCurrentFolder();
+	bool SetCurrentFolder(const char *PathName);
 
 	/// Moves a file to a new location. Only works on the same device.
 	bool Move(const char *OldName, const char *NewName, LError *Err = NULL);
