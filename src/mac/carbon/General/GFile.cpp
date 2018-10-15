@@ -1005,14 +1005,18 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	return rmdir(PathName) == 0;
 }
 
-bool GFileSystem::SetCurrentFolder(char *PathName)
+bool GFileSystem::SetCurrentFolder(const char *PathName)
 {
 	return chdir(PathName) == 0;
 }
 
-bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
+GString GFileSystem::GetCurrentFolder()
 {
-	return getcwd(PathName, Length) != 0;
+	char p[MAX_PATH];
+	GString Cwd;
+	if (getcwd(p, sizeof(p)))
+		Cwd = p;
+	return Cwd;
 }
 
 bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
