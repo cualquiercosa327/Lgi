@@ -720,7 +720,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				HIRect Label;
 			
 				TabInfo.version = 1;
-				TabInfo.style = IsCurrent ? kThemeTabNonFrontPressed : kThemeTabNonFront;
+				TabInfo.style = IsCurrent ? (Foc ? kThemeTabFront : kThemeTabNonFrontPressed) : kThemeTabNonFront;
 				TabInfo.direction = Info.direction;
 				TabInfo.size = Info.size;
 				TabInfo.adornment = Info.adornment;
