@@ -423,7 +423,7 @@ public:
 	virtual ssize_t WriteStr(char *Buf, ssize_t Size);
 
 	// Helpers
-	ssize_t Write(GString &s)
+	ssize_t Write(GString s)
 	{
 		return Write(s.Get(), s.Length());
 	}

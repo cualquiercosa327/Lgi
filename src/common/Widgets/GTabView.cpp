@@ -538,7 +538,7 @@ void GTabView::OnAttach()
 {
 	d->Depth = 0;
 	GViewI *p = this;
-	while (p = p->GetParent())
+	while ((p = p->GetParent()))
 	{
 		GTabView *tv = dynamic_cast<GTabView*>(p);
 		if (tv)
@@ -561,8 +561,6 @@ void GTabView::OnAttach()
 		if (!Css->BackgroundColor().IsValid())
 			Css->BackgroundColor(GCss::ColorDef(d->cFill));
 	}
-
-	LgiTrace("Depth=%i %s %s\n", d->Depth, d->cBorder.GetStr(), d->cFill.GetStr());
 }
 
 uint32 CornersWhiteData[] = {
@@ -617,8 +615,8 @@ void GTabView::OnPaint(GSurface *pDC)
 	{
 		CalcInset();
 
-		GViewI *Pv = GetParent();
-		GColour NoPaint = (Pv && Pv->GetGView() ? Pv->GetGView() : this)->StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+		GView *Pv = GetParent() ? GetParent()->GetGView() : NULL;
+		GColour NoPaint = (Pv ? Pv : this)->StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 		if (!NoPaint.IsTransparent())
 		{
 			pDC->Colour(NoPaint);
@@ -1160,22 +1158,6 @@ bool GTabPage::Attach(GViewI *parent)
 
 	if (TabCtrl)
 	{
-		/*
-		if (TabCtrl->d->Style == TvMac)
-		{
-			GCss *s = GetCss(true);
-			if (s)
-			{
-				auto Bk = s->BackgroundColor();
-				if (Bk.Type == GCss::ColorInherit)
-				{
-					auto c = GetBackground();
-					s->BackgroundColor(GCss::ColorDef(c));
-				}
-			}
-		}
-		*/
-
 		if (!IsAttached())
 		{
 			Status = GView::Attach(parent);
@@ -1290,10 +1272,12 @@ bool GTabPage::LoadFromResource(int Res)
 	if (ValidStr(n))
 		Name(n);
 
+	/* This isn't needed if the controls properly inherit colours.
 	if (TabCtrl && TabCtrl->d->Style == TvMac)
 		// Sigh
 		for (auto c : Children)
 			c->GetCss(true)->BackgroundColor(GCss::ColorDef(GetBackground()));
+	*/
 
 	if (IsAttached())
 		AttachChildren();

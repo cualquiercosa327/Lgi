@@ -130,6 +130,25 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
+void GUiEvent::SetModifer(uint32 modifierKeys)
+{
+	#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
+	
+	System(modifierKeys & NSEventModifierFlagCommand);
+	Shift(modifierKeys & NSEventModifierFlagShift);
+	Alt(modifierKeys & NSEventModifierFlagOption);
+	Ctrl(modifierKeys & NSEventModifierFlagControl);
+	
+	#else
+	
+	System(modifierKeys & NSCommandKeyMask);
+	Shift(modifierKeys & NSShiftKeyMask);
+	Alt(modifierKeys & NSAlternateKeyMask);
+	Ctrl(modifierKeys & NSControlKeyMask);
+	
+	#endif
+}
+
 void GMessage::Set(int msg, Param A, Param B)
 {
 	m = msg;
