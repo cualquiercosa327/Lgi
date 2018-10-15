@@ -702,7 +702,7 @@ OSStatus MoveFileToTrash(CFURLRef fileURL, LError *Status)
 	return err;
 }
 
-bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(const char *From, const char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{

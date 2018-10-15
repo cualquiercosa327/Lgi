@@ -297,7 +297,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, LScriptArguments &Args)
 		return ScriptError;
 	}
 	
-	#if defined(_MSC_VER)
+	#if defined(_MSC_VER) || (defined(MAC) && !defined(COCOA))
 	ssize_t a = Ptr.ni - &Val[0];
 	#endif
 	NativeInt r = 0;

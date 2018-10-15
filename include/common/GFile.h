@@ -253,9 +253,9 @@ public:
 	bool Copy
 	(
 		/// The file to copy from...
-		char *From,
+		const char *From,
 		/// The file to copy to. Any existing file there will be overwritten without warning.
-		char *To,
+		const char *To,
 		/// The error code or zero on success
 		LError *Status = 0,
 		/// Optional callback when some data is copied.
