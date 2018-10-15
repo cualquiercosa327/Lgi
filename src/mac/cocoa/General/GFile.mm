@@ -26,16 +26,11 @@
 #include "LgiCommon.h"
 #include "GString.h"
 
+#ifdef COCOA
+#include <Cocoa/Cocoa.h>
+#endif
+
 /****************************** Defines ***********************************/
-
-// #define FILEDEBUG
-
-#define FLOPPY_360K				0x0001
-#define FLOPPY_720K				0x0002
-#define FLOPPY_1_2M				0x0004
-#define FLOPPY_1_4M				0x0008
-#define FLOPPY_5_25				(FLOPPY_360K | FLOPPY_1_2M)
-#define FLOPPY_3_5				(FLOPPY_720K | FLOPPY_1_4M)
 
 #define stat64					stat
 #define lseek64					lseek
@@ -699,10 +694,11 @@ bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback
 	if (!From || !To)
 	{
 		#ifdef COCOA
-		#warning FIXME
+		if (ErrorCode) *ErrorCode = NSFileReadInvalidFileNameError;
 		#else
 		if (ErrorCode) *ErrorCode = paramErr;
 		#endif
+		
 		return false;
 	}
 	
@@ -721,11 +717,12 @@ bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback
 	
 	if (Out.SetSize(0))
 	{
-		#ifdef COCOA
-		#warning FIXME
-		#else
-		if (ErrorCode) *ErrorCode = writErr;
-		#endif
+		if (ErrorCode) *ErrorCode =
+			#ifdef COCOA
+			NSFileWriteUnknownError;
+			#else
+			writErr;
+			#endif
 		return false;
 	}
 	
@@ -739,11 +736,12 @@ bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback
 	char *Buf = new char[Block];
 	if (!Buf)
 	{
-		#ifdef COCOA
-		#warning FIXME
-		#else
-		if (ErrorCode) *ErrorCode = notEnoughBufferSpace;
-		#endif
+		if (ErrorCode) *ErrorCode =
+			#ifdef COCOA
+			NSFileWriteOutOfSpaceError;
+			#else
+			notEnoughBufferSpace;
+			#endif
 		return false;
 	}
 	
@@ -763,11 +761,12 @@ bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback
 				}
 				else
 				{
-					#ifdef COCOA
-					#warning FIXME
-					#else
-					if (ErrorCode) *ErrorCode = writErr;
-					#endif
+					if (ErrorCode) *ErrorCode =
+						#ifdef COCOA
+						NSFileWriteUnknownError;
+						#else
+						writErr;
+						#endif
 					goto ExitCopyLoop;
 				}
 			}
@@ -788,11 +787,7 @@ ExitCopyLoop:
 	DeleteArray(Buf);
 	if (i == Size)
 	{
-		#ifdef COCOA
-		#warning FIXME
-		#else
-		if (ErrorCode) *ErrorCode = noErr;
-		#endif
+		if (ErrorCode) *ErrorCode =	noErr;
 	}
 	else
 	{
@@ -870,7 +865,14 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, boo
 		
 		#ifdef COCOA
 		
-		#warning FIXME
+		NSMutableArray *urls = [[NSMutableArray alloc] initWithCapacity:Files.Length()];
+		for (auto f : Files)
+		{
+			id u = (NSURL *)CFURLCreateFromFileSystemRepresentation(NULL, (UInt8 *)f, strlen(f), 0);
+			[urls addObject:u];
+			CFRelease(u);
+		}
+		[[NSWorkspace sharedWorkspace] recycleURLs:urls completionHandler:NULL];
 		
 		#else
 		
@@ -1367,7 +1369,7 @@ public:
 		Status = true;
 		Attributes = 0;
 		#ifdef COCOA
-		#warning FIXME
+		LastError = 0;
 		#else
 		LastError = noErr;
 		#endif
@@ -1435,7 +1437,7 @@ int GFile::Open(const char *File, int Mode)
 	if (!File)
 	{
 		#ifdef COCOA
-		#warning FIXME
+		d->LastError = NSFileReadInvalidFileNameError;
 		#else
 		d->LastError = paramErr;
 		#endif
@@ -1495,35 +1497,6 @@ int GFile::Close()
 	
 	return true;
 }
-
-/*
- int GFile::Print(char *Format, ...)
- {
-	int Chars = 0;
- 
-	if (Format)
-	{
- va_list Arg;
- 
- va_start(Arg, Format);
- int Size = vsnprintf(0, 0, Format, Arg);
- char *Buffer = new char[Size+1];
- if (Buffer)
- {
- vsprintf(Buffer, Format, Arg);
- }
- va_end(Arg);
- 
- if (Size > 0)
- {
- Write(Buffer, Size);
- }
- DeleteArray(Buffer);
-	}
- 
-	return Chars;
- }
- */
 
 #define CHUNK		0xFFF0
 

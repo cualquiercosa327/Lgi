@@ -75,8 +75,6 @@ void GAlert::SetAppModal()
 		if (e)
 			printf("%s:%i - Error: HIWindowChangeClass=%i\n", _FL, (int)e);
 	}
-    #elif !defined(_MSC_VER)
-    #warning "Impl me."
     #endif
 }
 

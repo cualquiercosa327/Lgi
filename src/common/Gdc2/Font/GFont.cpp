@@ -608,7 +608,7 @@ bool GFont::Destroy()
 	return Status;
 }
 
-#if defined(MAC) && !COCOA
+#if defined(MAC)
 CFDictionaryRef GFont::GetAttributes()
 {
 	return d->Attributes;

@@ -1242,7 +1242,8 @@ bool GView::Focus()
 	if (w)
 	{
 		#if COCOA
-		#warning FIXME
+		if (_View)
+			Has = [NSView focusView] == _View->v;
 		#else
 		ControlRef Cur;
 		OSErr e = GetKeyboardFocus(w->WindowHandle(), &Cur);

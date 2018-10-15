@@ -696,10 +696,13 @@ void GTabView::OnPaint(GSurface *pDC)
 		#endif
 
 		int x = d->Tabs.x1, y = d->Tabs.y1;
+		#ifndef LGI_CARBON
 		GSurface *pScreen = pDC;
+		#endif
 		auto f = GetFont();
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
+			auto Foc = Focus();
 			GFont *tf = it[i]->GetFont();
 			if (!tf) tf = f;
 			GDisplayString ds(tf, it[i]->Name());
@@ -724,7 +727,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				TabInfo.kind = Info.kind;
 				if (it.Length() == 1)
 					TabInfo.position = kHIThemeTabPositionOnly;
-				else if (i == 0)
+				else if (First)
 					TabInfo.position = kHIThemeTabPositionFirst;
 				else if (Last)
 					TabInfo.position = kHIThemeTabPositionLast;
@@ -734,9 +737,9 @@ void GTabView::OnPaint(GSurface *pDC)
 				e = HIThemeDrawTab(&TabRc, &TabInfo, pDC->Handle(), kHIThemeOrientationNormal, &Label);
 			
 				r = Label;
+			
 			#else
 
-				auto Foc = Focus();
 				GColour cTopEdge(203, 203, 203);
 				GColour cBottomEdge(170, 170, 170);
 				GColour cTabFill = IsCurrent ? (Foc ? cFocusBack : GColour(248, 248, 248)) : GColour::White;
@@ -1274,14 +1277,7 @@ GColour GTabPage::GetBackground()
 void GTabPage::OnPaint(GSurface *pDC)
 {
 	GRect r(0, 0, X()-1, Y()-1);
-
-	if (TabCtrl && TabCtrl->d->Depth > 0)
-	{
-		int asd=0;
-	}
-
 	GColour Bk = StyleColour(GCss::PropBackgroundColor, TabCtrl ? TabCtrl->d->cFill : GColour(LC_MED, 24), 1);
-
 	pDC->Colour(Bk);
 	pDC->Rectangle(&r);
 }

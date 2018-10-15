@@ -130,6 +130,22 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
+void GMouse::SetButton(uint32 Btn)
+{
+	#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
+	
+	Flags |= Btn & NSEventMaskMouseMoved ? LGI_EF_MOVE : 0;
+	Down(Btn & (NSEventMaskLeftMouseDown | NSEventMaskRightMouseDown) );
+	Left(Btn & (NSEventMaskLeftMouseDown | NSEventMaskLeftMouseUp) );
+	Right(Btn & (NSEventMaskRightMouseDown | NSEventMaskRightMouseUp) );
+	
+	#else
+	
+	#error "Impl me"
+
+	#endif
+}
+
 void GUiEvent::SetModifer(uint32 modifierKeys)
 {
 	#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12

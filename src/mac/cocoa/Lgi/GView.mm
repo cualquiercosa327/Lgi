@@ -549,9 +549,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 		}
 		case M_COMMAND:
 		{
-			// return OnCommand((int)MsgA(Msg), 0, (OsView) MsgB(Msg));
-			#warning FIXME
-			return OnCommand((int)MsgA(Msg), 0, NULL);
+			return OnCommand((int)MsgA(Msg), 0, (OsView)MsgB(Msg));
 		}
 		default:
 		{

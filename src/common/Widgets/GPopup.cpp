@@ -4,6 +4,9 @@
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
 #include "LThreadEvent.h"
+#ifdef COCOA
+	#include <Cocoa/Cocoa.h>
+#endif
 
 enum PopupNotifications
 {
@@ -22,41 +25,42 @@ enum PopupNotifications
 #endif
 
 #if defined(__GTK_H__)
-using namespace Gtk;
-class GMouseHookPrivate *HookPrivate = 0;
-#include "LgiWidget.h"
-		
-bool IsWindow(OsView Wnd)
-{
-	// Do any available validation of the Wnd we can here
-	#ifdef XWIN
-	// return XWidget::Find(Wnd) != 0;
-	#else
-	return true;
-	#endif
-}
 
-OsView WindowFromPoint(int x, int y)
-{
-	return NULL;
-}
+	using namespace Gtk;
+	class GMouseHookPrivate *HookPrivate = 0;
+	#include "LgiWidget.h"
+			
+	bool IsWindow(OsView Wnd)
+	{
+		// Do any available validation of the Wnd we can here
+		#ifdef XWIN
+		// return XWidget::Find(Wnd) != 0;
+		#else
+		return true;
+		#endif
+	}
 
-bool GetWindowRect(OsView Wnd, GRect &rc)
-{
-	return false;
-}
+	OsView WindowFromPoint(int x, int y)
+	{
+		return NULL;
+	}
 
-bool ScreenToClient(OsView Wnd, GdcPt2 &p)
-{
-	return false;
-}
+	bool GetWindowRect(OsView Wnd, GRect &rc)
+	{
+		return false;
+	}
+
+	bool ScreenToClient(OsView Wnd, GdcPt2 &p)
+	{
+		return false;
+	}
 
 #elif !defined(WINNATIVE)
 
-bool IsWindow(OsView v)
-{
-	return true;
-}
+	bool IsWindow(OsView v)
+	{
+		return true;
+	}
 
 #endif
 
@@ -144,8 +148,13 @@ public:
 			do
 			{
 				#if COCOA
-				#warning FIXME
+				
+				NSPoint p = [NSEvent mouseLocation];
+				Cur.x = (int)p.x;
+				Cur.y = (int)p.y;
+				
 				#else
+				
 				HIPoint p;
 				HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &p);
 				Cur.x = (int)p.x;
@@ -164,6 +173,7 @@ public:
 					else
 						printf("%s:%i - No mouse hook view for up click.\n", _FL);
 				}
+				
 				#endif
 				
 				Prev = Cur;
@@ -861,7 +871,7 @@ void GPopup::Visible(bool i)
 	
 		#else
 		
-			bool HadFocus = Focus();
+			//bool HadFocus = Focus();
 			GView::Visible(i);
 	
 		#endif

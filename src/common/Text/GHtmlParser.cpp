@@ -305,7 +305,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 				#if defined(_DEBUG)
 				if (!_stricmp(Name, "debug"))
 				{
-					int asd=0;
+					// int asd=0;
 				}
 				#endif
 				Obj->Set(Name, Value);

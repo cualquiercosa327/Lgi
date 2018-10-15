@@ -206,66 +206,68 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 	#if defined(MAC)
 
 		#if COCOA
-		#warning FIXME
+
+
 		#else
 	
-		#ifdef __MACHELP__
-		HMSetHelpTagsDisplayed(true);
-		#else
-		#error "__MACHELP__ not defined"
-		#endif
+			#ifdef __MACHELP__
+			HMSetHelpTagsDisplayed(true);
+			#else
+			#error "__MACHELP__ not defined"
+			#endif
 
-		if (Name)
-		{
-			d->Tag.version = kMacHelpVersion;
-			d->Tag.tagSide = kHMDefaultSide;
-			d->Tag.content[kHMMinimumContentIndex].contentType = kHMCFStringLocalizedContent;
-			d->Tag.content[kHMMinimumContentIndex].u.tagCFString = CFStringCreateWithCString(NULL, Name, kCFStringEncodingUTF8);
-			d->Tag.absHotRect = Pos;
-		}
+			if (Name)
+			{
+				d->Tag.version = kMacHelpVersion;
+				d->Tag.tagSide = kHMDefaultSide;
+				d->Tag.content[kHMMinimumContentIndex].contentType = kHMCFStringLocalizedContent;
+				d->Tag.content[kHMMinimumContentIndex].u.tagCFString = CFStringCreateWithCString(NULL, Name, kCFStringEncodingUTF8);
+				d->Tag.absHotRect = Pos;
+			}
+
 		#endif
 	
 	#elif WINNATIVE
 
-	if (_View && Name && GetParent())
-	{
-		TOOLINFOW ti;
+		if (_View && Name && GetParent())
+		{
+			TOOLINFOW ti;
 
-		ZeroObj(ti);
-		ti.cbSize = sizeof(ti);
-		ti.uFlags = TTF_SUBCLASS;
-		ti.hwnd = GetParent()->Handle();
-		ti.rect = Pos;
-		ti.lpszText = Utf8ToWide(Name);
-		ti.uId = Status = d->NextUid++;
+			ZeroObj(ti);
+			ti.cbSize = sizeof(ti);
+			ti.uFlags = TTF_SUBCLASS;
+			ti.hwnd = GetParent()->Handle();
+			ti.rect = Pos;
+			ti.lpszText = Utf8ToWide(Name);
+			ti.uId = Status = d->NextUid++;
 
-		auto Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);
+			auto Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);
 
-		DeleteArray(ti.lpszText);
-	}
+			DeleteArray(ti.lpszText);
+		}
 	
 	#elif LGI_NATIVE_TIPS
 	
-	if (ValidStr(Name) && d->Parent)
-	{
-		// printf("NewTip('%s',%s)\n", Name, Pos.Describe());
-		
-		NativeTip *t = new NativeTip(d->NextUid++, d->Parent);
-		if (t)
+		if (ValidStr(Name) && d->Parent)
 		{
-			t->Watch = Pos;
-			t->Name(Name);
+			// printf("NewTip('%s',%s)\n", Name, Pos.Describe());
 			
-			// This is a hack to get it to create a window...
-			t->Visible(true);
-			// But not show it yet... duh...
-			t->Visible(false);
-			
-			d->Tips.Add(t->Id, t);
-			
-			Status = true;
+			NativeTip *t = new NativeTip(d->NextUid++, d->Parent);
+			if (t)
+			{
+				t->Watch = Pos;
+				t->Name(Name);
+				
+				// This is a hack to get it to create a window...
+				t->Visible(true);
+				// But not show it yet... duh...
+				t->Visible(false);
+				
+				d->Tips.Add(t->Id, t);
+				
+				Status = true;
+			}
 		}
-	}
 	
 	#endif
 

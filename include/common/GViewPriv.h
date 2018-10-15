@@ -163,7 +163,6 @@ public:
 
 	#if defined(MAC)
 		#ifdef COCOA
-		#warning FIXME
 		#else
 		EventHandlerRef DndHandler;
 		GAutoString AcceptedDropFormat;

@@ -53,8 +53,7 @@ protected:
 	
 	#elif defined(MAC)
 	
-	#if defined(COCOA)
-	#elif USE_CORETEXT
+	#if USE_CORETEXT
 		CTLineRef Hnd;
 		CFAttributedStringRef AttrStr;
 		void CreateAttrStr();

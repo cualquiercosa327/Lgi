@@ -66,9 +66,7 @@ bool StringConvert(Out *&out, ssize_t *OutLen, const In *in, ssize_t InLen)
 
 // static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
-#if COCOA
-	#warning FIXME
-#elif USE_CORETEXT
+#if USE_CORETEXT
 	#include <CoreFoundation/CFString.h>
 
 	void GDisplayString::CreateAttrStr()
@@ -927,11 +925,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 	#elif defined(MAC)
 	
-		#if COCOA
-	
-			#warning FIXME
-	
-		#elif USE_CORETEXT
+		#if USE_CORETEXT
 
 			if (Hnd)
 			{
@@ -982,46 +976,42 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 
 	#if defined MAC && !defined(LGI_SDL)
 
-		#if COCOA
-		#warning FIXME
-		#else
-			if (Hnd && Str)
-			{
-				
-				#if USE_CORETEXT
+		if (Hnd && Str)
+		{
+			
+			#if USE_CORETEXT
 
-					#if 1
-				
-					CGPoint pos = { (CGFloat)Px, 1.0f };
-					CFIndex idx = CTLineGetStringIndexForPosition(Hnd, pos);
-					return idx;
-				
-					#else
-				
-					CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedString(AttrStr);
-					if (typesetter)
-					{
-						CFIndex count = CTTypesetterSuggestLineBreak(typesetter, 0, Px);
-						CFRelease(typesetter);
-						// printf("CharAt(%i) = %i\n", Px, (int)count);
-						return count;
-					}
-
-					Status = Off;
-
-					#endif
-
+				#if 1
+			
+				CGPoint pos = { (CGFloat)Px, 1.0f };
+				CFIndex idx = CTLineGetStringIndexForPosition(Hnd, pos);
+				return idx;
+			
 				#else
+			
+				CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedString(AttrStr);
+				if (typesetter)
+				{
+					CFIndex count = CTTypesetterSuggestLineBreak(typesetter, 0, Px);
+					CFRelease(typesetter);
+					// printf("CharAt(%i) = %i\n", Px, (int)count);
+					return count;
+				}
 
-					UniCharArrayOffset Off = 0;
-					// Boolean IsLeading;
-					OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
-					if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
-					else Status = Off;
+				Status = Off;
 
 				#endif
-			}
-		#endif
+
+			#else
+
+				UniCharArrayOffset Off = 0;
+				// Boolean IsLeading;
+				OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
+				if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
+				else Status = Off;
+
+			#endif
+		}
 	
 	#elif defined __GTK_H__
 	

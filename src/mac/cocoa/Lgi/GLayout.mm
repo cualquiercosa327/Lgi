@@ -367,8 +367,12 @@ bool GLayout::Attach(GViewI *p)
 		{
 			// Then attach this view as a child
 			#if COCOA
-			#warning FIXME
+			
+			if ((_View = new _OsView))
+				_View->v = [[NSView alloc] initWithFrame:NSZeroRect];
+			
 			#else
+			
 			OsView ScrollWnd = _View;
 			if (_CreateCustomView())
 			{
@@ -390,6 +394,7 @@ bool GLayout::Attach(GViewI *p)
 				else printf("%s:%i - AttachHnd failed.\n", _FL);
 			}
 			else printf("%s:%i - CreateCustomView failed\n", _FL);
+			
 			#endif
 			
 			SetPos(Pos);

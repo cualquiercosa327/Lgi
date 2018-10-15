@@ -258,24 +258,22 @@ public:
 	/// \returns true if this event should show a context menu
 	bool IsContextMenu();
 	
+	#if defined COCOA
+	void SetButton(uint32 Btn);
+	#else
 	void SetButton(uint32 Btn)
 	{
 		#ifdef MAC
 		
-			#if defined COCOA
-
-				#warning FIXME
-
-			#else
-
-				Left(Btn == kEventMouseButtonPrimary);
-				Right(Btn == kEventMouseButtonSecondary);
-				Middle(Btn == kEventMouseButtonTertiary);
-		
+			#if !defined COCOA
+			Left(Btn == kEventMouseButtonPrimary);
+			Right(Btn == kEventMouseButtonSecondary);
+			Middle(Btn == kEventMouseButtonTertiary);
 			#endif
 		
 		#endif
 	}
+	#endif
 };
 
 #include "GAutoPtr.h"

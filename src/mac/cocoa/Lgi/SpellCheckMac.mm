@@ -105,7 +105,7 @@ void InitializeCocoa()
 
 FallbackMethod:
     {
-		NSApplication *NSApp = [NSApplication sharedApplication];
+		// NSApplication *NSApp = [NSApplication sharedApplication];
 	}
 }
 
