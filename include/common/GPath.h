@@ -4,6 +4,8 @@
 #include <math.h>
 #include "GMatrix.h"
 
+#define GPATH_DBG	1
+
 class GSeg;
 class GVector;
 
@@ -997,9 +999,13 @@ public:
 	void Transform(Matrix &m);
 	void DeleteSeg(int i);
 
-	// Colouring
+	// Colouring (windows: need to call ConvertPreMulAlpha(true) on the pDC after using these)
 	void Fill(GSurface *pDC, GBrush &Brush);
 	void Stroke(GSurface *pDC, GBrush &Brush, double Width);
+
+	#if GPATH_DBG
+	GMemDC DbgDsp;
+	#endif
 };
 
 void FlattenQuadratic(GPointF *&Out, GPointF &p1, GPointF &p2, GPointF &p3, int Steps);

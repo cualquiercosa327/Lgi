@@ -60,6 +60,8 @@ enum TabViewStyle
 #define TAB_MARGIN_X		6
 #define CLOSE_BTN_SIZE		8
 #define CLOSE_BTN_GAP		8
+#define cFocusFore			GColour(LC_FOCUS_SEL_FORE, 24)
+#define cFocusBack			GColour(LC_FOCUS_SEL_BACK, 24)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 class GTabViewPrivate
@@ -74,7 +76,14 @@ public:
 	GRect Inset, Tabs;
 	int Depth;
 	TabViewStyle Style;
-	GAutoPtr<GSurface> Corners[2]; // { unselected/white, selected/grey }
+	enum ResType
+	{
+		ResWhite,
+		Res248,
+		ResSel,
+		ResMax
+	};
+	GAutoPtr<GSurface> Corners[ResMax];
 	GColour cBorder, cFill;
 	
 	// Scrolling
@@ -94,6 +103,53 @@ public:
 		RightBtn.ZOff(-1, -1);
 
 		Style = TvMac;
+	}
+
+	bool DrawCircle(GAutoPtr<GSurface> &Dc, GColour c)
+	{
+		if (Dc)
+			return true;
+
+		double r = 7.0;
+		int x = (int)(r * 2.0);
+		if (!Dc.Reset(new GMemDC(x, x, System32BitColourSpace)))
+			return false;
+
+		Dc->Colour(0, 32);
+		Dc->Rectangle();
+
+		GPath p;
+		p.Circle(r, r, r-0.7);
+		p.SetFillRule(FILLRULE_ODDEVEN);
+		GSolidBrush s(c);
+		p.Fill(Dc, s);
+		p.Empty();
+
+		p.Circle(r, r, r);
+		p.Circle(r, r, r - 1.0);
+		p.SetFillRule(FILLRULE_ODDEVEN);
+		// GSolidBrush s2(GColour(0xcb, 0xcb, 0xcb));
+		GBlendStop Stops[2] = {
+			{0.0, Rgb32(0xcb, 0xcb, 0xcb)},
+			{1.0, Rgb32(0xaa, 0xaa, 0xaa)}
+		};
+		GPointF a(4, 4), b(9, 9);
+		GLinearBlendBrush s2(a, b, CountOf(Stops), Stops);
+		p.Fill(Dc, s2);
+
+		Dc->ConvertPreMulAlpha(true);
+		return true;
+	}
+
+	void CreateCorners()
+	{
+		GAutoPtr<GSurface> &White = Corners[ResWhite];
+		GAutoPtr<GSurface> &c248 = Corners[Res248];
+		GAutoPtr<GSurface> &Sel = Corners[ResSel];
+
+		DrawCircle(White, GColour::White);
+		DrawCircle(c248, GColour(248, 248, 248));
+		DrawCircle(Sel, cFocusBack);
 	}
 };
 
@@ -429,6 +485,9 @@ void GTabView::OnMouseClick(GMouse &m)
 {
 	bool DownLeft = m.Down() || m.Left();
 	int Result = HitTest(m);
+
+	if (m.Down())
+		Focus(true);
 	
 	if (Result == LeftScrollBtn)
 	{
@@ -563,21 +622,6 @@ void GTabView::OnAttach()
 	}
 }
 
-uint32 CornersWhiteData[] = {
-	0x00000000, 0x00000000, 0x00000000, 0x16121212, 0x84696969, 0xCFA5A5A5, 0xF4C2C2C2, 0xF4C2C2C2, 0xCEA4A4A4, 0x83686868, 0x16111111, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x55444444, 0xF2C3C3C3, 0xFFE1E1E1, 0xFFF4F4F4, 0xFFFDFDFD, 0xFFFDFDFD, 0xFFF4F4F4, 0xFFE0E0E0, 0xF2BDBDBD, 0x54404040, 0x00000000, 0x00000000, 0x00000000, 0x55444444, 0xFED0D0D0, 0xFFF5F5F5, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF4F4F4, 0xFEC5C5C5, 0x543E3E3E, 0x00000000, 0x16121212, 0xF2C3C3C3, 0xFFF5F5F5, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF2F2F2, 0xF1B1B1B1, 0x150F0F0F, 0x84696969, 0xFFE1E1E1, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
-	0xFFFFFFFF, 0xFFD5D5D5, 0x825C5C5C, 0xD0A6A6A6, 0xFFF4F4F4, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFEEEEEE, 0xCE8E8E8E, 0xF3C1C1C1, 0xFFFDFDFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFBFBFB, 0xF2A4A4A4, 0xF2C1C1C1, 0xFFFDFDFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFAFAFA, 0xF1A1A1A1, 0xCFA4A4A4, 0xFFF3F3F3, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFECECEC, 0xCE898989, 0x83666666, 0xFFDDDDDD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
-	0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFCECECE, 0x81565656, 0x16111111, 0xF2B9B9B9, 0xFFF3F3F3, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFEFEFEF, 0xF0A2A2A2, 0x140D0D0D, 0x00000000, 0x543F3F3F, 0xFEC1C1C1, 0xFFF2F2F2, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFEFEFEF, 0xFEB2B2B2, 0x52373737, 0x00000000, 0x00000000, 0x00000000, 0x543D3D3D, 0xF1ADADAD, 0xFFD3D3D3, 0xFFEEEEEE, 0xFFFBFBFB, 0xFFFBFBFB, 0xFFECECEC, 0xFFCECECE, 0xF0A2A2A2, 0x52373737, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x150F0F0F, 0x82595959, 0xCD8B8B8B, 0xF3A2A2A2, 0xF3A2A2A2, 0xCD898989, 0x81565656, 0x140D0D0D, 0x00000000, 0x00000000, 0x00000000, 
-};
-
-GInlineBmp CornersWhite = {14, 14, 32, CornersWhiteData};
-uint32 Corners248Data[] = {
-	0x00000000, 0x00000000, 0x00000000, 0x16121212, 0x84696969, 0xCFA5A5A5, 0xF4C2C2C2, 0xF4C2C2C2, 0xCEA4A4A4, 0x83686868, 0x16111111, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x55444444, 0xF2C3C3C3, 0xFFDEDEDE, 0xFFEFEFEF, 0xFFF6F6F6, 0xFFF6F6F6, 0xFFEFEFEF, 0xFFDDDDDD, 0xF2BDBDBD, 0x54404040, 0x00000000, 0x00000000, 0x00000000, 0x55444444, 0xFECFCFCF, 0xFFEFEFEF, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFEEEEEE, 0xFEC4C4C4, 0x543E3E3E, 0x00000000, 0x16121212, 0xF2C3C3C3, 0xFFEFEFEF, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFECECEC, 0xF1B1B1B1, 0x150F0F0F, 0x84696969, 0xFFDEDEDE, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 
-	0xFFF8F8F8, 0xFFD2D2D2, 0x825C5C5C, 0xD0A6A6A6, 0xFFEEEEEE, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFE9E9E9, 0xCE8E8E8E, 0xF3C1C1C1, 0xFFF6F6F6, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF4F4F4, 0xF2A4A4A4, 0xF2C1C1C1, 0xFFF6F6F6, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF3F3F3, 0xF1A1A1A1, 0xCFA4A4A4, 0xFFEDEDED, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFE7E7E7, 0xCE898989, 0x83666666, 0xFFDADADA, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 
-	0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFCBCBCB, 0x81565656, 0x16111111, 0xF2B9B9B9, 0xFFEDEDED, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFE9E9E9, 0xF0A2A2A2, 0x140D0D0D, 0x00000000, 0x543F3F3F, 0xFEC0C0C0, 0xFFECECEC, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFF8F8F8, 0xFFE9E9E9, 0xFEB1B1B1, 0x52373737, 0x00000000, 0x00000000, 0x00000000, 0x543D3D3D, 0xF1ADADAD, 0xFFD0D0D0, 0xFFE9E9E9, 0xFFF4F4F4, 0xFFF4F4F4, 0xFFE7E7E7, 0xFFCBCBCB, 0xF0A2A2A2, 0x52373737, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x150F0F0F, 0x82595959, 0xCD8B8B8B, 0xF3A2A2A2, 0xF3A2A2A2, 0xCD898989, 0x81565656, 0x140D0D0D, 0x00000000, 0x00000000, 0x00000000, 
-};
-
-GInlineBmp Corners248 = {14, 14, 32, Corners248Data};
-
 GRect &GTabView::CalcInset()
 {
 	GRect Padding(6, 6, 6, 6);
@@ -661,6 +705,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			GDisplayString ds(tf, it[i]->Name());
 			bool First = i == 0;
 			bool Last = i == it.Length() - 1;
+			bool IsCurrent = d->Current == i;
 
 			GRect r(0, 0, ds.X() + 23, ds.Y() + 5);
 			r.Offset(x, y);
@@ -672,7 +717,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				HIRect Label;
 			
 				TabInfo.version = 1;
-				TabInfo.style = d->Current == i ? kThemeTabNonFrontPressed : kThemeTabNonFront;
+				TabInfo.style = IsCurrent ? kThemeTabNonFrontPressed : kThemeTabNonFront;
 				TabInfo.direction = Info.direction;
 				TabInfo.size = Info.size;
 				TabInfo.adornment = Info.adornment;
@@ -691,9 +736,10 @@ void GTabView::OnPaint(GSurface *pDC)
 				r = Label;
 			#else
 
+				auto Foc = Focus();
 				GColour cTopEdge(203, 203, 203);
 				GColour cBottomEdge(170, 170, 170);
-				GColour cTabFill = d->Current != i ? GColour::White : GColour(248, 248, 248);
+				GColour cTabFill = IsCurrent ? (Foc ? cFocusBack : GColour(248, 248, 248)) : GColour::White;
 				GColour cInterTabBorder(231, 231, 231);
 				GRect b = r;
 
@@ -709,11 +755,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				}
 				#endif
 
-				if (!d->Corners[0])
-					d->Corners[0].Reset(CornersWhite.Create());
-				if (!d->Corners[1])
-					d->Corners[1].Reset(Corners248.Create());
-					
+				d->CreateCorners();
 
 				pDC->Colour(cTopEdge);
 				pDC->Line(b.x1, b.y1, b.x2, b.y1); // top edge
@@ -743,6 +785,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				pDC->Rectangle(&b);
 
 				GRect Clip00(0, 0, MAC_STYLE_RADIUS-1, MAC_STYLE_RADIUS-1);
+				auto Res = IsCurrent ? (Foc ? GTabViewPrivate::ResSel : GTabViewPrivate::Res248) : GTabViewPrivate::ResWhite;
 				if (First)
 				{
 					GRect Clip01 = Clip00.Move(0, r.Y() - Clip00.Y());
@@ -755,8 +798,8 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
-					pDC->Blt(Clip00.x1, Clip00.y1, d->Corners[d->Current == i], Clip00);
-					pDC->Blt(Clip01.x1, Clip01.y1, d->Corners[d->Current == i], Clip00.Move(0, MAC_STYLE_RADIUS));
+					pDC->Blt(Clip00.x1, Clip00.y1, d->Corners[Res], Clip00);
+					pDC->Blt(Clip01.x1, Clip01.y1, d->Corners[Res], Clip00.Move(0, MAC_STYLE_RADIUS));
 				}
 
 				if (Last)
@@ -772,8 +815,8 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
-					pDC->Blt(Clip10.x1, Clip10.y1, d->Corners[d->Current == i], Clip00.Move(MAC_STYLE_RADIUS, 0));
-					pDC->Blt(Clip11.x1, Clip11.y1, d->Corners[d->Current == i], Clip00.Move(MAC_STYLE_RADIUS, MAC_STYLE_RADIUS));
+					pDC->Blt(Clip10.x1, Clip10.y1, d->Corners[Res], Clip00.Move(MAC_STYLE_RADIUS, 0));
+					pDC->Blt(Clip11.x1, Clip11.y1, d->Corners[Res], Clip00.Move(MAC_STYLE_RADIUS, MAC_STYLE_RADIUS));
 				}
 
 				if (First || Last)
@@ -786,7 +829,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			#endif
 			
 			tf->Transparent(true);
-			tf->Fore(GColour(LC_TEXT, 24));
+			tf->Fore(IsCurrent && Foc ? cFocusFore : GColour(LC_TEXT, 24));
 			ds.Draw(pDC, r.x1 + (r.X() - ds.X()) / 2, r.y1 + (r.Y() - ds.Y()) / 2, &r);
 			
 			it[i]->TabPos = r;
