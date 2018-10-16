@@ -328,3 +328,35 @@ char *LgiGetLeaf(char *Path)
 	return l ? l + 1 : Path;
 }
 
+GString LGetPhysicalDevice(const char *Path)
+{
+	GString Ph;
+
+	#ifdef WINDOWS
+	GAutoWString w(Utf8ToWide(Path));
+	char16 VolPath[256];
+	if (GetVolumePathNameW(w, VolPath, CountOf(VolPath)))
+	{
+		char16 Name[256] = L"", FsName[256] = L"";
+		DWORD VolumeSerialNumber = 0, MaximumComponentLength = 0, FileSystemFlags = 0;
+		if (GetVolumeInformationW(VolPath, Name, CountOf(Name), &VolumeSerialNumber, &MaximumComponentLength, &FileSystemFlags, FsName, CountOf(FsName)))
+		{
+			if (VolumeSerialNumber)
+				Ph.Printf("/volume/%x", VolumeSerialNumber);
+			else
+				Ph = VolPath;
+		}
+	}
+	#else
+	struct stat s;
+	ZeroObj(s);
+	if (!lstat(Path, &s))
+	{
+		Ph.Printf("/dev/%i", s.st_dev);
+		// Find dev in '/proc/partitions'?
+	}
+	#endif
+
+	return Ph;
+}
+

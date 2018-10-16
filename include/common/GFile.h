@@ -659,5 +659,7 @@ LgiFunc void LgiShowFileProperties(OsView Parent, const char *Filename);
 /// Opens to the file or folder in the OS file browser (Explorer/Finder etc)
 LgiFunc bool LgiBrowseToFile(const char *Filename);
 
+/// Returns the physical device a file resides on
+LgiExtern GString LGetPhysicalDevice(const char *Path);
 
 #endif

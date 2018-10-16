@@ -92,8 +92,7 @@ public:
 			LgiGetExePath(p, sizeof(p));
 			LgiMakePath(p, sizeof(p), p, PATH_OFFSET "../OpenSSL");
 			#ifdef WIN32
-			char old[300];
-			FileDev->GetCurrentFolder(old, sizeof(old));
+			GString old = FileDev->GetCurrentFolder();
 			FileDev->SetCurrentFolder(p);
 			#endif
 			Load(SSL_LIBRARY);
@@ -160,8 +159,7 @@ public:
 			LgiGetExePath(p, sizeof(p));
 			LgiMakePath(p, sizeof(p), p, PATH_OFFSET "../OpenSSL");
 			#ifdef WIN32
-			char old[300];
-			FileDev->GetCurrentFolder(old, sizeof(old));
+			auto old = FileDev->GetCurrentFolder();
 			FileDev->SetCurrentFolder(p);
 			#endif
 			Load("libeay32");
