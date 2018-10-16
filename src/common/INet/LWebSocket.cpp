@@ -4,6 +4,12 @@
 #include "INetTools.h"
 #include "../../src/common/Hash/sha1/sha1.h"
 #include "Base64.h"
+#ifdef LINUX
+	#include <netinet/tcp.h>
+	#include <unistd.h>
+	#include <poll.h>
+	#define htonll LgiSwap64
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 LSelect::LSelect(GSocket *sock)
@@ -30,20 +36,25 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	// closed elsewhere we have to do something different... damn Linux,
 	// why can't you just like do the right thing?
 		
-	struct pollfd fds;
-	fds.fd = s;
-	fds.events = POLLIN | POLLRDHUP | POLLERR;
-	fds.revents = 0;
+	::GArray<struct pollfd> fds;
+	fds.Length(s.Length());
+	for (unsigned i=0; i<s.Length(); i++)
+	{
+		fds[i].fd = s[i];
+		fds[i].events = POLLIN | POLLRDHUP | POLLERR;
+		fds[i].revents = 0;
+	}
 
-	int r = poll(&fds, 1, TimeoutMs);
+	int r = poll(fds.AddressOf(), fds.Length(), TimeoutMs);
+	int Signalled = 0;
 	if (r > 0)
 	{
-		return fds.revents != 0;
+		for (auto &f : fds)
+			if (f.revents != 0)
+				Signalled++;
 	}
-	else if (r < 0)
-	{
-		Error();
-	}
+	
+	return Signalled;
 		
 	#else
 		

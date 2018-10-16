@@ -27,6 +27,8 @@ ifeq ($(Build),Debug)
 	Inc =  \
 		-I./include/common \
 		-I./include/linux/Gtk \
+		-I./src/common/Hash/md5 \
+		-I./src/common/Hash/sha1 \
 		-I/usr/include/gstreamer-1.0 \
 		-I/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include \
 		`pkg-config --cflags gtk+-2.0` \
@@ -43,6 +45,8 @@ else
 	Inc =  \
 		-I./include/common \
 		-I./include/linux/Gtk \
+		-I./src/common/Hash/md5 \
+		-I./src/common/Hash/sha1 \
 		-I/usr/include/gstreamer-1.0 \
 		-I/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include \
 		`pkg-config --cflags gtk+-2.0` \
@@ -120,6 +124,8 @@ Depends =	LDateTime.o \
 			GClipBoard.o \
 			GDataDlg.o \
 			GPassword.o \
+			md5.o \
+			sha1.o \
 			GMru.o \
 			Base64.o \
 			GOptionsFile.o \
@@ -159,7 +165,6 @@ Depends =	LDateTime.o \
 			GUri.o \
 			INet.o \
 			INetTools.o \
-			md5.o \
 			MDStringToDigest.o
 
 # Target
@@ -672,6 +677,14 @@ GPassword.o : ./src/common/General/GPassword.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+md5.o : ./src/common/Hash/md5/md5.c ./src/common/Hash/md5/md5.h
+	@echo $(<F) [$(Build)]
+	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+sha1.o : ./src/common/Hash/sha1/sha1.c ./src/common/Hash/sha1/sha1.h
+	@echo $(<F) [$(Build)]
+	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GMru.o : ./src/common/Lgi/GMru.cpp ./include/common/Lgi.h \
 	./include/common/GMru.h \
 	./include/common/GVariant.h
@@ -984,10 +997,6 @@ INetTools.o : ./src/common/INet/INetTools.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-md5.o : ./src/common/Hash/md5/md5.c 
-	@echo $(<F) [$(Build)]
-	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi.h \
 	./include/common/INet.h
 	@echo $(<F) [$(Build)]
@@ -1129,15 +1138,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GInput.h : 
 
-./include/common/GBox.h : ./include/common/GCss.h
-
-./include/common/GUnicode.h : ./include/common/LgiInc.h
-
 ./include/common/GRect.h : ./include/common/GPoint.h
-
-./include/common/GItemContainer.h : ./include/common/GPopup.h \
-	./include/common/GNotifications.h \
-	./include/common/GCss.h
 
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h
 
@@ -1178,6 +1179,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GProcess.h : ./include/common/GStream.h
 
+./src/common/Hash/md5/md5.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h
+
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/GStream.h
@@ -1193,6 +1197,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GLibraryUtils.h : 
 
 ./include/common/GPassword.h : 
+
+./src/common/Hash/sha1/sha1.h : ./include/common/LgiInc.h
 
 ./include/common/GDisplayString.h : 
 
@@ -1339,6 +1345,14 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GTableLayout.h : ./include/common/GCss.h \
 	./include/common/GNotifications.h
+
+./include/common/GUnicode.h : ./include/common/LgiInc.h
+
+./include/common/GBox.h : ./include/common/GCss.h
+
+./include/common/GItemContainer.h : ./include/common/GPopup.h \
+	./include/common/GNotifications.h \
+	./include/common/GCss.h
 
 ./include/common/GTextLabel.h : 
 
@@ -1544,6 +1558,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 VPATH=%.cpp \
 	./include/linux/Gtk \
 	./include/linux \
+	./src/common/Hash/sha1 \
 	./include/common \
+	./src/common/Hash/md5 \
 	$(BuildDir)
 
