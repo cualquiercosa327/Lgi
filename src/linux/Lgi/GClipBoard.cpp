@@ -61,6 +61,21 @@ bool GClipBoard::Empty()
 	return false;
 }
 
+bool GClipBoard::EnumFormats(::GArray<FormatType> &Formats)
+{
+	return false;
+}
+
+bool GClipBoard::Html(const char *doc, bool AutoEmpty)
+{
+	return false;
+}
+
+::GString GClipBoard::Html()
+{
+	return ::GString();
+}
+
 bool GClipBoard::Text(char *Str, bool AutoEmpty)
 {
 	bool Status = false;

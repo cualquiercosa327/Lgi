@@ -699,6 +699,7 @@ LgiRand.o : ./src/common/Lgi/LgiRand.cpp ./include/common/GMem.h \
 
 GString.o : ./src/common/Text/GString.cpp ./include/common/GMem.h \
 	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/LgiClass.h \
 	./include/common/GString.h \
 	./include/common/GContainers.h \
 	./include/common/LgiCommon.h
@@ -844,7 +845,8 @@ GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GDisplayString.h \
 	./include/common/GTableLayout.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/GPath.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -995,7 +997,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStringClass.h
 
 ./include/common/GStringClass.h : ./include/common/GUnicode.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/LgiClass.h
 
 ./include/common/GTabView.h : 
 
@@ -1097,7 +1100,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GFontSelect.h : 
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/LgiClass.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
@@ -1216,6 +1220,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
 ./include/common/GFile.h : ./include/common/GMem.h \
+	./include/common/LgiClass.h \
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
@@ -1253,7 +1258,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GAutoPtr.h : 
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/LgiClass.h
 
 ./include/common/Base64.h : ./include/common/LgiDefs.h
 
@@ -1428,7 +1434,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GPixelRops.h : 
 
 ./include/common/GStringClass.h : ./include/common/GUnicode.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/LgiClass.h
 
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -1459,6 +1466,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GLibrary.h : 
 
 ./include/common/GMru.h : ./include/common/GProperties.h
+
+./include/common/LgiClass.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h \
+	./include/common/GAutoPtr.h
 
 ./include/common/GTableLayout.h : ./include/common/GCss.h \
 	./include/common/GNotifications.h
@@ -1513,6 +1524,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GAutoPtr.h
 
 ./include/common/GFile.h : ./include/common/GMem.h \
+	./include/common/LgiClass.h \
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \

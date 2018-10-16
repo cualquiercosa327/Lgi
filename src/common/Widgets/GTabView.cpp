@@ -795,8 +795,9 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Erase the areas we will paint over
 					pDC->Op(GDC_SET);
-					pDC->Colour(0);
+					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : NoPaint);
 					pDC->Rectangle(&Clip00);
+					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : d->cFill);
 					pDC->Rectangle(&Clip01);
 					
 					// Draw in the rounded corners
@@ -812,8 +813,9 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Erase the areas we will paint over
 					pDC->Op(GDC_SET);
-					pDC->Colour(0);
+					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : NoPaint);
 					pDC->Rectangle(&Clip10);
+					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : d->cFill);
 					pDC->Rectangle(&Clip11);
 					
 					// Draw in the rounded corners
@@ -824,7 +826,8 @@ void GTabView::OnPaint(GSurface *pDC)
 
 				if (First || Last)
 				{
-					pScreen->Op(GDC_ALPHA);
+					if (pScreen->SupportsAlphaCompositing())
+						pScreen->Op(GDC_ALPHA);
 					pScreen->Blt(r.x1, r.y1, &Mem);
 				}
 				pDC = pScreen;

@@ -95,7 +95,7 @@
 			<Node File="../common/Lgi/GObject.cpp" Type="2" Platforms="15" />
 			<Node File="../common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
 			<Node File="../common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File="../common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/LgiCommon.cpp" Type="2" Platforms="15" />
 			<Node File="../common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="26">
@@ -312,6 +312,8 @@ WINDOWS</Release>
 				<All />
 			</Arguments>
 			<DebugAdmin />
+			<CCrossCompiler />
+			<CppCrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -428,6 +430,7 @@ freetype</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
+			<PostBuildCommands />
 		</Advanced>
 	</Settings>
 </Project>

@@ -746,7 +746,7 @@ int FloppyType(int Letter)
 	return 0;
 }
 
-bool GFileSystem::Copy(char *From, char *To, LError *Status, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(const char *From, const char *To, LError *Status, CopyFileCallback Callback, void *Token)
 {
 	GArray<char> Buf;
 
@@ -902,14 +902,17 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	return rmdir(PathName) == 0;
 }
 
-bool GFileSystem::SetCurrentFolder(char *PathName)
+bool GFileSystem::SetCurrentFolder(const char *PathName)
 {
 	return chdir(PathName) == 0;
 }
 
-bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
+GString GFileSystem::GetCurrentFolder()
 {
-	return getcwd(PathName, Length) != 0;
+	char s[MAX_PATH];
+	if (getcwd(s, sizeof(s)))
+		return s;
+	return NULL;
 }
 
 bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
