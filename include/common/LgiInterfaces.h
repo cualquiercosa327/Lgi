@@ -396,7 +396,7 @@ public:
 	Range Height;
 };
 
-class GViewI :
+class LgiClass GViewI :
 	public GEventsI,
 	public GEventSinkI,
 	public virtual GDomI

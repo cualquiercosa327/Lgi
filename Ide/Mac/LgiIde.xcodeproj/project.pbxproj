@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		34078E76217683810079A945 /* mac-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34078E75217683810079A945 /* mac-icon.icns */; };
 		3408BBC420A1C4C200E76EA0 /* DocEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408BBC020A1C4C200E76EA0 /* DocEdit.cpp */; };
 		3408BBC520A1C4C200E76EA0 /* DocEditStyling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408BBC220A1C4C200E76EA0 /* DocEditStyling.cpp */; };
 		3412BAC51A6256E60096412F /* icons.png in Resources */ = {isa = PBXBuildFile; fileRef = 3412BAC41A6256E60096412F /* icons.png */; };
@@ -48,11 +49,9 @@
 		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
 		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
 		34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7E1CB2866600730172 /* WebFldDlg.cpp */; };
-		34FF46C0215251E800CDE817 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FF46BF215251E800CDE817 /* PythonParser.cpp */; };
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
-		FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */ = {isa = PBXBuildFile; fileRef = FF7C285E1F62489E00C5E198 /* lgiide.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +82,7 @@
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiIde_Prefix.pch; sourceTree = "<group>"; };
+		34078E75217683810079A945 /* mac-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "mac-icon.icns"; path = "../Resources/mac-icon.icns"; sourceTree = "<group>"; };
 		3408BBC020A1C4C200E76EA0 /* DocEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DocEdit.cpp; path = ../Code/DocEdit.cpp; sourceTree = "<group>"; };
 		3408BBC120A1C4C200E76EA0 /* DocEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DocEdit.h; path = ../Code/DocEdit.h; sourceTree = "<group>"; };
 		3408BBC220A1C4C200E76EA0 /* DocEditStyling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DocEditStyling.cpp; path = ../Code/DocEditStyling.cpp; sourceTree = "<group>"; };
@@ -140,13 +140,11 @@
 		34D20B7C1CB2864700730172 /* IdeCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeCommon.cpp; path = ../Code/IdeCommon.cpp; sourceTree = "<group>"; };
 		34D20B7E1CB2866600730172 /* WebFldDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebFldDlg.cpp; path = ../Code/WebFldDlg.cpp; sourceTree = "<group>"; };
 		34D20B7F1CB2866600730172 /* WebFldDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebFldDlg.h; path = ../Code/WebFldDlg.h; sourceTree = "<group>"; };
-		34FF46BE215251E800CDE817 /* ParserCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParserCommon.h; path = ../Code/ParserCommon.h; sourceTree = "<group>"; };
 		34FF46BF215251E800CDE817 /* PythonParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PythonParser.cpp; path = ../Code/PythonParser.cpp; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* LgiIde.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiIde.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF7C285E1F62489E00C5E198 /* lgiide.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = lgiide.icns; path = ../Code/lgiide.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,7 +202,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				FF7C285E1F62489E00C5E198 /* lgiide.icns */,
+				34078E75217683810079A945 /* mac-icon.icns */,
 				32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */,
 				341B9A4E1DEACA060011CE44 /* cmds-32px.png */,
 				3412BAC41A6256E60096412F /* icons.png */,
@@ -413,8 +411,8 @@
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
+				34078E76217683810079A945 /* mac-icon.icns in Resources */,
 				349A25191A5E3D1D00F4263E /* LgiIde.lr8 in Resources */,
-				FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */,
 				349A25331A5E440100F4263E /* cmds-16px.png in Resources */,
 				3412BAC51A6256E60096412F /* icons.png in Resources */,
 			);
