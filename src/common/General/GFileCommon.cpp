@@ -8,6 +8,22 @@
 #include "Lgi.h"
 #include "GVariant.h"
 
+/////////////////////////////////////////////////////////////////////////////////
+bool GFileSystem::SetCurrentFolder(const char *PathName)
+{
+	return chdir(PathName) == 0;
+}
+
+GString GFileSystem::GetCurrentFolder()
+{
+	char p[MAX_PATH];
+	GString Cwd;
+	if (getcwd(p, sizeof(p)))
+		Cwd = p;
+	return Cwd;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
 bool GFile::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);

@@ -689,7 +689,7 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 }
 #endif
 
-bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(const char *From, const char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
@@ -1024,16 +1024,6 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	}
 	
 	return rmdir(PathName) == 0;
-}
-
-bool GFileSystem::SetCurrentFolder(char *PathName)
-{
-	return chdir(PathName) == 0;
-}
-
-bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
-{
-	return getcwd(PathName, Length) != 0;
 }
 
 bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
