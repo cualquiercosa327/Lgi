@@ -11,6 +11,8 @@
 	#define htonll LgiSwap64
 #endif
 
+#define LOG_ALL 0
+
 ////////////////////////////////////////////////////////////////////////////
 LSelect::LSelect(GSocket *sock)
 {
@@ -157,6 +159,20 @@ struct LWebSocketPriv
 
 	bool AddData(char *p, size_t Len)
 	{
+		#if LOG_ALL
+		LgiTrace("Websocket Read: %i\n", (int)Len);
+		for (unsigned i=0; i<Len; )
+		{
+			char s[300];
+			int ch = sprintf_s(s, sizeof(s), "%.8x: ", i);
+			for (int e = i + 16; i < e && i < Len; i++)
+				ch += sprintf_s(s+ch, sizeof(s)-ch, " %02x-%c", (uint8)p[i], p[i]>=' '?p[i]:' ');
+			s[ch++] = '\n';
+			s[ch] = 0;
+			LgiTrace("%.*s", ch, s);
+		}
+		#endif
+
 		if (Used + Len > Data.Length())
 			Data.Length(Used + Len + 1024);
 		memcpy(Data.AddressOf(Used), p, Len);
@@ -189,7 +205,7 @@ struct LWebSocketPriv
 		{
 			if (Used < 4)
 				return false; // Too short
-			Len = (p[2] << 8) || p[3];
+			Len = (p[2] << 8) | p[3];
 			p += 4;
 		}
 		else if (Len == 127)
@@ -238,8 +254,8 @@ struct LWebSocketPriv
 
 				// Consume the data
 				auto Remaining = End - p;
-				auto Pos = (char*)p - Data.AddressOf();
-				memcpy(Data.AddressOf(), Data.AddressOf(Pos), Remaining);
+				if (Remaining > 0)
+					memcpy(Data.AddressOf(), p, Remaining);
 				Used = Remaining;				
 			}
 			else
