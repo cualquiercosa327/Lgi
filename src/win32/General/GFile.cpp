@@ -8,8 +8,6 @@
 **		fret@memecode.com
 */
 
-#define DIR_PATH_SIZE	512
-
 /****************************** Includes ************************************************************************************/
 #include <tchar.h>
 #include <winsock2.h>
@@ -855,28 +853,6 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	}
 
 	return true;
-}
-
-GString GFileSystem::GetCurrentFolder()
-{
-	GString Cwd;
-
-	char16 w[DIR_PATH_SIZE+1];
-	if (::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
-		Cwd = w;
-
-	return Cwd;
-}
-
-bool GFileSystem::SetCurrentFolder(const char *PathName)
-{
-	bool Status = false;
-	
-	GAutoWString w(Utf8ToWide(PathName));
-	if (w)
-		Status = ::SetCurrentDirectoryW(w) != 0;
-
-	return Status;
 }
 
 bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)

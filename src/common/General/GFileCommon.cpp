@@ -11,15 +11,31 @@
 /////////////////////////////////////////////////////////////////////////////////
 bool GFileSystem::SetCurrentFolder(const char *PathName)
 {
-	return chdir(PathName) == 0;
+	#ifdef WINDOWS
+		bool Status = false;
+		GAutoWString w(Utf8ToWide(PathName));
+		if (w)
+			Status = ::SetCurrentDirectoryW(w) != 0;
+		return Status;
+	#else
+		return chdir(PathName) == 0;
+	#endif
 }
 
 GString GFileSystem::GetCurrentFolder()
 {
-	char p[MAX_PATH];
 	GString Cwd;
+
+	#ifdef WINDOWS
+		char16 w[DIR_PATH_SIZE+1];
+		if (::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
+			Cwd = w;
+	#else
+	char p[MAX_PATH];
 	if (getcwd(p, sizeof(p)))
 		Cwd = p;
+	#endif
+
 	return Cwd;
 }
 

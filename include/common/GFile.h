@@ -24,6 +24,7 @@
 typedef HANDLE							OsFile;
 #define INVALID_HANDLE					INVALID_HANDLE_VALUE
 #define ValidHandle(hnd)				((hnd) != INVALID_HANDLE_VALUE)
+#define DIR_PATH_SIZE					512
 
 #define O_READ							GENERIC_READ
 #define O_WRITE							GENERIC_WRITE
