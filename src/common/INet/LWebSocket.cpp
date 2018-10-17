@@ -388,6 +388,7 @@ bool LWebSocket::InitFromHeaders(GString Data, OsSocket Sock)
 	if (d->State == WsReceiveHdr)
 	{
 		d->InHdr = Data;
+		Handle(Sock);
 
 		auto End = d->InHdr.Find("\r\n\r\n");
 		if (End >= 0)
@@ -400,8 +401,6 @@ bool LWebSocket::InitFromHeaders(GString Data, OsSocket Sock)
 
 			HasMsg = d->SendResponse();
 		}
-
-		Handle(Sock);
 	}
 
 	return HasMsg;

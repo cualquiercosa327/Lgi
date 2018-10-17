@@ -82,18 +82,19 @@ class LJson
 			}
 			if (Str)
 			{
-				GString q = Str.Replace("\"", "\\\"");
+				GString q = GString::Escape(Str, Str.Length(), "\"\\");
 				s.Printf("\"%s\"", q.Get());
 				r += s;
 			}
 
 			if (Obj.Length())
 			{
-				if (Name)
+				// if (Name)
 				{
 					s.Printf("{\n");
 					Depth++;
 				}
+				
 				for (unsigned i=0; i<Obj.Length(); i++)
 				{
 					if (i)
@@ -102,7 +103,8 @@ class LJson
 					s += c.Print(Depth);
 				}
 				r += s;
-				if (Name)
+				
+				// if (Name)
 				{
 					s.Printf("\n%s}", d.Get());
 					r += s;
