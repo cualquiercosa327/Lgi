@@ -882,12 +882,14 @@ GString WinGetSpecialFolderPath(int Id)
 }
 
 //////////////////////////////////////////////////////////////////////
+#ifndef LGI_STATIC
 int LgiAssertDlg(GString Msg)
 {
 	GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
 	a.SetAppModal();
 	return a.DoModal();
 }
+#endif
 
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
@@ -920,6 +922,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				// We are in the GUI thread, show the dialog inline
 				Result = LgiAssertDlg(Msg);
 			}
+			/* This could not work if the app is locked up somewhere...
 			else if (LgiApp->AppWnd)
 			{
 				// Ask the GUI thread to show the dialog
@@ -927,6 +930,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				while (!Result)
 					LgiSleep(10);
 			}
+			*/
 			else
 			{
 				// Fall back to windows UI

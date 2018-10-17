@@ -346,7 +346,7 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia>
 {
 	s.Print("<p>");
 
-	GRange All(0, Txt.Length());
+	GRange All(0, Length());
 	if (!Rng)
 		Rng = &All;
 

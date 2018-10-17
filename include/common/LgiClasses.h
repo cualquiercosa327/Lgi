@@ -1711,6 +1711,7 @@ public:
 
 //////////////////////////////////////////////////////////////////
 
+#ifndef LGI_STATIC
 /// \brief A BeOS style alert window, kinda like a Win32 MessageBox
 ///
 /// The best thing about this class is you can name the buttons very specifically.
@@ -1743,6 +1744,7 @@ public:
     void SetAppModal();
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
+#endif
 
 /// Timer class to help do something every so often
 class LgiClass DoEvery
