@@ -899,15 +899,14 @@ ssize_t GSubProcess::Read(void *Buf, ssize_t Size, int TimeoutMs)
 int GSubProcess::Peek()
 {
 	#if defined(POSIX)
-		#warning FIXME
-		LgiAssert(0);
-		return 0;
+		int bytesAvailable = 0;
+		int r = ioctl(ChildOutput.Read, FIONREAD, &bytesAvailable);
+		return bytesAvailable;
 	#else		
 		DWORD Rd = 0, Avail = 0;
 		char Buf[32];
 		if (PeekNamedPipe(ChildOutput.Read, Buf, sizeof(Buf), &Rd, &Avail, NULL))
-			return Rd;
-		
+			return Rd;		
 		return 0;
 	#endif	
 }
