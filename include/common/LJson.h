@@ -316,7 +316,11 @@ public:
 
 	GString GetJson()
 	{
-		return Root.Print(0);
+		GString s = Root.Print(0);
+		#ifdef _DEBUG
+		LgiAssert(LgiIsUtf8(s));
+		#endif
+		return s;
 	}
 
 	GString Get(GString Addr)

@@ -934,7 +934,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 			else
 			{
 				// Fall back to windows UI
-				int r = MessageBoxA(NULL, Msg, "Lgi.Assert", MB_ABORTRETRYIGNORE);
+				int r = MessageBoxA(LgiApp->AppWnd ? LgiApp->AppWnd->Handle() : NULL, Msg, "Lgi.Assert", MB_ABORTRETRYIGNORE);
 				if (r == IDABORT) Result = 1;
 				else if (r == IDRETRY) Result = 2;
 				else Result = 3;
