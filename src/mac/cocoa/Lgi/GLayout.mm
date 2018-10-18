@@ -368,8 +368,7 @@ bool GLayout::Attach(GViewI *p)
 			// Then attach this view as a child
 			#if COCOA
 			
-			if ((_View = new _OsView))
-				_View->v = [[NSView alloc] initWithFrame:NSZeroRect];
+			_View.v = [[NSView alloc] initWithFrame:NSZeroRect];
 			
 			#else
 			

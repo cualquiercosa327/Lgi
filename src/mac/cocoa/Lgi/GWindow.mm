@@ -102,12 +102,12 @@ GView(0)
 	
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
-	Wnd = new _OsWindow;
-	Wnd->w = [[NSWindow alloc] initWithContentRect:frame
-                    styleMask:NSBorderlessWindowMask
+	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+	Wnd.w = [[NSWindow alloc] initWithContentRect:frame
+                    styleMask:windowStyleMask
                     backing:NSBackingStoreBuffered
                     defer:NO];
-	// [window makeKeyAndOrderFront:NSApp];
+	[Wnd.w makeKeyAndOrderFront:NSApp];
 	
 	#if 0
 	Rect r = pos;
@@ -319,7 +319,7 @@ void GWindow::Quit(bool DontDelete)
 	{
 		SetDragHandlers(false);
 		Wnd = 0;
-		_View = 0;
+		_View = NULL;
 		#if 0
 		OsWindow w = Wnd;
 		DisposeWindow(w);
@@ -371,14 +371,10 @@ void GWindow::OnFrontSwitch(bool b)
 
 bool GWindow::Visible()
 {
-	if (Wnd)
-	{
-		#if 0
-		return IsWindowVisible(Wnd);
-		#endif
-	}
+	if (!Wnd)
+		return false;
 	
-	return false;
+	return [Wnd.w isVisible];
 }
 
 void GWindow::Visible(bool i)
@@ -390,7 +386,7 @@ void GWindow::Visible(bool i)
 			d->InitVisible = true;
 			PourAll();
 
-			[Wnd->w makeKeyAndOrderFront:NULL];
+			[Wnd.w makeKeyAndOrderFront:NULL];
 			[NSApp activateIgnoringOtherApps:YES];
 
 			SetDefaultFocus(this);
@@ -1431,20 +1427,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 GRect &GWindow::GetPos()
 {
 	if (Wnd)
-	{
-		#if 0
-		Rect r;
-		OSStatus e = GetWindowBounds(Wnd, kWindowStructureRgn, &r);
-		if (!e)
-		{
-			Pos = r;
-		}
-		else
-		{
-			printf("%s:%i - GetWindowBounds failed (e=%i)\n", _FL, (int)e);
-		}
-		#endif
-	}
+		Pos = [Wnd.w frame];
 	
 	return Pos;
 }
@@ -1469,12 +1452,8 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	Pos = r;
 	if (Wnd)
 	{
-		#if 0
-		Rect rc;
-		rc = Pos;
-		OSStatus e = SetWindowBounds(Wnd, kWindowStructureRgn, &rc);
-		if (e) printf("%s:%i - SetWindowBounds error e=%i\n", _FL, (int)e);
-		#endif
+		NSRect pos = Pos;
+		[Wnd.w setFrame:pos display:YES];
 	}
 	
 	return true;
@@ -1754,6 +1733,9 @@ void GWindow::OnTrayClick(GMouse &m)
 
 bool GWindow::Obscured()
 {
-#warning Impl me sometime.
-	return false;
+	if (!Wnd)
+		return false;
+	
+	auto s = [Wnd.w occlusionState];
+	return !(s & NSWindowOcclusionStateVisible);
 }

@@ -327,7 +327,7 @@ bool GView::HasView(GViewI *v)
 OsWindow GView::WindowHandle()
 {
 	GWindow *w = GetWindow();
-	return (w) ? w->WindowHandle() : 0;
+	return (w) ? w->WindowHandle() : OsWindow();
 }
 
 GWindow *GView::GetWindow()
@@ -1243,7 +1243,7 @@ bool GView::Focus()
 	{
 		#if COCOA
 		if (_View)
-			Has = [NSView focusView] == _View->v;
+			Has = [NSView focusView] == _View.v;
 		#else
 		ControlRef Cur;
 		OSErr e = GetKeyboardFocus(w->WindowHandle(), &Cur);

@@ -32,23 +32,39 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-typedef struct _OsWindow
+class OsWindow
 {
 	#ifdef __OBJC__
+public:
 	NSWindow *w;
+	operator bool() { return w != NULL; }
+	OsWindow &operator=(NSWindow *i) { w = i; return *this; }
 	#else
-	NativeInt unused;
+	void *unused;
+public:
+	operator bool() { return unused != 0; }
+	OsWindow &operator=(void *i) { unused = i; return *this; }
 	#endif
-}	*OsWindow;
+};
 
-typedef struct _OsView
+class OsView
 {
 	#ifdef __OBJC__
+public:
 	NSView *v;
+	operator bool() { return v != NULL; }
+	OsView &operator=(NSView *i) { v = i; return *this; }
+	OsView &operator=(long i) { v = 0; return *this; }
+	OsView(long i = 0) { v = 0; }
 	#else
-	NativeInt unused;
+	void *unused;
+public:
+	operator bool() { return unused != 0; }
+	OsView &operator=(void *i) { unused = i; return *this; }
+	OsView &operator=(long i) { unused = 0; return *this; }
+	OsView(long i = 0) { unused = 0; }
 	#endif
-}	*OsView;
+};
 
 typedef pthread_t           OsThread;
 typedef uint64_t			OsThreadId;

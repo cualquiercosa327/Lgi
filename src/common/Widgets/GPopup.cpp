@@ -91,7 +91,7 @@ public:
 	GMouseHookPrivate() : LMutex("MouseHookLock"), LThread("MouseHook")
 	{
 		Loop = false;
-		hMouseOver = 0;
+		hMouseOver = NULL;
 
 		#ifdef MAC
 		ViewHandle = NULL;

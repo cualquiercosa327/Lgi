@@ -199,7 +199,7 @@ void GView::_Delete()
 	
 	if (_View)
 	{
-		_View = 0;
+		_View = NULL;
 	}
 }
 

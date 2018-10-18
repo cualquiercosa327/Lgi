@@ -590,7 +590,7 @@ public:
 	GView
 	(
 		/// The handle that the OS knows the window by
-		OsView wnd = 0
+		OsView wnd = NULL
 	);
 
 	/// Destructor
