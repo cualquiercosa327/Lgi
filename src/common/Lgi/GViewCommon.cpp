@@ -1199,8 +1199,12 @@ void GView::Visible(bool v)
 				Gtk::gtk_widget_show(_View);
 			else
 				Gtk::gtk_widget_hide(_View);
+		
+		#elif defined(COCOA)
 
-		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
+			[_View.p setHidden:!v];
+
+		#elif defined(LGI_CARBON)
 		
 			Boolean is = HIViewIsVisible(_View);
 			if (v != is)
@@ -1310,28 +1314,35 @@ void GView::Focus(bool i)
 				SetFocus(GetDesktopWindow());
 			}
 
-		#elif defined MAC
-
-			#if COCOA
+		#elif defined COCOA
 		
-				#warning FIXME
-		
-			#else
-		
-				GViewI *Wnd = GetWindow();
-				if (Wnd && i)
+			GWindow *w = GetWindow();
+			if (w)
+			{
+				OsWindow osw = w->WindowHandle();
+				if (osw)
 				{
-					OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
-					if (e)
-					{
-						HIViewRef p = HIViewGetSuperview(_View);
-						printf("%s:%i - SetKeyboardFocus failed: %i (%s, %p)\n", _FL, e, GetClass(), p);
-					}
-					// else printf("%s:%i - SetFocus v=%p(%s)\n", _FL, _View, GetClass());
+					if (i)
+						[osw.p makeFirstResponder:_View.p];
+					else
+						[osw.p makeFirstResponder:nil];
 				}
-				else printf("%s:%i - no window?\n", _FL);
+			}
+
+		#elif defined LGI_CARBON
 		
-			#endif
+			GViewI *Wnd = GetWindow();
+			if (Wnd && i)
+			{
+				OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
+				if (e)
+				{
+					HIViewRef p = HIViewGetSuperview(_View);
+					printf("%s:%i - SetKeyboardFocus failed: %i (%s, %p)\n", _FL, e, GetClass(), p);
+				}
+				// else printf("%s:%i - SetFocus v=%p(%s)\n", _FL, _View, GetClass());
+			}
+			else printf("%s:%i - no window?\n", _FL);
 		
 		#elif defined(BEOS)
 
@@ -2031,8 +2042,10 @@ bool GView::Name(const char *n)
 	if (_View)
 	{
 		#if WINNATIVE
+		
 		char16 *Temp = GBase::NameW();
 		SetWindowTextW(_View, Temp ? Temp : L"");
+		
 		#endif
 	}
 

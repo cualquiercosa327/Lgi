@@ -827,6 +827,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	if (Loop)
 	{
 		#if 1
+		// This impl allows for us to exit gracefully.
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		int Depth = ++d->RunDepth;
 		

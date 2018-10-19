@@ -8,6 +8,7 @@
 class GScreenPrivate
 {
 public:
+	CGContextRef Ctx;
 	GWindow *Wnd;
 	GView *View;
 	GRect Rc;
@@ -17,6 +18,7 @@ public:
 	
 	GScreenPrivate()
 	{
+		Ctx = nil;
 		Wnd = 0;
 		Bits = GdcD->GetBits();
 		Cur = Rgb32(0, 0, 0);
@@ -42,12 +44,14 @@ GScreenDC::GScreenDC(GWindow *w, void *param)
 {
 	d = new GScreenPrivate;
 	d->Wnd = w;
+	d->Ctx = [NSGraphicsContext currentContext].CGContext;
 }
 
 GScreenDC::GScreenDC(GView *v, void *param)
 {
 	d = new GScreenPrivate;
 	d->View = v;
+	d->Ctx = [NSGraphicsContext currentContext].CGContext;
 }
 
 GScreenDC::GScreenDC(GPrintDcParams *params)
@@ -70,14 +74,14 @@ bool GScreenDC::GetClient(GRect *c)
 	if (!c)
 		return false;
 	
-	// *c = d->Rc;
+	*c = d->Rc;
 	return true;
 }
 
 void GScreenDC::SetClient(GRect *c)
 {
+	#if 0
 	// 'c' is in absolute coordinates
-	/*
 	if (d->Ctx)
 	{
 		if (c)
@@ -104,7 +108,9 @@ void GScreenDC::SetClient(GRect *c)
 			printf(")\n");
 			#endif
 			
-			CGRect rect = {{c->x1-Ox, c->y1-Oy}, {c->X(), c->Y()}};
+			CGRect rect = *c;
+			rect.origin.x -= Ox;
+			rect.origin.y -= Oy;
 			CGContextClipToRect(d->Ctx, rect);
 			CGContextTranslateCTM(d->Ctx, rect.origin.x, rect.origin.y);
 		}
@@ -117,7 +123,7 @@ void GScreenDC::SetClient(GRect *c)
 		
 	}
 	else printf("%s:%i - No context?\n", _FL);
-	*/
+	#endif
 }
 
 int GScreenDC::GetFlags()
@@ -160,15 +166,12 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		GRect Client = d->Client();
 		c.Bound(&Client);
 
-		/*
 		CGContextSaveGState(d->Ctx);
-		CGRect rect = {{c.x1, c.y1}, {c.X(), c.Y()}};
-		CGContextClipToRect(d->Ctx, rect);
-		*/
+		CGContextClipToRect(d->Ctx, c);
 	}
 	else
 	{
-		// CGContextRestoreGState(d->Ctx);			
+		CGContextRestoreGState(d->Ctx);
 	}
 
 	return Prev;
@@ -185,16 +188,16 @@ GColour GScreenDC::Colour(GColour c)
 
 	d->Cur = c.c32();
 	
-//	if (d->Ctx)
-//	{
-//		float r = (float)R32(d->Cur)/255.0;
-//		float g = (float)G32(d->Cur)/255.0;
-//		float b = (float)B32(d->Cur)/255.0;
-//		float a = (float)A32(d->Cur)/255.0;
-//		
-//		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
-//		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
-//	}
+	if (d->Ctx)
+	{
+		float r = (float)R32(d->Cur)/255.0;
+		float g = (float)G32(d->Cur)/255.0;
+		float b = (float)B32(d->Cur)/255.0;
+		float a = (float)A32(d->Cur)/255.0;
+		
+		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
+		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
+	}
 
 	return Prev;
 }
@@ -204,16 +207,16 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 	COLOUR Prev = d->Cur;
 
 	d->Cur = CBit(32, c, Bits);
-//	if (d->Ctx)
-//	{
-//		float r = (float)R32(d->Cur)/255.0;
-//		float g = (float)G32(d->Cur)/255.0;
-//		float b = (float)B32(d->Cur)/255.0;
-//		float a = (float)A32(d->Cur)/255.0;
-//		
-//		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
-//		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
-//	}
+	if (d->Ctx)
+	{
+		float r = (float)R32(d->Cur)/255.0;
+		float g = (float)G32(d->Cur)/255.0;
+		float b = (float)B32(d->Cur)/255.0;
+		float a = (float)A32(d->Cur)/255.0;
+		
+		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
+		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
+	}
 
 	return Prev;
 }
@@ -255,11 +258,11 @@ int GScreenDC::GetBits()
 
 void GScreenDC::Set(int x, int y)
 {
-//	if (d->Ctx)
-//	{
-//		CGRect r = {{x, y}, {1.0, 1.0}};
-//		CGContextFillRect(d->Ctx, r);
-//	}
+	if (d->Ctx)
+	{
+		CGRect r = {{(double)x, (double)y}, {1.0, 1.0}};
+		CGContextFillRect(d->Ctx, r);
+	}
 }
 
 COLOUR GScreenDC::Get(int x, int y)
@@ -279,25 +282,25 @@ uint GScreenDC::LineStyle()
 
 void GScreenDC::HLine(int x1, int x2, int y)
 {
-//	if (d->Ctx)
-//	{
-//		CGRect r = {{x1, y}, {x2-x1+1.0, 1.0}};
-//		CGContextFillRect(d->Ctx, r);
-//	}
+	if (d->Ctx)
+	{
+		CGRect r = {{(double)x1, (double)y}, {x2-x1+1.0, 1.0}};
+		CGContextFillRect(d->Ctx, r);
+	}
 }
 
 void GScreenDC::VLine(int x, int y1, int y2)
 {
-//	if (d->Ctx)
-//	{
-//		CGRect r = {{x, y1}, {1.0, y2-y1+1.0}};
-//		CGContextFillRect(d->Ctx, r);
-//	}
+	if (d->Ctx)
+	{
+		CGRect r = {{(double)x, (double)y1}, {1.0, y2-y1+1.0}};
+		CGContextFillRect(d->Ctx, r);
+	}
 }
 
 void GScreenDC::Line(int x1, int y1, int x2, int y2)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
 		if (y1 == y2)
 		{
@@ -308,8 +311,8 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 				x1 = x2;
 				x2 = i;
 			}
-//			CGRect r = {{x1, y1}, {x2-x1+1.0, 1.0}};
-//			CGContextFillRect(d->Ctx, r);
+			CGRect r = {{(double)x1, (double)y1}, {x2-x1+1.0, 1.0}};
+			CGContextFillRect(d->Ctx, r);
 		}
 		else if (x1 == x2)
 		{
@@ -320,38 +323,38 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 				y1 = y2;
 				y2 = i;
 			}
-//			CGRect r = {{x1, y1}, {1.0, y2-y1+1.0}};
-//			CGContextFillRect(d->Ctx, r);
+			CGRect r = {{(double)x1, (double)y1}, {1.0, y2-y1+1.0}};
+			CGContextFillRect(d->Ctx, r);
 		}
 		else
 		{
-//			CGPoint p[] = {{x1+0.5, y1+0.5}, {x2+0.5, y2+0.5}};
-//			CGContextBeginPath(d->Ctx);
-//			CGContextAddLines(d->Ctx, p, 2);
-//			CGContextStrokePath(d->Ctx);
+			CGPoint p[] = {{x1+0.5, y1+0.5}, {x2+0.5, y2+0.5}};
+			CGContextBeginPath(d->Ctx);
+			CGContextAddLines(d->Ctx, p, 2);
+			CGContextStrokePath(d->Ctx);
 		}
 	}
 }
 
 void GScreenDC::Circle(double cx, double cy, double radius)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
-//		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
-//		CGContextBeginPath(d->Ctx);
-//		CGContextAddEllipseInRect(d->Ctx, r);
-//		CGContextStrokePath(d->Ctx);
+		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextStrokePath(d->Ctx);
 	}
 }
 
 void GScreenDC::FilledCircle(double cx, double cy, double radius)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
-//		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
-//		CGContextBeginPath(d->Ctx);
-//		CGContextAddEllipseInRect(d->Ctx, r);
-//		CGContextFillPath(d->Ctx);
+		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextFillPath(d->Ctx);
 	}
 }
 
@@ -365,117 +368,119 @@ void GScreenDC::FilledArc(double cx, double cy, double radius, double start, dou
 
 void GScreenDC::Ellipse(double cx, double cy, double x, double y)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
-//		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
-//		CGContextBeginPath(d->Ctx);
-//		CGContextAddEllipseInRect(d->Ctx, r);
-//		CGContextStrokePath(d->Ctx);
+		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextStrokePath(d->Ctx);
 	}
 }
 
 void GScreenDC::FilledEllipse(double cx, double cy, double x, double y)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
-//		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
-//		CGContextBeginPath(d->Ctx);
-//		CGContextAddEllipseInRect(d->Ctx, r);
-//		CGContextFillPath(d->Ctx);
+		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextFillPath(d->Ctx);
 	}
 }
 
 void GScreenDC::Box(int x1, int y1, int x2, int y2)
 {
-//	if (d->Ctx)
+	if (d->Ctx)
 	{
-//		CGRect r = {{x1+0.5, y1+0.5}, {x2-x1, y2-y1}};
-//		CGContextSetLineWidth(d->Ctx, 1.0);
-//		CGContextStrokeRect(d->Ctx, r);
+		CGRect r = {{x1+0.5, y1+0.5}, {(double)x2-x1, (double)y2-y1}};
+		CGContextSetLineWidth(d->Ctx, 1.0);
+		CGContextStrokeRect(d->Ctx, r);
 	}
 }
 
 void GScreenDC::Box(GRect *a)
 {
-//	if (d->Ctx AND a)
-//	{
-//		CGRect r = {{a->x1+0.5, a->y1+0.5}, {a->x2-a->x1, a->y2-a->y1}};
-//		CGContextSetLineWidth(d->Ctx, 1.0);
-//		CGContextStrokeRect(d->Ctx, r);
-//	}
+	if (d->Ctx && a)
+	{
+		CGRect r = {{a->x1+0.5, a->y1+0.5}, {(double)a->x2-a->x1, (double)a->y2-a->y1}};
+		CGContextSetLineWidth(d->Ctx, 1.0);
+		CGContextStrokeRect(d->Ctx, r);
+	}
 }
 
 void GScreenDC::Rectangle(int x1, int y1, int x2, int y2)
 {
-//	if (d->Ctx)
-//	{
-//		CGRect r = {{x1, y1}, {x2-x1+1.0, y2-y1+1.0}};
-//		CGContextFillRect(d->Ctx, r);
-//	}
+	if (d->Ctx)
+	{
+		CGRect r = {{(double)x1, (double)y1}, {x2-x1+1.0, y2-y1+1.0}};
+		CGContextFillRect(d->Ctx, r);
+	}
 }
 
 void GScreenDC::Rectangle(GRect *a)
 {
-//	if (d->Ctx)
-//	{
-//		GRect c;
-//		if (!a)
-//		{
-//			c = d->Client();
-//			a = &c;
-//		}
-//
-//		CGRect r = {{a->x1, a->y1}, {a->x2-a->x1+1.0, a->y2-a->y1+1.0}};
-//		CGContextFillRect(d->Ctx, r);
-//	}
+	if (d->Ctx)
+	{
+		GRect c;
+		if (!a)
+		{
+			c = d->Client();
+			a = &c;
+		}
+
+		CGRect r = {{(double)a->x1, (double)a->y1}, {a->x2-a->x1+1.0, a->y2-a->y1+1.0}};
+		CGContextFillRect(d->Ctx, r);
+	}
 }
 
 void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
-//	if (Src && d->Ctx)
-//	{
-//		GRect b;
-//		if (a)
-//		{
-//			b = *a;
-//			GRect f(0, 0, Src->X()-1, Src->Y()-1);
-//			b.Bound(&f);
-//		}
-//		else
-//		{
-//			b.ZOff(Src->X()-1, Src->Y()-1);
-//		}
-//		
-//		if (b.Valid())
-//		{
-//			if (Src->IsScreen())
-//			{
-//				// Scroll region...
-//			}
-//			else
-//			{
-//				// Blt mem->screen
-//				GMemDC *Mem = dynamic_cast<GMemDC*>(Src);
-//				if (Mem)
-//				{
-//					CGImg *i = Mem->GetImg(a ? &b : 0);
-//					if (i)
-//					{
-//						HIRect r;
-//						r.origin.x = x;
-//						r.origin.y = y;
-//						r.size.width = b.X();
-//						r.size.height = b.Y();
-//						CGImageRef Img = *i;
-//						
-//						HIViewDrawCGImage(d->Ctx, &r, Img);
-//						
-//						DeleteObj(i);
-//					}
-//				}
-//			}
-//		}
-//	}
+	if (Src && d->Ctx)
+	{
+		GRect b;
+		if (a)
+		{
+			b = *a;
+			GRect f(0, 0, Src->X()-1, Src->Y()-1);
+			b.Bound(&f);
+		}
+		else
+		{
+			b.ZOff(Src->X()-1, Src->Y()-1);
+		}
+		
+		if (b.Valid())
+		{
+			if (Src->IsScreen())
+			{
+				// Scroll region...
+			}
+			else
+			{
+				// Blt mem->screen
+				GMemDC *Mem = dynamic_cast<GMemDC*>(Src);
+				if (Mem)
+				{
+					/*
+					CGImg *i = Mem->GetImg(a ? &b : 0);
+					if (i)
+					{
+						HIRect r;
+						r.origin.x = x;
+						r.origin.y = y;
+						r.size.width = b.X();
+						r.size.height = b.Y();
+						CGImageRef Img = *i;
+						
+						HIViewDrawCGImage(d->Ctx, &r, Img);
+						
+						DeleteObj(i);
+					}
+					*/
+				}
+			}
+		}
+	}
 }
 
 void GScreenDC::StretchBlt(GRect *dst, GSurface *Src, GRect *s)

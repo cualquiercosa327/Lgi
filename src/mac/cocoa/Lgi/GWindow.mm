@@ -52,6 +52,7 @@ public:
 	bool DeleteWhenDone;
 	bool InitVisible;
 	bool CloseRequestDone;
+	bool Closing;
 	
 	GWindowPrivate(GWindow *wnd)
 	{
@@ -68,6 +69,7 @@ public:
 		SnapToEdge = false;
 		EmptyMenu = 0;
 		CloseRequestDone = false;
+		Closing = false;
 	}
 	
 	~GWindowPrivate()
@@ -131,7 +133,7 @@ public:
 
 - (void)windowWillClose:(NSNotification*)aNotification
 {
-	if (d->Wnd)
+	if (d->Wnd && !d->Closing)
 		d->Wnd->Quit();
 }
 
@@ -179,10 +181,13 @@ GWindow::~GWindow()
 	
 	if (Wnd)
 	{
-		#if 0
-		DisposeWindow(Wnd);
-		#endif
-		Wnd = NULL;
+		// Is all this neccesary?
+		[Wnd.p setDelegate:nil];
+		[d->Delegate release];
+		d->Delegate = nil;
+
+		[Wnd.p release];
+		Wnd.p = nil;
 	}
 	
 	DeleteObj(Menu);
@@ -357,12 +362,8 @@ void GWindow::Quit(bool DontDelete)
 	if (Wnd)
 	{
 		SetDragHandlers(false);
-		Wnd = NULL;
-		_View = NULL;
-		#if 0
-		OsWindow w = Wnd;
-		DisposeWindow(w);
-		#endif
+		d->Closing = true;
+		[Wnd.p close];
 	}
 }
 
@@ -418,26 +419,23 @@ bool GWindow::Visible()
 
 void GWindow::Visible(bool i)
 {
-	if (Wnd)
+	if (!Wnd)
+		return;
+
+	if (i)
 	{
-		if (i)
-		{
-			d->InitVisible = true;
-			PourAll();
+		d->InitVisible = true;
+		PourAll();
 
-			[Wnd.p makeKeyAndOrderFront:NULL];
-			[NSApp activateIgnoringOtherApps:YES];
+		[Wnd.p makeKeyAndOrderFront:NULL];
+		[NSApp activateIgnoringOtherApps:YES];
 
-			SetDefaultFocus(this);
-		}
-		else
-		{
-			#if 0
-			HideWindow(Wnd);
-			#endif
-		}
-		
+		SetDefaultFocus(this);
 		OnPosChange();
+	}
+	else
+	{
+		[Wnd.p orderOut:Wnd.p];
 	}
 }
 

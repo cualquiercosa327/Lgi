@@ -361,7 +361,8 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			if (p)
 				o = p->_BorderSize;
 		}
-		
+
+		[_View.p setFrame:Pos];
 	}
 	else if (GetParent())
 		OnPosChange();
@@ -644,13 +645,10 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 bool GView::IsAttached()
 {
 	if (GetWindow() == this)
-	{
 		return WindowHandle() != 0;
-	}
 
-	if (Handle() && d->Parent)
-	{
-	}
+	if (_View)
+		return [_View.p window] != nil;
 	
 	return false;
 }
@@ -838,9 +836,47 @@ static int GetIsChar(GKey &k, int mods)
 }
 #endif
 
+@interface LCocoaView : NSView
+{
+	GView *v;
+}
+- (id)init:(GView*)view;
+- (void)dealloc;
+- (void)drawRect:(NSRect)dirtyRect;
+@end
+
+@implementation LCocoaView
+
+- (id)init:(GView*)view
+{
+	if ((self = [super initWithFrame:view->GetPos()]) != nil)
+	{
+		v = view;
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	v = nil;
+	[super dealloc];
+}
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+	GScreenDC Dc(v);
+	v->OnPaint(&Dc);
+}
+
+@end
+
 bool GView::_Attach(GViewI *parent)
 {
-	bool Status = false;
+	if (!parent)
+	{
+		LgiAssert(0);
+		return false;
+	}
 
 	d->ParentI = parent;
 	d->Parent = d->ParentI ? parent->GetGView() : NULL;
@@ -849,29 +885,36 @@ bool GView::_Attach(GViewI *parent)
 	_Window = d->GetParent() ? d->GetParent()->GetWindow() : 0;
 	if (_Window)
 		_Lock = _Window->_Lock;
+
+	if (!_View)
+		_View.p = [[LCocoaView alloc] init:this];
 	
-	if (d->GetParent() &&
-		d->GetParent()->IsAttached())
+	auto p = d->GetParent();
+	if (p &&
+		p->IsAttached())
 	{
-		GWindow *w = GetWindow();
+		GWindow *w = dynamic_cast<GWindow*>(p);
 		if (w)
 		{
-			if (_View)
-			{
-				// Set the view position
-				SetPos(Pos);				
-			}
+			LgiAssert(w->WindowHandle().p);
+			[w->WindowHandle().p.contentView addSubview:_View.p];
 		}
-		else printf("%s:%i - No window to attach to.\n", _FL);
+		else
+		{
+			LgiAssert(p->Handle().p);
+			[p->Handle().p addSubview:_View.p];
+		}
+		
 	}
 	else
 	{
 		// Virtual attach
-		printf("Warning: Virtual Attach %s->%s\n", d->Parent ? d->Parent->GetClass() : 0, GetClass());
-		Status = true;
 	}
 
-	return Status;
+	p->Children.Add(this);
+	OnAttach();
+
+	return true;
 }
 
 bool GView::Attach(GViewI *parent)
