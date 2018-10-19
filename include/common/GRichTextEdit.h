@@ -152,7 +152,7 @@ public:
 	void SelectWord(size_t From);
 	void SelectAll();
 	ssize_t GetCaret(bool Cursor = true);
-	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
+	bool GetLineColumnAtIndex(GdcPt2 &Pt, ssize_t Index = -1);
 	size_t GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();

@@ -574,7 +574,7 @@ void GRichTextEdit::GetTextExtent(int &x, int &y)
 	y = d->DocumentExtent.y;
 }
 
-bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
+bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, ssize_t Index)
 {
 	ssize_t Offset = -1;
 	int BlockLines = -1;
