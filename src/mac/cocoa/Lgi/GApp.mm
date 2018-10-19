@@ -287,7 +287,7 @@ class GAppPrivate
 {
 public:
 	NSApplication *NsApp;
-
+	int RunDepth;
 
 	// Common
 	GXmlTag *Config;
@@ -309,6 +309,7 @@ public:
 	GAppPrivate()
 	{
 		NsApp = NULL;
+		RunDepth = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -817,9 +818,39 @@ void IdleGlue(EventLoopTimerRef inTimer, void *inUserData)
 
 bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
+	if (!d->NsApp)
+	{
+		LgiAssert(!"No d->NsApp");
+		return false;
+	}
+
 	if (Loop)
 	{
+		#if 1
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		int Depth = ++d->RunDepth;
+		
+		do
+		{
+			[pool release];
+			pool = [[NSAutoreleasePool alloc] init];
+
+			NSEvent *event =
+				[	d->NsApp
+					nextEventMatchingMask:NSAnyEventMask
+					untilDate:[NSDate distantFuture]
+					inMode:NSDefaultRunLoopMode
+					dequeue:YES];
+
+			[d->NsApp sendEvent:event];
+			[d->NsApp updateWindows];
+		}
+		while (d->RunDepth >= Depth);
+		
+		[pool release];
+		#else
 		NSApplicationMain(GetArgs(), GetArg());
+		#endif
 		return true;
 	}
 	else
@@ -889,10 +920,9 @@ void GApp::Exit(int Code)
 		// hard exit
 		::exit(Code);
 	}
-	else
+	else if (d->RunDepth > 0)
 	{
-		// soft exit
-		// QuitApplicationEventLoop();
+		d->RunDepth--;
 	}
 }
 

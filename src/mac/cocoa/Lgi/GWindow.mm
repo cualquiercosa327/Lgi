@@ -19,29 +19,43 @@ public:
 	GView *Target;
 };
 
+@interface GWindowDelegate : NSObject <NSWindowDelegate>
+{
+	GWindowPrivate *d;
+}
+- (id)init:(GWindowPrivate*)priv;
+- (void)dealloc;
+- (void)windowDidResize:(NSNotification *)aNotification;
+- (void)windowWillClose:(NSNotification*)aNotification;
+- (BOOL)windowShouldClose:(id)sender;
+@end
 
 class GWindowPrivate
 {
 public:
 	GWindow *Wnd;
+	GWindowDelegate *Delegate;
+	GDialog *ChildDlg;
+	GMenu *EmptyMenu;
+	GViewI *Focus;
+
 	int Sx, Sy;
-	bool Dynamic;
+
 	GKey LastKey;
 	GArray<HookInfo> Hooks;
+
+	uint64 LastMinimize;
+	uint64 LastDragDrop;
+
+	bool Dynamic;
 	bool SnapToEdge;
-	GDialog *ChildDlg;
 	bool DeleteWhenDone;
 	bool InitVisible;
-	uint64 LastMinimize;
 	bool CloseRequestDone;
-	uint64 LastDragDrop;
-	
-	GMenu *EmptyMenu;
-	
-	GViewI *Focus;
 	
 	GWindowPrivate(GWindow *wnd)
 	{
+		Delegate = NULL;
 		Focus = NULL;
 		InitVisible = false;
 		LastMinimize = 0;
@@ -83,6 +97,46 @@ public:
 	}
 };
 
+@implementation GWindowDelegate
+
+- (id)init:(GWindowPrivate*)priv
+{
+	d = nil;
+    if ((self = [super init]) != nil)
+    {
+        d = priv;
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    d = nil;
+    [super dealloc];
+}
+
+- (void)windowDidResize:(NSNotification*)event
+{
+	LgiAssert(d);
+	if (d->Wnd)
+		d->Wnd->OnPosChange();
+}
+
+- (BOOL)windowShouldClose:(id)sender
+{
+	if (!d->Wnd)
+		return YES;
+	return d->Wnd->OnRequestClose(false);
+}
+
+- (void)windowWillClose:(NSNotification*)aNotification
+{
+	if (d->Wnd)
+		d->Wnd->Quit();
+}
+
+@end
+
 ///////////////////////////////////////////////////////////////////////
 #define GWND_CREATE		0x0010000
 
@@ -106,26 +160,12 @@ GWindow::GWindow() : GView(NULL)
                     styleMask:windowStyleMask
                     backing:NSBackingStoreBuffered
                     defer:NO];
-	[Wnd.p makeKeyAndOrderFront:NSApp];
-	
-	#if 0
-	Rect r = pos;
-	
-	OSStatus e = CreateNewWindow
-	(
-		kDocumentWindowClass,
-		kWindowStandardDocumentAttributes |
-		kWindowStandardHandlerAttribute |
-		kWindowCompositingAttribute |
-		kWindowLiveResizeAttribute,
-		&r,
-		&Wnd
-	);
-	if (e)
+	if (Wnd)
 	{
-		printf("%s:%i - CreateNewWindow failed (e=%i).\n", _FL, (int)e);
+		[Wnd.p makeKeyAndOrderFront:NSApp];
+		d->Delegate = [[GWindowDelegate alloc] init:d];
+		[Wnd.p setDelegate:d->Delegate];
 	}
-	#endif
 }
 
 GWindow::~GWindow()
