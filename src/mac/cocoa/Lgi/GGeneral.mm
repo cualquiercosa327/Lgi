@@ -14,6 +14,10 @@
 #include "GButton.h"
 #include "INet.h"
 
+#include <sys/types.h>
+#include <pwd.h>
+#include <uuid/uuid.h>
+
 ////////////////////////////////////////////////////////////////
 // Local helper functions
 bool _lgi_check_file(char *Path)
@@ -429,10 +433,10 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 			{
 				// Is this an app bundle?
 				bool IsAppBundle = false;
-				char *Last = strrchr(File, '/');
+				auto Last = strrchr(File, '/');
 				if (Last)
 				{
-					char *Dot = strrchr(Last, '.');
+					auto Dot = strrchr(Last, '.');
 					IsAppBundle = Dot && !stricmp(Dot, ".app");
 					
 					/* Ideally in OSX before 10.6 we'd convert to calling the executable in
@@ -440,16 +444,16 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 					 support arguments before 10.6
 					 if (ValidStr(Args))
 					 {
-					 GArray<int> Ver;
-					 LgiGetOs(Ver);
-					 if (Ver.Length() > 1)
-					 {
-					 if (Ver[0] < 10 ||
-					 Ver[1] < 6)
-					 {
-					 IsAppBundle = false;
-					 }
-					 }
+						 GArray<int> Ver;
+						 LgiGetOs(Ver);
+						 if (Ver.Length() > 1)
+						 {
+							 if (Ver[0] < 10 ||
+							 Ver[1] < 6)
+							 {
+								 IsAppBundle = false;
+							 }
+						 }
 					 }
 					 */
 				}
@@ -565,3 +569,14 @@ if (Ext2) Ext.Add(Ext2); }
 	
 	return Ext.Length() > Start;
 }
+
+
+GString LgiCurrentUserName()
+{
+	struct passwd *pw = getpwuid(geteuid());
+	if (pw)
+		return pw->pw_name;
+	
+	return "";
+}
+

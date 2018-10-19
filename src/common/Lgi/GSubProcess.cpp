@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #endif
 #ifdef BEOS
 #include <sys/select.h>
@@ -900,7 +901,7 @@ int GSubProcess::Peek()
 {
 	#if defined(POSIX)
 		int bytesAvailable = 0;
-		int r = ioctl(ChildOutput.Read, FIONREAD, &bytesAvailable);
+		int r = ioctl(Io.Read, FIONREAD, &bytesAvailable);
 		return bytesAvailable;
 	#else		
 		DWORD Rd = 0, Avail = 0;

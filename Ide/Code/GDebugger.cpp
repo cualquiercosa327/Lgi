@@ -1079,7 +1079,7 @@ public:
 				continue;
 			}
 
-			int EqPos = CurLine.Find("=");
+			ssize_t EqPos = CurLine.Find("=");
 			if (EqPos > 0)
 			{
 				char *val = CurLine.Get() + EqPos + 1;

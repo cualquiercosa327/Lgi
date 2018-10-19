@@ -19,7 +19,7 @@ levenshtein(const char *a, const char *b) {
   unsigned int bIndex = 0;
   unsigned int distance;
   unsigned int bDistance;
-  unsigned int result;
+  unsigned int result = 10000;
   char code;
 
   /* Shortcut optimizations / degenerate cases. */
