@@ -1009,8 +1009,8 @@ char *_lgi_gview_cmp(GView *a, GView *b)
 				"GView: %p,%p Hnd: %p,%p",
 				dynamic_cast<GView*>(a),
 				dynamic_cast<GView*>(b),
-				a->Handle(),
-				b->Handle());
+				(void*)a->Handle(),
+				(void*)b->Handle());
 	}
 	else
 	{

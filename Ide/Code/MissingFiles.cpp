@@ -132,7 +132,7 @@ public:
 				for (unsigned i=0; i<Files.Length(); i++)
 				{
 					char *leaf2 = LgiGetLeaf(Files[i]);
-					unsigned int Dist = levenshtein(leaf1, leaf2);
+					size_t Dist = levenshtein(leaf1, leaf2);
 					if (Dist < 4)
 					{
 						Sr->Matches.New() = Files[i];

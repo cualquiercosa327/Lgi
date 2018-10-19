@@ -88,7 +88,7 @@ public:
 
 	int Find(const char *Str)
 	{
-		int Slen = strlen(Str);
+		auto Slen = strlen(Str);
 		GString Src;
 
 		if (Type == DefnFunc)
@@ -99,7 +99,7 @@ public:
 		char *Match = stristr(Src, Str);
 		if (!Match)
 			return 0;
-		int Idx = Match - Src.Get();
+		auto Idx = Match - Src.Get();
 		if (Idx < 0)
 			return 0;
 

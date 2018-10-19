@@ -1839,7 +1839,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 		
 			if (FileExists(LgiArgsAppPath))
 			{
-				strcpy_s(Dst, DstSize, LgiArgsAppPath);
+				LgiMakePath(Dst, DstSize, LgiArgsAppPath, "../../..");
 				Status = true;
 			}
 		

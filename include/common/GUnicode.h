@@ -662,7 +662,7 @@ T *Stristr(const T *Data, const T *Value)
 
 /// Searches the string 'Data' for the 'Value' in a case insensitive manner
 template<typename T>
-T *Strnstr(const T *Data, const T *Value, ptrdiff_t DataLen)
+T *Strnstr(const T *Data, const T *Value, ssize_t DataLen)
 {
 	if (!Data || !Value)
 		return NULL;

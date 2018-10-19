@@ -888,7 +888,7 @@ public:
 					if (*end) end++;
 				}
 
-				int len = end - s;
+				auto len = end - s;
 				memmove(s, end, e - end);
 				a.Length(a.Length() - len);
 				s--;
@@ -920,11 +920,11 @@ public:
 				
 				GAutoPtr<char16, true> w(Utf8ToWide(Utf, (ssize_t)Size));
 				char16 *OldText = Txt[Channel]->NameW();
-				int OldLen = 0;
+				size_t OldLen = 0;
 				if (OldText)
 					OldLen = StrlenW(OldText);
 
-				int Cur = Txt[Channel]->GetCaret();
+				auto Cur = Txt[Channel]->GetCaret();
 				Txt[Channel]->Insert(OldLen, w, StrlenW(w));
 				if (Cur > OldLen - 1)
 				{
@@ -1176,11 +1176,11 @@ public:
 		}
 	}
 	
-	void GetContext(char16 *Txt, int &i, char16 *&Context)
+	void GetContext(char16 *Txt, ssize_t &i, char16 *&Context)
 	{
 		static char16 NMsg[] = L"In file included ";
 		static char16 FromMsg[] = L"from ";
-		int NMsgLen = StrlenW(NMsg);
+		auto NMsgLen = StrlenW(NMsg);
 
 		if (Txt[i] != '\n')
 			return;
@@ -1248,7 +1248,7 @@ public:
 		char16 *Context = NULL;
 		
 		// Scan forward to the end of file for the next filename/line number separator.
-		int i;
+		ssize_t i;
 		for (i=Cur; Txt[i]; i++)
 		{
 			GetContext(Txt, i, Context);
@@ -1288,7 +1288,7 @@ public:
 			return;
 
 		// Scan back to the start of the filename
-		int Line = i;
+		auto Line = i;
 		while (Line > 0 && Txt[Line-1] != '\n')
 		{
 			Line--;
@@ -1300,7 +1300,7 @@ public:
 			return;
 
 		// Scan over the line number..
-		int NumIndex = ++i;
+		auto NumIndex = ++i;
 		while (isdigit(Txt[NumIndex]))
 			NumIndex++;
 							
@@ -1714,7 +1714,7 @@ public:
 			return -1;
 
 		char Buf[256];
-		int Rd;
+		ssize_t Rd;
 		while ((Rd = s.Read(Buf, sizeof(Buf))) > 0)
 		{
 			Out->Write(Buf, Rd);
@@ -1932,7 +1932,7 @@ bool AppWnd::LoadBreakPoints(GDebugger *db)
 	return true;
 }
 
-bool AppWnd::ToggleBreakpoint(const char *File, int Line)
+bool AppWnd::ToggleBreakpoint(const char *File, ssize_t Line)
 {
 	bool DeleteBp = false;
 
@@ -3547,7 +3547,7 @@ bool AppWnd::GetSystemIncludePaths(::GArray<GString> &Paths)
 		sp1.Start(true, false);
 		
 		char Buf[256];
-		int r;
+		ssize_t r;
 
 		GStringPipe p;
 		while ((r = sp1.Read(Buf, sizeof(Buf))) > 0)

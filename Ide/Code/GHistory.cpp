@@ -163,7 +163,7 @@ int GHistory::Add(char *Str)
 		}
 	}
 
-	Idx = Length();
+	Idx = (int)Length();
 	Insert(NewStr(Str));
 	if (d->Popup && d->Popup->Lst)
 	{

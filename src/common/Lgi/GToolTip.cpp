@@ -189,7 +189,7 @@ public:
 	}
 };
 
-GToolTip::GToolTip() : GView(0)
+GToolTip::GToolTip() : GView(NULL)
 {
 	d = new GToolTipPrivate;
 }

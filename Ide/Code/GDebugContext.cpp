@@ -239,7 +239,7 @@ bool GDebugContext::DumpObject(const char *Var, const char *Val)
 		#define Emit() \
 			if (Start) \
 			{ \
-				int bytes = s - Start; \
+				auto bytes = s - Start; \
 				const char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
 				ObjectDump->Print("%.*s%.*s%s\n", Depth<<IndentShift, Spaces, bytes, Start, *last == '=' ? "" : ";"); \
 				Start = NULL; \
@@ -615,8 +615,8 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 	for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
 	{
 		// GPointer Start = ptr;
-		int DisplayBytes = MIN(d->MemDump.Length() - i, LineBytes);
-		int DisplayWords = DisplayBytes / WordSize;			
+		ssize_t DisplayBytes = MIN(d->MemDump.Length() - i, LineBytes);
+		ssize_t DisplayWords = DisplayBytes / WordSize;			
 		NativeInt iAddr = d->MemDumpStart + i;
 		p.Print("%p  ", iAddr);
 		

@@ -219,7 +219,7 @@ void DocEdit::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		
 	if (IsAttached())
 	{
-		int Line = GetLine();
+		auto Line = (int)GetLine();
 		if (Line != CurLine)
 		{
 			Doc->OnLineChange(CurLine = Line);
@@ -290,8 +290,8 @@ char *DocEdit::TemplateMerge(const char *Template, char *Name, List<char> *Param
 bool DocEdit::GetVisible(GStyle &s)
 {
 	GRect c = GetClient();
-	int a = HitText(c.x1, c.y1, false);
-	int b = HitText(c.x2, c.y2, false);
+	auto a = HitText(c.x1, c.y1, false);
+	auto b = HitText(c.x2, c.y2, false);
 	s.Start = a;
 	s.Len = b - a + 1;
 	return true;
@@ -406,7 +406,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)
 						char16 *p = n + GetCaret();
 						char16 OpenBrac[] = { '(', 0 };
 						char16 CloseBrac[] = { ')', 0 };
-						int OpenBracketIndex = -1;							
+						ssize_t OpenBracketIndex = -1;							
 						
 						// Parse from cursor to the end of the function defn
 						while ((s = LexCpp(p, LexStrdup)))
@@ -431,7 +431,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)
 							{
 								// Get a list of parameter names
 								List<char> Params;
-								for (int i = OpenBracketIndex+1; (p = Tokens[i]); i++)
+								for (auto i = OpenBracketIndex+1; (p = Tokens[i]); i++)
 								{
 									char16 Comma[] = { ',', 0 };
 									if (StricmpW(p, Comma) == 0 ||

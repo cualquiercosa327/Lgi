@@ -239,7 +239,7 @@ void FindInFilesThread::SearchFile(char *File)
 		char *Doc = ReadTextFile(File);
 		if (Doc)
 		{
-			int Len = d->Params->Text.Length();
+			auto Len = d->Params->Text.Length();
 			const char *Text = d->Params->Text;
 			
 			char *LineStart = 0;
@@ -276,7 +276,7 @@ void FindInFilesThread::SearchFile(char *File)
 					{
 						char *Eol = s + Len;
 						while (*Eol && *Eol != '\n') Eol++;
-						int LineLen = Eol - LineStart;						
+						auto LineLen = Eol - LineStart;						
 						
 						bool StartOk = true;
 						bool EndOk = true;
@@ -293,7 +293,7 @@ void FindInFilesThread::SearchFile(char *File)
 						if (StartOk && EndOk)
 						{
 							static char Buf[1024];
-							int Chars = snprintf(Buf, sizeof(Buf), "%s:%i:%.*s\n", File, Line + 1, LineLen, LineStart);
+							int Chars = snprintf(Buf, sizeof(Buf), "%s:%i:%.*s\n", File, Line + 1, (int)LineLen, LineStart);
 							d->Pipe.Push(Buf, Chars);
 							
 							int64 Now = LgiCurrentTime();

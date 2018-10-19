@@ -18,7 +18,7 @@ static char ScrollBarName[] = "[ScrollBar]";
 
 OsView CreateScrollView(bool x, bool y)
 {
-	OsView v = 0;
+	OsView v = NULL;
 	
 	// Create and attach scroll bar
 	#if 0
@@ -368,7 +368,7 @@ bool GLayout::Attach(GViewI *p)
 			// Then attach this view as a child
 			#if COCOA
 			
-			_View.v = [[NSView alloc] initWithFrame:NSZeroRect];
+			_View.p = [[NSView alloc] initWithFrame:NSZeroRect];
 			
 			#else
 			

@@ -46,7 +46,7 @@ public:
 		if (a.Length() == 3 &&
 			a[1] == "=")
 		{
-			void *Ptr = (void*)htoi(a[2].Get());
+			void *Ptr = (void*)htoi64(a[2].Get());
 			if (Ptr == NULL)
 			{
 				Value = "NULL";
@@ -56,7 +56,7 @@ public:
 				GString cmd;
 				cmd.Printf("p (char*)%s.Str->Str", name.Get());
 				GString r = Cb->GetResponse(cmd);
-				int Pos = r.Find("=");
+				auto Pos = r.Find("=");
 				if (Pos >= 0)
 					Value = r(Pos, r.Length()).Strip().Get();
 				else
@@ -270,7 +270,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 			}
 			else
 			{
-				int e = k.Find(":");
+				auto e = k.Find(":");
 				// printf("%s:%i - e=%i\n", _FL, e);
 				if (e > 0)
 				{
@@ -412,7 +412,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 		}
 	}
 	
-	void OnRead(const char *Ptr, int Bytes)
+	void OnRead(const char *Ptr, ssize_t Bytes)
 	{
 		// Parse output into lines
 		const char *p = Ptr;
@@ -424,7 +424,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 			{
 				*LinePtr++ = *p;
 				*LinePtr = 0;
-				OnLine(Line, LinePtr - Line);
+				OnLine(Line, (int) (LinePtr - Line));
 				LinePtr = Line;
 			}
 			else if (LinePtr < LineEnd)
@@ -437,7 +437,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 		*LinePtr = 0;
 
 		// Check for prompt
-		int bytes = LinePtr - Line;
+		auto bytes = LinePtr - Line;
 		if (bytes > 0)
 		{
 			if (bytes == 6)
@@ -513,7 +513,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 			#ifdef _DEBUG
 			ZeroObj(Buf);
 			#endif
-			int Rd = Sp->Read(Buf, sizeof(Buf)-1, 50);
+			auto Rd = Sp->Read(Buf, sizeof(Buf)-1, 50);
 			if (Rd > 0)
 			{
 				#if 0 // DEBUG_SESSION_LOGGING
@@ -606,7 +606,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 		AtPrompt = false;
 
 		// uint64 Start = LgiCurrentTime();
-		int Wr = Sp->Write(str, ch);
+		auto Wr = Sp->Write(str, ch);
 		if (Wr != ch)
 			return false;
 
@@ -923,7 +923,7 @@ public:
 			if (File)
 			{
 				char *Last = strrchr(File, DIR_CHAR);
-				sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+				sprintf_s(cmd, sizeof(cmd), "break %s:" LPrintfSSizeT, Last ? Last + 1 : File, bp.Line);
 			}
 			else if (bp.Symbol)
 			{
@@ -1091,7 +1091,7 @@ public:
 				if (!strnicmp(val, "0x", 2))
 				{
 					v.Value.Type = GV_VOID_PTR;
-					v.Value.Value.Ptr = (void*) htoi(val);
+					v.Value.Value.Ptr = (void*) htoi64(val);
 				}
 				else if (IsDigit(*val))
 				{
@@ -1266,7 +1266,7 @@ public:
 		#define Emit() \
 			if (Start) \
 			{ \
-				int bytes = s - Start; \
+				auto bytes = s - Start; \
 				char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
 				Output->Print("%.*s%.*s%s\n", Depth<<IndentShift, Spaces, bytes, Start, *last == '=' ? "" : ";"); \
 				Start = NULL; \

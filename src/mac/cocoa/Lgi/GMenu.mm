@@ -23,10 +23,11 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	Menu = 0;
 	Parent = 0;
-	Info = 0;
+	Info = NULL;
 	GBase::Name(name);
 
 	#if COCOA
+		Info.p = [[NSMenu alloc] init];
 	#else
 		OSStatus e = CreateNewMenu(	NextId++, // MenuId
 								   0, // MenuAttributes
@@ -1300,7 +1301,7 @@ bool GMenu::Attach(GViewI *p)
 		}
 		else
 		{
-			printf("%s:%i - No menu\n", __FILE__, __LINE__);
+			printf("%s:%i - No menu\n", _FL);
 		}
 	}
 	
@@ -1321,7 +1322,7 @@ bool GMenu::OnKey(GView *v, GKey &k)
 		{
 			if (a->Match(k))
 			{
-				Window->OnCommand(a->GetId(), 0, 0);
+				Window->OnCommand(a->GetId(), 0, NULL);
 				return true;
 			}
 		}

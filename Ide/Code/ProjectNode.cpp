@@ -1072,7 +1072,7 @@ void ProjectNode::OnMouseClick(GMouse &m)
 					
 					if (LgiRecursiveFileSearch(s.Name(), &Ext, &Files))
 					{
-						int Start = strlen(s.Name()) + 1;
+						auto Start = strlen(s.Name()) + 1;
 						for (int i=0; i<Files.Length(); i++)
 						{
 							char *f = Files[i];
@@ -1285,7 +1285,7 @@ ProjectNode *ProjectNode::FindFile(const char *In, char **Full)
 			GString::Array MyArr = MyPath.Split(DIR_STR);
 			GString InPath(In);
 			GString::Array InArr = InPath.Split(DIR_STR);
-			int Common = MIN(MyArr.Length(), InArr.Length());
+			auto Common = MIN(MyArr.Length(), InArr.Length());
 			Match = true;
 			for (int i = 0; i < Common; i++)
 			{

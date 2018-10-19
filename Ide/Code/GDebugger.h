@@ -27,7 +27,7 @@ public:
 
 		// Use File:Line
 		GString File;
-		int Line;
+		ssize_t Line;
 		// -or-
 		// A symbol reference
 		GString Symbol;

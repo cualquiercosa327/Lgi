@@ -284,7 +284,7 @@ public:
 
 	// Debugging support
 	class GDebugContext *GetDebugContext();
-	bool ToggleBreakpoint(const char *File, int Line);
+	bool ToggleBreakpoint(const char *File, ssize_t Line);
 	bool OnBreakPoint(GDebugger::BreakPoint &b, bool Add);
 	bool LoadBreakPoints(IdeDoc *doc);
 	bool LoadBreakPoints(GDebugger *db);

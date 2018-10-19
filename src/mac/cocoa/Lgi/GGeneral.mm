@@ -171,7 +171,7 @@ GMessage CreateMsg(int m, GMessage::Param a, GMessage::Param b)
 
 OsView DefaultOsView(GView *v)
 {
-	return 0;
+	return NULL;
 }
 
 GString LgiGetFileMimeType(const char *File)

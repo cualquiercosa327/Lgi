@@ -32,7 +32,7 @@ public:
 	void OnPosChange() override;
 	void OnPaint(GSurface *pDC) override;
 	bool IsFile(const char *File);
-	bool AddBreakPoint(int Line, bool Add);
+	bool AddBreakPoint(ssize_t Line, bool Add);
 	
 	bool OpenFile(const char *File);
 	void SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace);
@@ -40,7 +40,7 @@ public:
 	void ConvertWhiteSpace(bool ToTabs);
 	void EscapeSelection(bool ToEscaped);
 	void SetCrLf(bool CrLf);
-	int GetLine();
+	ssize_t GetLine();
 	void SetLine(int Line, bool CurIp);
 	static void ClearCurrentIp();
 	bool IsCurrentIp();

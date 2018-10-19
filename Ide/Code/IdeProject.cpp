@@ -1343,7 +1343,7 @@ GString BuildThread::FindExe()
 			{
 				GString VerKey = "Format Version ";
 				GString ProjKey = "Project(";
-				int Pos;
+				ssize_t Pos;
 
 				GString::Array Ln = f.Read().SplitDelimit("\r\n");
 				for (size_t i = 0; i < Ln.Length(); i++)
@@ -1546,7 +1546,7 @@ int BuildThread::Main()
 		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
 			Jobs = 2;
 
-		int Pos = InitDir.RFind(DIR_STR);
+		auto Pos = InitDir.RFind(DIR_STR);
 		if (Pos)
 			InitDir.Length(Pos);
 
@@ -1744,7 +1744,7 @@ int BuildThread::Main()
 			{
 				// Read all the output					
 				char Buf[256];
-				int rd;
+				ssize_t rd;
 				while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
 				{
 					Write(Buf, rd);
@@ -1884,8 +1884,8 @@ if (Debug) LgiTrace("XmlBase='%s'\n		In='%s'\n", Base.Get(), In);
 			
 if (Debug) LgiTrace("Len %i-%i\n", b.Length(), i.Length());
 			
-			int ILen = i.Length() + (DirExists(In) ? 0 : 1);
-			int Max = MIN(b.Length(), ILen);
+			auto ILen = i.Length() + (DirExists(In) ? 0 : 1);
+			auto Max = MIN(b.Length(), ILen);
 			int Common = 0;
 			for (; Common < Max; Common++)
 			{
@@ -1908,8 +1908,8 @@ if (Debug) LgiTrace("Common=%i\n", Common);
 				if (Common < b.Length())
 				{
 					Out[0] = 0;
-					int Back = b.Length() - Common;
-if (Debug) LgiTrace("Back=%i\n", Back);
+					auto Back = b.Length() - Common;
+if (Debug) LgiTrace("Back=%i\n", (int)Back);
 					for (int n=0; n<Back; n++)
 					{
 						strcat(Out, "..");
@@ -2238,7 +2238,7 @@ bool IdeProject::FindDuplicateSymbols()
 			{
 				char Buf[256];
 				GStringPipe q;
-				for (int Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
+				for (ssize_t Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
 					q.Write(Buf, Rd);
 				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
 				LHashTbl<StrKey<char,false>,bool> Local(200000);
@@ -2960,8 +2960,8 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 	{
 		// No match, do partial matching.
 		const char *Leaf = LgiGetLeaf(Path);
-		int PathLen = strlen(Path);
-		int LeafLen = strlen(Leaf);
+		auto PathLen = strlen(Path);
+		auto LeafLen = strlen(Leaf);
 		uint32 MatchingScore = 0;
 
 		// Traverse all nodes and try and find the best fit.

@@ -1753,7 +1753,7 @@ void GTextView3::Value(int64 i)
 	Name(Str);
 }
 
-GString GTextView3::operator[](int LineIdx)
+GString GTextView3::operator[](ssize_t LineIdx)
 {
 	if (LineIdx <= 0 || LineIdx > GetLines())
 		return GString();
@@ -1940,7 +1940,7 @@ void GTextView3::GetTextExtent(int &x, int &y)
 	y = (int)(Line.Length() * LineY);
 }
 
-bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
+bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, ssize_t Index)
 {
 	ssize_t FromIndex = 0;
 	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);

@@ -80,13 +80,14 @@ int Cmp(LListItem *A, LListItem *B, NativeInt d)
 	return 0;
 }
 
+/*
 char *Strnstr(char *s, const char *find, int len)
 {
     if (!s || !find || len < 0)
         return 0;
 
     char *End = s + len;
-    int FindLen = strlen(find);
+    auto FindLen = strlen(find);
     while (s < End)
     {
         if (*s == *find)
@@ -112,6 +113,7 @@ char *Strnstr(char *s, const char *find, int len)
     
     return 0;
 }
+*/
 
 class DumpView : public GWindow
 {
@@ -220,7 +222,7 @@ public:
 			GProgressDlg Prog(this, true);
 			GArray<char> Buf;
 			Buf.Length(1 << 20);
-			int Pos = 0, Used = 0;
+			ssize_t Pos = 0, Used = 0;
 			bool First = true;
 			char s[512];
 
@@ -234,7 +236,7 @@ public:
 			while (true)
 			{
 				// Consume data
-				int Len = Used - Pos;
+				auto Len = Used - Pos;
 				char *Cur = &Buf[Pos];
 				char *End = Strnstr(Cur, "\r\n\r\n", Len);
 				if (End)
@@ -357,7 +359,7 @@ public:
 					memmove(&Buf[0], &Buf[Pos], Used - Pos);
 					Used -= Pos;
 					Pos = 0;
-					int r = f.Read(&Buf[Used], Buf.Length() - Used);
+					auto r = f.Read(&Buf[Used], Buf.Length() - Used);
 					if (r <= 0)
 						break;
 					Used += r;

@@ -1166,7 +1166,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 			RefreshEdges = LangParam[FileType].Edges;
 			RefreshSize = 0;
 			for (const char **e = RefreshEdges; *e; e++)
-				RefreshSize = MAX(strlen(*e), RefreshSize);
+				RefreshSize = MAX((int)strlen(*e), RefreshSize);
 		}
 	}
 
@@ -1229,7 +1229,7 @@ int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
 		{
 			for (const char **Edge = RefreshEdges; *Edge; Edge++)
 			{
-				int n = i;
+				auto n = i;
 				const char *e;
 				for (e = *Edge; *e; e++)
 					if (Text[n++] != *e)

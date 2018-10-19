@@ -882,9 +882,9 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 		{
 			::GArray<GMdiChild*> Views;
 			GetChildren(Views);
-			int Idx = Views.IndexOf(Child);
+			auto Idx = Views.IndexOf(Child);
 			int Inc = Key.Shift() ? -1 : 1;
-			int NewIdx = (Idx + Inc) % Views.Length();
+			auto NewIdx = (Idx + Inc) % Views.Length();
 			GMdiChild *NewFront = Views[NewIdx];
 			if (NewFront)
 			{

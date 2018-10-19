@@ -45,6 +45,7 @@
 		34D21CE62179788B003D1EA6 /* IHttp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D21CE32179788B003D1EA6 /* IHttp.cpp */; };
 		34D21CE8217978C4003D1EA6 /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D21CE7217978C4003D1EA6 /* LgiMain.cpp */; };
 		34D21CEA217978DA003D1EA6 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D21CE9217978DA003D1EA6 /* Base64.cpp */; };
+		34D21CEE21798240003D1EA6 /* Png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D21CED21798240003D1EA6 /* Png.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +126,7 @@
 		34D21CE32179788B003D1EA6 /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
 		34D21CE7217978C4003D1EA6 /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = "<group>"; };
 		34D21CE9217978DA003D1EA6 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = ../../src/common/INet/Base64.cpp; sourceTree = "<group>"; };
+		34D21CED21798240003D1EA6 /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,8 +144,8 @@
 		345B2063217965E80079E3C9 = {
 			isa = PBXGroup;
 			children = (
-				345B211A217969C50079E3C9 /* Resources */,
 				345B206E217965E80079E3C9 /* LgiIde */,
+				345B211A217969C50079E3C9 /* Resources */,
 				345B206D217965E80079E3C9 /* Products */,
 				345B20CB217967B70079E3C9 /* Frameworks */,
 			);
@@ -280,6 +282,7 @@
 		34D21CD621797809003D1EA6 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				34D21CED21798240003D1EA6 /* Png.cpp */,
 				34D21CE9217978DA003D1EA6 /* Base64.cpp */,
 				34D21CE7217978C4003D1EA6 /* LgiMain.cpp */,
 				34D21CE12179788B003D1EA6 /* IFtp.cpp */,
@@ -325,6 +328,11 @@
 				TargetAttributes = {
 					345B206B217965E80079E3C9 = {
 						CreatedOnToolsVersion = 9.3;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
 					};
 				};
 			};
@@ -387,6 +395,7 @@
 				345B210C217969700079E3C9 /* DocEdit.cpp in Sources */,
 				345B2107217969700079E3C9 /* IdeDoc.cpp in Sources */,
 				345B2110217969700079E3C9 /* levenshtein.c in Sources */,
+				34D21CEE21798240003D1EA6 /* Png.cpp in Sources */,
 				345B2101217969700079E3C9 /* PythonParser.cpp in Sources */,
 				345B2119217969700079E3C9 /* MissingFiles.cpp in Sources */,
 				34D21CDF21797856003D1EA6 /* GSubProcess.cpp in Sources */,
@@ -460,7 +469,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -479,7 +488,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -518,7 +527,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -531,7 +540,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
@@ -540,11 +549,10 @@
 		345B207E217965EA0079E3C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_ENTITLEMENTS = LgiIde.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				HEADER_SEARCH_PATHS = (
 					../../include/common,
@@ -568,17 +576,17 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.LgiIde;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
 		345B207F217965EA0079E3C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CODE_SIGN_ENTITLEMENTS = LgiIde.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				HEADER_SEARCH_PATHS = (
 					../../include/common,
@@ -601,6 +609,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.LgiIde;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};

@@ -153,6 +153,7 @@ GViewPrivate::GViewPrivate()
 	Font = 0;
 	Popup = 0;
 	Pulse = 0;
+	SinkHnd = -1;
 		
 	static bool First = true;
 	if (First)

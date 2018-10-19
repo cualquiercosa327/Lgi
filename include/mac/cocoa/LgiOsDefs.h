@@ -32,39 +32,35 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-class OsWindow
-{
-	#ifdef __OBJC__
-public:
-	NSWindow *w;
-	operator bool() { return w != NULL; }
-	OsWindow &operator=(NSWindow *i) { w = i; return *this; }
-	#else
-	void *unused;
-public:
-	operator bool() { return unused != 0; }
-	OsWindow &operator=(void *i) { unused = i; return *this; }
-	#endif
-};
+#define ObjCWrap(Type, Name) \
+	Name(Type *i) { p = i; } \
+	Name(long i = 0) { p = 0; } \
+	Name &operator=(Type *i) { p = i; return *this; } \
+	Name &operator=(long i) { p = 0; return *this; } \
+	operator bool() { return p != NULL; } \
+	operator Type*() { return p; } \
+	bool operator ==(const Name &obj) { return p == obj.p; } \
 
-class OsView
-{
-	#ifdef __OBJC__
-public:
-	NSView *v;
-	operator bool() { return v != NULL; }
-	OsView &operator=(NSView *i) { v = i; return *this; }
-	OsView &operator=(long i) { v = 0; return *this; }
-	OsView(long i = 0) { v = 0; }
-	#else
-	void *unused;
-public:
-	operator bool() { return unused != 0; }
-	OsView &operator=(void *i) { unused = i; return *this; }
-	OsView &operator=(long i) { unused = 0; return *this; }
-	OsView(long i = 0) { unused = 0; }
-	#endif
-};
+#ifdef __OBJC__
+	#define ObjCWrapper(Type, Name) \
+		class Name \
+		{ \
+		public: \
+			Type *p; \
+			ObjCWrap(Type, Name) \
+		};
+#else
+	#define ObjCWrapper(Type, Name) \
+		class Name \
+		{ \
+			void *p; \
+		public: \
+			ObjCWrap(void, Name) \
+		};
+#endif
+
+ObjCWrapper(NSWindow, OsWindow)
+ObjCWrapper(NSView, OsView)
 
 typedef pthread_t           OsThread;
 typedef uint64_t			OsThreadId;

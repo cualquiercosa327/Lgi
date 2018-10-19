@@ -238,7 +238,7 @@ public:
 	virtual int DoModal
 	(
 		/// Optional override parent window handle
-		OsView ParentHnd = 0
+		OsView ParentHnd = NULL
 	);
 	
 	/// \brief Run the dialog in modeless mode
@@ -294,7 +294,7 @@ public:
 	#if WINNATIVE
 	GControl(char *SubClassName = 0);
 	#else
-	GControl(OsView view = 0);
+	GControl(OsView view = NULL);
 	#endif
 
 	~GControl();

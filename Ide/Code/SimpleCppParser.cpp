@@ -561,8 +561,8 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 										b--;
 									}
 									
-									int ClsLen = StrlenW(CurClassDecl);
-									int BLen = StrlenW(b);
+									auto ClsLen = StrlenW(CurClassDecl);
+									auto BLen = StrlenW(b);
 									if (ClsLen + BLen + 1 > CountOf(Str))
 									{
 										LgiTrace("%s:%i - Defn too long: %i\n", _FL, ClsLen + BLen + 1);
@@ -620,7 +620,7 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 					s++;
 					defnskipsym(s);
 					
-					int TokLen = s - Start;
+					auto TokLen = s - Start;
 					if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
 					{
 						// extern "C" block

@@ -86,12 +86,11 @@ public:
 ///////////////////////////////////////////////////////////////////////
 #define GWND_CREATE		0x0010000
 
-GWindow::GWindow() :
-GView(0)
+GWindow::GWindow() : GView(NULL)
 {
 	d = new GWindowPrivate(this);
 	_QuitOnClose = false;
-	Wnd = 0;
+	Wnd = NULL;
 	Menu = 0;
 	_Default = 0;
 	_Window = this;
@@ -103,11 +102,11 @@ GView(0)
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
 	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
-	Wnd.w = [[NSWindow alloc] initWithContentRect:frame
+	Wnd.p = [[NSWindow alloc] initWithContentRect:frame
                     styleMask:windowStyleMask
                     backing:NSBackingStoreBuffered
                     defer:NO];
-	[Wnd.w makeKeyAndOrderFront:NSApp];
+	[Wnd.p makeKeyAndOrderFront:NSApp];
 	
 	#if 0
 	Rect r = pos;
@@ -143,7 +142,7 @@ GWindow::~GWindow()
 		#if 0
 		DisposeWindow(Wnd);
 		#endif
-		Wnd = 0;
+		Wnd = NULL;
 	}
 	
 	DeleteObj(Menu);
@@ -318,7 +317,7 @@ void GWindow::Quit(bool DontDelete)
 	if (Wnd)
 	{
 		SetDragHandlers(false);
-		Wnd = 0;
+		Wnd = NULL;
 		_View = NULL;
 		#if 0
 		OsWindow w = Wnd;
@@ -374,7 +373,7 @@ bool GWindow::Visible()
 	if (!Wnd)
 		return false;
 	
-	return [Wnd.w isVisible];
+	return [Wnd.p isVisible];
 }
 
 void GWindow::Visible(bool i)
@@ -386,7 +385,7 @@ void GWindow::Visible(bool i)
 			d->InitVisible = true;
 			PourAll();
 
-			[Wnd.w makeKeyAndOrderFront:NULL];
+			[Wnd.p makeKeyAndOrderFront:NULL];
 			[NSApp activateIgnoringOtherApps:YES];
 
 			SetDefaultFocus(this);
@@ -1427,7 +1426,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 GRect &GWindow::GetPos()
 {
 	if (Wnd)
-		Pos = [Wnd.w frame];
+		Pos = [Wnd.p frame];
 	
 	return Pos;
 }
@@ -1452,8 +1451,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	Pos = r;
 	if (Wnd)
 	{
-		NSRect pos = Pos;
-		[Wnd.w setFrame:pos display:YES];
+		[Wnd.p setFrame:Pos display:YES];
 	}
 	
 	return true;
@@ -1736,6 +1734,6 @@ bool GWindow::Obscured()
 	if (!Wnd)
 		return false;
 	
-	auto s = [Wnd.w occlusionState];
+	auto s = [Wnd.p occlusionState];
 	return !(s & NSWindowOcclusionStateVisible);
 }

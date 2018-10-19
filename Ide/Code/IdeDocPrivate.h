@@ -51,7 +51,7 @@ public:
 	LDateTime ModTs;
 	class DocEdit *Edit;
 	EditTray *Tray;
-	LHashTbl<IntKey<int>, bool> BreakPoints;
+	LHashTbl<IntKey<ssize_t>, bool> BreakPoints;
 	class ProjFilePopup *FilePopup;
 	class ProjMethodPopup *MethodPopup;
 	class ProjSymPopup *SymPopup;

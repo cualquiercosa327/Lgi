@@ -28,11 +28,14 @@
 	typedef os::MenuItem *OsMenuItem;
 #elif defined(MAC) && !defined(LGI_SDL)
 	#if defined(COCOA)
-	typedef void *OsSubMenu;
-	typedef void *OsMenuItem;
+		#ifdef __OBJC__
+			#include <Cocoa/Cocoa.h>
+		#endif
+		ObjCWrapper(NSMenu, OsSubMenu)
+		ObjCWrapper(NSMenuItem, OsMenuItem)
 	#else
-	typedef MenuRef OsSubMenu;
-	typedef MenuItemIndex OsMenuItem;
+		typedef MenuRef OsSubMenu;
+		typedef MenuItemIndex OsMenuItem;
 	#endif
 #else
 	#include "GMenuImpl.h"
@@ -141,7 +144,7 @@ public:
 	OsSubMenu Release()
 	{
 		OsSubMenu Hnd = Info;
-		Info = 0;
+		Info = NULL;
 		return Hnd;
 	}
 	

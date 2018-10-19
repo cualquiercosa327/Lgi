@@ -328,7 +328,7 @@ public:
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/plain"; }
 	size_t GetSize() { return Size; }
-	GString operator[](int LineIdx);
+	GString operator[](ssize_t LineIdx);
 
 	ssize_t HitText(int x, int y, bool Nearest);
 	void DeleteSelection(char16 **Cut = 0);
@@ -358,7 +358,7 @@ public:
 	void UnSelectAll();
 	void SelectWord(size_t From);
 	void SelectAll();
-	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
+	bool GetLineColumnAtIndex(GdcPt2 &Pt, ssize_t Index = -1);
 	size_t GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();

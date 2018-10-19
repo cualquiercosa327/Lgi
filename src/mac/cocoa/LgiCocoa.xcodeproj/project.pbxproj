@@ -127,6 +127,7 @@
 		34A3ACE820568D5800B1D62A /* LStringLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE720568D5800B1D62A /* LStringLayout.cpp */; };
 		34A3ACEA20568D9700B1D62A /* GMenuCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */; };
 		34D1B3C121748A2800BC6B58 /* GPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D1B3C021748A2800BC6B58 /* GPath.cpp */; };
+		34D21CEC217981AE003D1EA6 /* GEventTargetThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D21CEB217981AE003D1EA6 /* GEventTargetThread.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -252,6 +253,7 @@
 		34A3ACE720568D5800B1D62A /* LStringLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LStringLayout.cpp; path = ../../../common/Gdc2/Font/LStringLayout.cpp; sourceTree = "<group>"; };
 		34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMenuCommon.cpp; path = ../../../common/Lgi/GMenuCommon.cpp; sourceTree = "<group>"; };
 		34D1B3C021748A2800BC6B58 /* GPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPath.cpp; path = ../../../common/Gdc2/Path/GPath.cpp; sourceTree = "<group>"; };
+		34D21CEB217981AE003D1EA6 /* GEventTargetThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEventTargetThread.h; path = ../../../../include/common/GEventTargetThread.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -526,6 +528,7 @@
 		3477C3171CC04CDE0028B84B /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				34D21CEB217981AE003D1EA6 /* GEventTargetThread.h */,
 				3477C27E1CBF086A0028B84B /* LThread.mm */,
 				3477C3251CC04DE20028B84B /* LMutex.cpp */,
 				3477C31F1CC04D630028B84B /* LThreadEvent.cpp */,
@@ -584,6 +587,7 @@
 				3477C35B1CC1AEEA0028B84B /* LgiInc.h in Headers */,
 				348362421F233A77003B2A6D /* GStream.h in Headers */,
 				3477C2A61CBF0A920028B84B /* LgiOsDefs.h in Headers */,
+				34D21CEC217981AE003D1EA6 /* GEventTargetThread.h in Headers */,
 				3477C2A11CBF0A920028B84B /* GMem.h in Headers */,
 				3477C2D51CC0481B0028B84B /* GArray.h in Headers */,
 				3477C5171CC303B70028B84B /* LgiClass.h in Headers */,

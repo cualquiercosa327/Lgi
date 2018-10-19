@@ -330,7 +330,7 @@ void EditTray::OnFunctionList(GMouse &m)
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
 		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.9) : 1;
-		int BucketSize = MAX(2, Funcs.Length() / Buckets);
+		int BucketSize = MAX(2, (int)Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
 		for (unsigned n=0; n<Funcs.Length(); n++)
@@ -668,7 +668,7 @@ void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GSt
 {
 	GString::Array p = InputStr.SplitDelimit(" \t");
 		
-	int InputLen = InputStr.RFind(".");
+	auto InputLen = InputStr.RFind(".");
 	if (InputLen < 0)
 		InputLen = InputStr.Length();
 
@@ -701,7 +701,7 @@ void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GSt
 					char *Dot = strrchr(Leaf, '.');
 					if (Dot)
 					{
-						int Len = Dot - Leaf;
+						auto Len = Dot - Leaf;
 						PerfectMatch =	Len == InputLen &&
 										strncmp(InputStr, Leaf, Len) == 0;
 					}
@@ -894,8 +894,8 @@ bool IdeDocPrivate::IsFile(const char *File)
 
 	GToken doc(f, DIR_STR);
 	GToken in(File, DIR_STR);
-	int in_pos = in.Length() - 1;
-	int doc_pos = doc.Length() - 1;
+	ssize_t in_pos = (ssize_t)in.Length() - 1;
+	ssize_t doc_pos = (ssize_t)doc.Length() - 1;
 	while (in_pos >= 0 && doc_pos >= 0)
 	{
 		char *i = in[in_pos--];
@@ -1021,11 +1021,11 @@ void IdeDocPrivate::CheckModTime()
 			if (!IsDirty ||
 				LgiMsg(Doc, "Do you want to reload modified file from\ndisk and lose your changes?", AppName, MB_YESNO) == IDYES)
 			{
-				int Ln = Edit->GetLine();
+				auto Ln = Edit->GetLine();
 				Load();
 				IsDirty = false;
 				UpdateName();
-				Edit->SetLine(Ln);
+				Edit->SetLine((int)Ln);
 			}
 			InCheckModTime = false;
 		}
@@ -1278,7 +1278,7 @@ bool IdeDoc::IsFile(const char *File)
 	return File ? d->IsFile(File) : false;
 }
 
-bool IdeDoc::AddBreakPoint(int Line, bool Add)
+bool IdeDoc::AddBreakPoint(ssize_t Line, bool Add)
 {
 	if (Add)
 		d->BreakPoints.Add(Line, true);
@@ -1339,16 +1339,16 @@ void IdeDoc::SearchSymbol()
 		return;
 	}
 	
-	int Cur = d->Edit->GetCaret();
+	ssize_t Cur = d->Edit->GetCaret();
 	char16 *Txt = d->Edit->NameW();
 	if (Cur >= 0 &&
 		Txt != NULL)
 	{
-		int Start = Cur;
+		ssize_t Start = Cur;
 		while (	Start > 0 &&
 				IsVariableChar(Txt[Start-1]))
 			Start--;
-		int End = Cur;
+		ssize_t End = Cur;
 		while (	Txt[End] &&
 				IsVariableChar(Txt[End]))
 			End++;
@@ -1473,7 +1473,7 @@ void IdeDoc::ConvertWhiteSpace(bool ToTabs)
 	}
 }
 
-int IdeDoc::GetLine()
+ssize_t IdeDoc::GetLine()
 {
 	return d->Edit ? d->Edit->GetLine() : -1;
 }
@@ -1928,7 +1928,7 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 	char16 *Sep = StristrW(Name, Dots);
 	char16 *Start = Sep ? Sep : Name;
 	// char16 *End = StrchrW(Start, '(');
-	int Len = StrlenW(Symbol);
+	ssize_t Len = StrlenW(Symbol);
 	char16 *Match = StristrW(Start, Symbol);
 
 	if (Match) // && Match + Len <= End)

@@ -902,7 +902,7 @@ int GSubProcess::Peek()
 	#if defined(POSIX)
 		int bytesAvailable = 0;
 		int r = ioctl(Io.Read, FIONREAD, &bytesAvailable);
-		return bytesAvailable;
+		return r ? -1 : bytesAvailable;
 	#else		
 		DWORD Rd = 0, Avail = 0;
 		char Buf[32];
