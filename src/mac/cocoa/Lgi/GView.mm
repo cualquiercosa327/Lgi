@@ -17,6 +17,7 @@
 #include "GEdit.h"
 #include "GViewPriv.h"
 #include "GCss.h"
+#include "LCocoaView.h"
 
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2
@@ -318,6 +319,8 @@ GRect &GView::GetClient(bool ClientSpace)
 	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 
 	static GRect c;
+	if (_View)
+		Pos = _View.p.frame;
 
 	c = Pos;
 	c.Offset(-c.x1, -c.y1);
@@ -836,39 +839,6 @@ static int GetIsChar(GKey &k, int mods)
 }
 #endif
 
-@interface LCocoaView : NSView
-{
-	GView *v;
-}
-- (id)init:(GView*)view;
-- (void)dealloc;
-- (void)drawRect:(NSRect)dirtyRect;
-@end
-
-@implementation LCocoaView
-
-- (id)init:(GView*)view
-{
-	if ((self = [super initWithFrame:view->GetPos()]) != nil)
-	{
-		v = view;
-	}
-	return self;
-}
-
-- (void)dealloc
-{
-	v = nil;
-	[super dealloc];
-}
-
-- (void)drawRect:(NSRect)dirtyRect
-{
-	GScreenDC Dc(v);
-	v->OnPaint(&Dc);
-}
-
-@end
 
 bool GView::_Attach(GViewI *parent)
 {

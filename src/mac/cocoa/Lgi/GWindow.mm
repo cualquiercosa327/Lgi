@@ -5,6 +5,7 @@
 #include "GToken.h"
 #include "GPopup.h"
 #include "GDisplayString.h"
+#include "LCocoaView.h"
 
 extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);
@@ -19,15 +20,41 @@ public:
 	GView *Target;
 };
 
+class GWindowContent : public GView
+{
+	GWindow *w;
+
+public:
+	GWindowContent(GWindow *wnd)
+	{
+		w = wnd;
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		w->OnPaint(pDC);
+	}
+	
+	GWindowContent &operator=(NSView *v)
+	{
+		_View.p = v;
+		return *this;
+	}
+};
+
+
 @interface GWindowDelegate : NSObject <NSWindowDelegate>
 {
 	GWindowPrivate *d;
+	GWindowContent *Content;
 }
 - (id)init:(GWindowPrivate*)priv;
 - (void)dealloc;
 - (void)windowDidResize:(NSNotification *)aNotification;
 - (void)windowWillClose:(NSNotification*)aNotification;
 - (BOOL)windowShouldClose:(id)sender;
+- (void)windowDidBecomeMain:(NSNotification*)notification;
+- (void)windowDidResignMain:(NSNotification*)notification;
 @end
 
 class GWindowPrivate
@@ -104,9 +131,16 @@ public:
 - (id)init:(GWindowPrivate*)priv
 {
 	d = nil;
+	Content = NULL;
     if ((self = [super init]) != nil)
     {
         d = priv;
+		Content = new GWindowContent(d->Wnd);
+		
+		auto ctrl = [[NSViewController alloc] init];
+		ctrl.view = [[LCocoaView alloc] init:Content];
+		*Content = ctrl.view;
+		d->Wnd->WindowHandle().p.contentViewController = ctrl;
     }
     return self;
 }
@@ -119,7 +153,6 @@ public:
 
 - (void)windowDidResize:(NSNotification*)event
 {
-	LgiAssert(d);
 	if (d->Wnd)
 		d->Wnd->OnPosChange();
 }
@@ -135,6 +168,18 @@ public:
 {
 	if (d->Wnd && !d->Closing)
 		d->Wnd->Quit();
+}
+
+- (void)windowDidBecomeMain:(NSNotification*)notification
+{
+	if (d->Wnd)
+		d->Wnd->OnFrontSwitch(true);
+}
+
+- (void)windowDidResignMain:(NSNotification*)notification
+{
+	if (d->Wnd)
+		d->Wnd->OnFrontSwitch(false	);
 }
 
 @end
@@ -1351,27 +1396,9 @@ bool GWindow::Name(const char *n)
 	
 	if (Wnd)
 	{
-		#if 0
-		CFStringRef s = CFStringCreateWithBytes(NULL, (UInt8*)n, strlen(n), kCFStringEncodingUTF8, false);
-		if (s)
-		{
-			OSStatus e = SetWindowTitleWithCFString(Wnd, s);
-			if (e)
-			{
-				printf("%s:%i - SetWindowTitleWithCFString failed (e=%i)\n", _FL, (int)e);
-			}
-			else
-			{
-				Status = true;
-			}
-			
-			CFRelease(s);
-		}
-		else
-		{
-			printf("%s:%i - CFStringCreateWithBytes failed.\n", __FILE__, __LINE__);
-		}
-		#endif
+		NSString *ns = [NSString stringWithCString:n encoding:NSUTF8StringEncoding];
+		Wnd.p.title = ns;
+		[ns release];
 	}
 	
 	return Status;
@@ -1384,26 +1411,14 @@ char *GWindow::Name()
 
 GRect &GWindow::GetClient(bool ClientSpace)
 {
+	static GRect r;
 	if (Wnd)
-	{
-		static GRect c;
-		#if 0
-		Rect r;
-		OSStatus e = GetWindowBounds(Wnd, kWindowContentRgn, &r);
-		if (!e)
-		{
-			c = r;
-			c.Offset(-c.x1, -c.y1);
-			return c;
-		}
-		else
-		{
-			printf("%s:%i - GetWindowBounds failed\n", __FILE__, __LINE__);
-		}
-		#endif
-	}
-	
-	return GView::GetClient(ClientSpace);
+		r = Wnd.p.contentView.frame;
+	else
+		r = Pos;
+	if (ClientSpace)
+		r.Offset(-r.x1, -r.y1);
+	return r;
 }
 
 bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)

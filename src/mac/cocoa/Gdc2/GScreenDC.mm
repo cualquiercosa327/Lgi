@@ -13,17 +13,49 @@ public:
 	GView *View;
 	GRect Rc;
 	GArray<GRect> Stack;
-	COLOUR Cur;
+	GColour c;
 	int Bits;
+	int Op;
+	
+	void Init()
+	{
+		Op = GDC_ALPHA;
+		Ctx = nil;
+		Wnd = NULL;
+		View = NULL;
+		Bits = GdcD->GetBits();
+		View = 0;
+		Rc.ZOff(-1, -1);
+	}
+	
+	void SetContext(GView *v)
+	{
+		Rc = v->GetClient();
+		Ctx = [NSGraphicsContext currentContext].CGContext;
+		if (Ctx)
+		{
+			CGAffineTransform flipVertical = CGAffineTransformMake(1, 0, 0, -1, 0, Rc.Y());
+			CGContextConcatCTM(Ctx, flipVertical);
+		}
+	}
 	
 	GScreenPrivate()
 	{
-		Ctx = nil;
-		Wnd = 0;
-		Bits = GdcD->GetBits();
-		Cur = Rgb32(0, 0, 0);
-		View = 0;
-		Rc.ZOff(-1, -1);
+		Init();
+	}
+
+	GScreenPrivate(GWindow *w)
+	{
+		Init();
+		Wnd = w;
+		SetContext(w);
+	}
+
+	GScreenPrivate(GView *v)
+	{
+		Init();
+		View = v;
+		SetContext(v);
 	}
 	
 	GRect Client()
@@ -42,16 +74,13 @@ GScreenDC::GScreenDC()
 
 GScreenDC::GScreenDC(GWindow *w, void *param)
 {
-	d = new GScreenPrivate;
+	d = new GScreenPrivate(w);
 	d->Wnd = w;
-	d->Ctx = [NSGraphicsContext currentContext].CGContext;
 }
 
 GScreenDC::GScreenDC(GView *v, void *param)
 {
-	d = new GScreenPrivate;
-	d->View = v;
-	d->Ctx = [NSGraphicsContext currentContext].CGContext;
+	d = new GScreenPrivate(v);
 }
 
 GScreenDC::GScreenDC(GPrintDcParams *params)
@@ -184,16 +213,16 @@ GRect GScreenDC::ClipRgn()
 
 GColour GScreenDC::Colour(GColour c)
 {
-	GColour Prev(d->Cur, 32);
+	GColour Prev = d->c;
 
-	d->Cur = c.c32();
+	d->c = c;
 	
 	if (d->Ctx)
 	{
-		float r = (float)R32(d->Cur)/255.0;
-		float g = (float)G32(d->Cur)/255.0;
-		float b = (float)B32(d->Cur)/255.0;
-		float a = (float)A32(d->Cur)/255.0;
+		float r = (float)d->c.r()/255.0;
+		float g = (float)d->c.g()/255.0;
+		float b = (float)d->c.b()/255.0;
+		float a = (float)d->c.a()/255.0;
 		
 		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
 		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
@@ -204,21 +233,21 @@ GColour GScreenDC::Colour(GColour c)
 
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
-	COLOUR Prev = d->Cur;
+	GColour Prev = d->c;
 
-	d->Cur = CBit(32, c, Bits);
+	d->c.Set(c, Bits);
 	if (d->Ctx)
 	{
-		float r = (float)R32(d->Cur)/255.0;
-		float g = (float)G32(d->Cur)/255.0;
-		float b = (float)B32(d->Cur)/255.0;
-		float a = (float)A32(d->Cur)/255.0;
+		float r = (float)d->c.r()/255.0;
+		float g = (float)d->c.g()/255.0;
+		float b = (float)d->c.b()/255.0;
+		float a = (float)d->c.a()/255.0;
 		
 		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
 		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
 	}
 
-	return Prev;
+	return CBit(d->Bits, Prev.c32(), 32);
 }
 
 bool GScreenDC::SupportsAlphaCompositing()
@@ -228,17 +257,17 @@ bool GScreenDC::SupportsAlphaCompositing()
 
 COLOUR GScreenDC::Colour()
 {
-	return CBit(d->Bits, d->Cur, 32);
+	return CBit(d->Bits, d->c.c32(), 32);
 }
 
 int GScreenDC::Op()
 {
-	return GDC_SET;
+	return d->Op;
 }
 
 int GScreenDC::Op(int Op, NativeInt Param)
 {
-	return GDC_SET;
+	return d->Op = Op;
 }
 
 int GScreenDC::X()

@@ -845,7 +845,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				#endif
 				;
 		}
-	}	
+	}
 	else if (d->Style == TvWinXp)
 	{
 		if (GApp::SkinEngine &&

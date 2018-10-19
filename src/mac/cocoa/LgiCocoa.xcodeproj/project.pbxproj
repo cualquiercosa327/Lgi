@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		34109857217A9805007020CE /* LCocoaView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 34109856217A9805007020CE /* LCocoaView.mm */; };
 		345920FF1F25649000098DFD /* GFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 345920FC1F25649000098DFD /* GFont.h */; };
 		345921001F25649000098DFD /* GFontCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 345920FD1F25649000098DFD /* GFontCache.h */; };
 		345921011F25649000098DFD /* GFontSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = 345920FE1F25649000098DFD /* GFontSelect.h */; };
@@ -131,6 +132,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		34109853217A975E007020CE /* LCocoaView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LCocoaView.h; path = ../../../../include/mac/cocoa/LCocoaView.h; sourceTree = "<group>"; };
+		34109856217A9805007020CE /* LCocoaView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = LCocoaView.mm; path = Lgi/LCocoaView.mm; sourceTree = SOURCE_ROOT; };
 		345920FC1F25649000098DFD /* GFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GFont.h; path = ../../../../include/common/GFont.h; sourceTree = "<group>"; };
 		345920FD1F25649000098DFD /* GFontCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GFontCache.h; path = ../../../../include/common/GFontCache.h; sourceTree = "<group>"; };
 		345920FE1F25649000098DFD /* GFontSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GFontSelect.h; path = ../../../../include/common/GFontSelect.h; sourceTree = "<group>"; };
@@ -320,6 +323,8 @@
 		3477C2731CBF07410028B84B /* Interface_Cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				34109853217A975E007020CE /* LCocoaView.h */,
+				34109856217A9805007020CE /* LCocoaView.mm */,
 				3477C2741CBF07DD0028B84B /* GApp.mm */,
 				3477C2761CBF08050028B84B /* GClipBoard.mm */,
 				3477C3391CC04ED90028B84B /* GDragAndDrop.mm */,
@@ -733,6 +738,7 @@
 				3477C2CB1CC046310028B84B /* GXmlTree.cpp in Sources */,
 				3477C2EF1CC04BBB0028B84B /* GItemContainer.cpp in Sources */,
 				3477C3081CC04BF00028B84B /* GSplitter.cpp in Sources */,
+				34109857217A9805007020CE /* LCocoaView.mm in Sources */,
 				3477C46D1CC26DEB0028B84B /* GAlert.cpp in Sources */,
 				3477C3381CC04E120028B84B /* Alpha.cpp in Sources */,
 				3477C2EB1CC04B890028B84B /* GFilter.cpp in Sources */,
