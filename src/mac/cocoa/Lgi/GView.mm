@@ -874,34 +874,38 @@ bool GView::_Attach(GViewI *parent)
 	if (_Window)
 		_Lock = _Window->_Lock;
 
-	if (!_View)
-		_View.p = [[LCocoaView alloc] init:this];
-	
 	auto p = d->GetParent();
 	if (p &&
 		p->IsAttached())
 	{
 		GWindow *w = dynamic_cast<GWindow*>(p);
+		NSView *ph = nil;
 		if (w)
+			ph = w->WindowHandle().p.contentView;
+		else
+			ph = p->Handle().p;
+
+		LgiAssert(ph);
+
+		if (!_View)
+			_View.p = [[LCocoaView alloc] init:this];
+		if (_View.p.superview)
 		{
-			LgiAssert(w->WindowHandle().p);
-			[w->WindowHandle().p.contentView addSubview:_View.p];
+			// Already atteched?
+			LgiAssert(0);
 		}
 		else
 		{
-			LgiAssert(p->Handle().p);
-			[p->Handle().p addSubview:_View.p];
+			[_View.p setFrame:LFlip(ph, Pos)];
+			[ph addSubview:_View.p];
 		}
-		
 	}
 	else
 	{
 		// Virtual attach
 	}
 
-	if (p->Children.HasItem(this))
-		printf("%s:%i - Already in child list.\n", _FL);
-	else
+	if (!p->Children.HasItem(this))
 	{
 		p->Children.Add(this);
 		OnAttach();

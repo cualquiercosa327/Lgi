@@ -48,16 +48,7 @@
 		{
 			GRect Flip = c->GetPos();
 			if (h.p.superview)
-			{
-				GRect Pr = h.p.superview.frame;
-				if (Pr.Valid())
-				{
-					int y2 = Pr.y2 - Flip.y1;
-					int y1 = y2 - Flip.Y() + 1;
-					Flip.Offset(0, y1-Flip.y1);
-				}
-			}
-			
+				Flip = LFlip(h.p.superview, Flip);
 			[h.p setFrame:Flip];
 		}
 	}
