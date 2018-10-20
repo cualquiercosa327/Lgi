@@ -130,6 +130,12 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
+	#define SDK_10_12(newSym, oldSym) newSym
+#else
+	#define SDK_10_12(newSym, oldSym) oldSym
+#endif
+
 void GMouse::SetFromEvent(NSEvent *ev, NSView *view)
 {
 	auto r = view.superview.frame;
@@ -142,47 +148,39 @@ void GMouse::SetFromEvent(NSEvent *ev, NSView *view)
 
 	switch (ev.type)
 	{
-		case NSEventTypeLeftMouseDown:
+		case SDK_10_12(NSEventTypeLeftMouseDown,  NX_LMOUSEDOWN):
 			Down(true); Left(true);
 			break;
-		case NSEventTypeLeftMouseUp:
+		case SDK_10_12(NSEventTypeLeftMouseUp,    NX_LMOUSEUP):
 			Down(false); Left(true);
 			break;
-		case NSEventTypeRightMouseDown:
+		case SDK_10_12(NSEventTypeRightMouseDown, NX_RMOUSEDOWN):
 			Down(true); Right(true);
 			break;
-		case NSEventTypeRightMouseUp:
+		case SDK_10_12(NSEventTypeRightMouseUp,   NX_RMOUSEUP):
 			Down(false); Right(true);
 			break;
-		case NSEventTypeOtherMouseDown:
+		case SDK_10_12(NSEventTypeOtherMouseDown, NX_OMOUSEDOWN):
 			Down(true); Middle(true);
 			break;
-		case NSEventTypeOtherMouseUp:
+		case SDK_10_12(NSEventTypeOtherMouseUp,   NX_OMOUSEUP):
 			Down(false); Middle(true);
 			break;
-		case NSEventTypeMouseMoved:
+		case SDK_10_12(NSEventTypeMouseMoved,     NX_MOUSEMOVED):
 			IsMove(true);
+			break;
+		default:
+			LgiAssert(!"Unknown event.");
 			break;
 	}
 }
 
 void GUiEvent::SetModifer(uint32 modifierKeys)
 {
-	#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
-	
-	System(modifierKeys & NSEventModifierFlagCommand);
-	Shift(modifierKeys & NSEventModifierFlagShift);
-	Alt(modifierKeys & NSEventModifierFlagOption);
-	Ctrl(modifierKeys & NSEventModifierFlagControl);
-	
-	#else
-	
-	System(modifierKeys & NSCommandKeyMask);
-	Shift(modifierKeys & NSShiftKeyMask);
-	Alt(modifierKeys & NSAlternateKeyMask);
-	Ctrl(modifierKeys & NSControlKeyMask);
-	
-	#endif
+	System(modifierKeys & SDK_10_12(NSEventModifierFlagCommand, NSCommandKeyMask));
+	Shift (modifierKeys & SDK_10_12(NSEventModifierFlagShift,   NSShiftKeyMask));
+	Alt   (modifierKeys & SDK_10_12(NSEventModifierFlagOption,  NSAlternateKeyMask));
+	Ctrl  (modifierKeys & SDK_10_12(NSEventModifierFlagControl, NSControlKeyMask));
 }
 
 void GMessage::Set(int msg, Param A, Param B)

@@ -65,73 +65,36 @@
 
 - (void)mouseDown:(NSEvent*)ev
 {
-	auto r = self.superview.frame;
-
 	GMouse m;
-	m.Down(true);
-	m.x = (int)ev.locationInWindow.x;
-	m.y = (int)(r.size.height - ev.locationInWindow.y);
-	m.Left(ev.type == NSEventTypeLeftMouseDown);
-	m.SetModifer((uint32)ev.modifierFlags);
-	m.Double(ev.clickCount == 2);
-	
+	m.SetFromEvent(ev, self);
 	v->OnMouseClick(m);
 }
 
 - (void)mouseUp:(NSEvent*)ev
 {
-	auto r = self.superview.frame;
-
 	GMouse m;
-	m.Down(false);
-	m.x = (int)ev.locationInWindow.x;
-	m.y = (int)(r.size.height - ev.locationInWindow.y);
-	m.Left(true);
-	m.SetModifer((uint32)ev.modifierFlags);
-	
+	m.SetFromEvent(ev, self);
 	v->OnMouseClick(m);
 }
 
 - (void)rightMouseDown:(NSEvent*)ev
 {
-	auto r = self.superview.frame;
-
 	GMouse m;
-	m.Down(true);
-	m.x = (int)ev.locationInWindow.x;
-	m.y = (int)(r.size.height - ev.locationInWindow.y);
-	m.Right(true);
-	m.SetModifer((uint32)ev.modifierFlags);
-	m.Double(ev.clickCount == 2);
-	
+	m.SetFromEvent(ev, self);
 	v->OnMouseClick(m);
 }
 
 - (void)rightMouseUp:(NSEvent*)ev
 {
-	auto r = self.superview.frame;
-
 	GMouse m;
-	m.Down(false);
-	m.x = (int)ev.locationInWindow.x;
-	m.y = (int)(r.size.height - ev.locationInWindow.y);
-	m.Right(true);
-	m.SetModifer((uint32)ev.modifierFlags);
-	
+	m.SetFromEvent(ev, self);
 	v->OnMouseClick(m);
 }
 
 - (void)mouseMoved:(NSEvent*)ev
 {
-	auto r = self.superview.frame;
-
 	GMouse m;
-	m.IsMove(true);
-	m.x = (int)ev.locationInWindow.x;
-	m.y = (int)(r.size.height - ev.locationInWindow.y);
-	m.Left(true);
-	m.SetModifer((uint32)ev.modifierFlags);
-	
+	m.SetFromEvent(ev, self);
 	v->OnMouseMove(m);
 }
 
