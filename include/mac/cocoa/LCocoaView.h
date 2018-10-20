@@ -17,6 +17,12 @@
 - (id)init:(GView*)view;
 - (void)dealloc;
 - (void)drawRect:(NSRect)dirtyRect;
+- (void)layout;
+- (void)mouseDown:(NSEvent*)ev;
+- (void)mouseUp:(NSEvent*)ev;
+- (void)rightMouseDown:(NSEvent*)ev;
+- (void)rightMouseUp:(NSEvent*)ev;
+- (void)mouseMoved:(NSEvent*)ev;
 @end
 
 

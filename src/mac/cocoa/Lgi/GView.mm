@@ -365,7 +365,24 @@ bool GView::SetPos(GRect &p, bool Repaint)
 				o = p->_BorderSize;
 		}
 
-		[_View.p setFrame:Pos];
+		GRect Flip = Pos;
+		auto Parent = GetParent();
+		GRect Pr;
+		if (Parent)
+			Pr = Parent->GetClient();
+		else if (GetWindow())
+			Pr = GetWindow()->GetClient();
+		if (Pr.Valid())
+		{
+			int y2 = Pr.y2 - Flip.y1;
+			int y1 = y2 - Flip.Y() + 1;
+			Flip.Offset(0, y1-Flip.y1);
+		}
+		
+		[_View.p setFrame:Flip];
+		if (_View.p.superview)
+			_View.p.superview.needsLayout = TRUE;
+		// printf("%s.SetPos %s\n", GetClass(), Pos.GetStr());
 	}
 	else if (GetParent())
 		OnPosChange();
@@ -388,6 +405,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	
 	if (_View)
 	{
+		[_View.p setNeedsDisplay:YES];
 		return true;
 	}
 	
@@ -881,8 +899,13 @@ bool GView::_Attach(GViewI *parent)
 		// Virtual attach
 	}
 
-	p->Children.Add(this);
-	OnAttach();
+	if (p->Children.HasItem(this))
+		printf("%s:%i - Already in child list.\n", _FL);
+	else
+	{
+		p->Children.Add(this);
+		OnAttach();
+	}
 
 	return true;
 }

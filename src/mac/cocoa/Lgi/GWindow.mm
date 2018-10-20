@@ -25,6 +25,8 @@ class GWindowContent : public GView
 	GWindow *w;
 
 public:
+	const char *GetClass() { return "GWindowContent"; }
+
 	GWindowContent(GWindow *wnd)
 	{
 		w = wnd;
@@ -124,6 +126,13 @@ public:
 		
 		return -1;
 	}
+	
+	void OnResize()
+	{
+		Wnd->Pos = Wnd->WindowHandle().p.frame;
+		Wnd->PourAll();
+		Wnd->OnPosChange();
+	}
 };
 
 @implementation GWindowDelegate
@@ -135,10 +144,16 @@ public:
     if ((self = [super init]) != nil)
     {
         d = priv;
+
+		NSWindow *w = d->Wnd->WindowHandle().p;
+		auto OldPos = w.contentView.frame;
 		Content = new GWindowContent(d->Wnd);
+		GRect r = OldPos;
+		Content->SetPos(r);
 		
 		auto ctrl = [[NSViewController alloc] init];
 		ctrl.view = [[LCocoaView alloc] init:Content];
+		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 		*Content = ctrl.view;
 		d->Wnd->WindowHandle().p.contentViewController = ctrl;
     }
@@ -154,7 +169,7 @@ public:
 - (void)windowDidResize:(NSNotification*)event
 {
 	if (d->Wnd)
-		d->Wnd->OnPosChange();
+		d->OnResize();
 }
 
 - (BOOL)windowShouldClose:(id)sender
@@ -1413,11 +1428,16 @@ GRect &GWindow::GetClient(bool ClientSpace)
 {
 	static GRect r;
 	if (Wnd)
+	{
 		r = Wnd.p.contentView.frame;
+		if (ClientSpace)
+			r.Offset(-r.x1, -r.y1);
+		//printf("GWindow client %s\n", r.GetStr());
+	}
 	else
-		r = Pos;
-	if (ClientSpace)
-		r.Offset(-r.x1, -r.y1);
+	{
+		r.ZOff(-1, -1);
+	}
 	return r;
 }
 

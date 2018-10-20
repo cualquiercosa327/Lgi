@@ -3,6 +3,9 @@
 
 #include "LgiInc.h"
 #include "LgiDefs.h"
+#if defined __OBJC__
+#include <Cocoa/Cocoa.h>
+#endif
 
 // Virtual input classes
 class GKey;
@@ -258,19 +261,15 @@ public:
 	/// \returns true if this event should show a context menu
 	bool IsContextMenu();
 	
-	#if defined COCOA
-	void SetButton(uint32 Btn);
+	#if defined __OBJC__
+	void SetFromEvent(NSEvent *ev, NSView *view);
 	#else
 	void SetButton(uint32 Btn)
 	{
-		#ifdef MAC
-		
-			#if !defined COCOA
-			Left(Btn == kEventMouseButtonPrimary);
-			Right(Btn == kEventMouseButtonSecondary);
-			Middle(Btn == kEventMouseButtonTertiary);
-			#endif
-		
+		#if LGI_CARBON
+		Left(Btn == kEventMouseButtonPrimary);
+		Right(Btn == kEventMouseButtonSecondary);
+		Middle(Btn == kEventMouseButtonTertiary);
 		#endif
 	}
 	#endif

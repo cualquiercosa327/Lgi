@@ -29,7 +29,7 @@ static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
 #define DEBUG_CHAR_AT				0
 
-#if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
+#if defined(__GTK_H__) || (defined(MAC) && !defined(LGI_SDL))
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	1
 #else
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	0
@@ -125,7 +125,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, ssize_t l, GSurface *pdc
 	AppendDots = 0;
 	VisibleTab = 0;
 	
-	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#if defined MAC && !defined(LGI_SDL)
 	
 		Hnd = 0;
 		#if USE_CORETEXT
@@ -194,7 +194,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, ssize_t l, GSurface *p
 	AppendDots = 0;
 	VisibleTab = 0;
 
-	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#if defined MAC && !defined(LGI_SDL)
 	
 		Hnd = NULL;
 		#if USE_CORETEXT
@@ -265,7 +265,7 @@ GDisplayString::~GDisplayString()
 	
 		Img.Reset();
 	
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC
 
 		#if USE_CORETEXT
 
@@ -530,7 +530,7 @@ void GDisplayString::Layout(bool Debug)
 			printf("%s:%i - Height error: %i > %i\n", _FL, y, Font->GetHeight());
 		}
 	
-	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#elif defined MAC && !defined(LGI_SDL)
 	
 		#if USE_CORETEXT
 
@@ -2007,7 +2007,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	
 	Gtk::cairo_restore(cr);
 	
-	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#elif defined MAC && !defined(LGI_SDL)
 
 	int Ox = 0, Oy = 0;
 	int px = fx >> FShift;

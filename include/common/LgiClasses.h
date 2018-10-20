@@ -396,6 +396,7 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend		class GDialog;
 	friend		class GDragDropTarget;
 	friend		class GPopup;
+	friend		class GWindowPrivate;
 
 	friend		bool SysOnKey(GView *w, GMessage *m);
 

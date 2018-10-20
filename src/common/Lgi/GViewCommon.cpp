@@ -1117,8 +1117,8 @@ bool GView::Enabled()
 	#if WINNATIVE
 	if (_View)
 		return IsWindowEnabled(_View) != 0;
-	#else
 	#endif
+	
 	return !TestFlag(GViewFlags, GWF_DISABLED);
 }
 

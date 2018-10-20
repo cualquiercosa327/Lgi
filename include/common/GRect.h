@@ -188,7 +188,7 @@ public:
 			x1 = r.origin.x;
 			y1 = r.origin.x;
 			x2 = x1 + r.size.width - 1;
-			y2 = y2 + r.size.height - 1;
+			y2 = y1 + r.size.height - 1;
 			return *this;
 		}
 		
@@ -197,7 +197,7 @@ public:
 			x1 = r.origin.x;
 			y1 = r.origin.x;
 			x2 = x1 + r.size.width - 1;
-			y2 = y2 + r.size.height - 1;
+			y2 = y1 + r.size.height - 1;
 		}
 	
 	#else

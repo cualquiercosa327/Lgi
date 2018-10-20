@@ -25,6 +25,7 @@ enum TabViewStyle
 };
 
 #define MAC_STYLE_RADIUS		7
+#define MAC_DBL_BUF				0
 
 #if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 #define MAC_PAINT	1
@@ -442,7 +443,19 @@ GRect &GTabView::GetTabClient()
 	if (d->Style == TvMac)
 	{
 		d->TabClient = CalcInset();
-		d->TabClient.y1 = d->Tabs.y2 + 1;
+		d->TabClient.Size(2, 2); // The inset border
+		d->TabClient.y1 = d->Tabs.y2 + 1; // The tab strip
+
+		GTabPage *p = GetCurrent();
+		if (p && p->GetCss())
+		{
+			// Inset by any padding
+			GCss::Len l;
+			d->TabClient.x1 += (l = p->GetCss()->PaddingLeft()).IsValid()   ? l.ToPx(d->TabClient.X(), GetFont()) : 0;
+			d->TabClient.y1 += (l = p->GetCss()->PaddingTop()).IsValid()    ? l.ToPx(d->TabClient.Y(), GetFont()) : 0;
+			d->TabClient.x2 -= (l = p->GetCss()->PaddingRight()).IsValid()  ? l.ToPx(d->TabClient.X(), GetFont()) : 0;
+			d->TabClient.y2 -= (l = p->GetCss()->PaddingBottom()).IsValid() ? l.ToPx(d->TabClient.Y(), GetFont()) : 0;
+		}
 	}
 	else
 	{
@@ -664,7 +677,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		if (!NoPaint.IsTransparent())
 		{
 			pDC->Colour(NoPaint);
-			pDC->Rectangle();
+			//pDC->Rectangle();
 		}
 
 		#ifdef LGI_CARBON
@@ -691,6 +704,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			pDC->Box(&Bounds);
 			Bounds.Size(1, 1);
 			pDC->Colour(d->cFill);
+			//pDC->Colour(GColour::White);
 			pDC->Rectangle(&Bounds);
 
 		#endif
@@ -705,7 +719,8 @@ void GTabView::OnPaint(GSurface *pDC)
 			auto Foc = Focus();
 			GFont *tf = it[i]->GetFont();
 			if (!tf) tf = f;
-			GDisplayString ds(tf, it[i]->Name());
+			auto TabTxt = it[i]->Name();
+			GDisplayString ds(tf, TabTxt);
 			bool First = i == 0;
 			bool Last = i == it.Length() - 1;
 			bool IsCurrent = d->Current == i;
@@ -746,7 +761,7 @@ void GTabView::OnPaint(GSurface *pDC)
 				GColour cInterTabBorder(231, 231, 231);
 				GRect b = r;
 
-				#if 1
+				#if MAC_DBL_BUF
 				GMemDC Mem;
 				if (First || Last)
 				{
@@ -793,12 +808,14 @@ void GTabView::OnPaint(GSurface *pDC)
 				{
 					GRect Clip01 = Clip00.Move(0, r.Y() - Clip00.Y());
 					
+					#if MAC_DBL_BUF
 					// Erase the areas we will paint over
 					pDC->Op(GDC_SET);
 					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : NoPaint);
 					pDC->Rectangle(&Clip00);
 					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : d->cFill);
 					pDC->Rectangle(&Clip01);
+					#endif
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
@@ -811,12 +828,14 @@ void GTabView::OnPaint(GSurface *pDC)
 					GRect Clip10 = Clip00.Move(r.X() - Clip00.X(), 0);
 					GRect Clip11 = Clip00.Move(Clip10.x1, r.Y() - Clip00.Y());
 					
+					#if MAC_DBL_BUF
 					// Erase the areas we will paint over
 					pDC->Op(GDC_SET);
 					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : NoPaint);
 					pDC->Rectangle(&Clip10);
 					pDC->Colour(pScreen->SupportsAlphaCompositing() ? GColour(0, 32) : d->cFill);
 					pDC->Rectangle(&Clip11);
+					#endif
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
@@ -824,12 +843,14 @@ void GTabView::OnPaint(GSurface *pDC)
 					pDC->Blt(Clip11.x1, Clip11.y1, d->Corners[Res], Clip00.Move(MAC_STYLE_RADIUS, MAC_STYLE_RADIUS));
 				}
 
+				#if MAC_DBL_BUF
 				if (First || Last)
 				{
 					if (pScreen->SupportsAlphaCompositing())
 						pScreen->Op(GDC_ALPHA);
 					pScreen->Blt(r.x1, r.y1, &Mem);
 				}
+				#endif
 				pDC = pScreen;
 
 			#endif
@@ -840,11 +861,16 @@ void GTabView::OnPaint(GSurface *pDC)
 			
 			it[i]->TabPos = r;
 			x += r.X()
-				#ifdef MAC
+				#ifdef LGI_CARBON
 				+ (i ? -1 : 2) // Fudge factor to make it look nice, wtf apple?
 				#endif
 				;
 		}
+		
+		#if 0
+		pDC->Colour(GColour::Green);
+		pDC->Line(0, 0, pDC->X()-1, pDC->Y()-1);
+		#endif
 	}
 	else if (d->Style == TvWinXp)
 	{
@@ -1029,6 +1055,7 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 	TabCtrl = 0;
 	TabPos.ZOff(-1, -1);
 	BtnPos.ZOff(-1, -1);
+	GetCss(true)->Padding("4px");
 
 	#if defined BEOS
 	if (Handle())
@@ -1283,6 +1310,11 @@ void GTabPage::OnPaint(GSurface *pDC)
 	GColour Bk = StyleColour(GCss::PropBackgroundColor, TabCtrl ? TabCtrl->d->cFill : GColour(LC_MED, 24), 1);
 	pDC->Colour(Bk);
 	pDC->Rectangle(&r);
+	
+	#if 0
+	pDC->Colour(GColour::Red);
+	pDC->Line(0, 0, pDC->X()-1, pDC->Y()-1);
+	#endif
 }
 
 void GTabPage::OnFocus(bool b)

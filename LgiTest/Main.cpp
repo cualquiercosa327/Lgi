@@ -205,7 +205,7 @@ public:
 			c = Tbl->GetCell(1, 0);
 			c->Add(new GEdit(IDC_EDIT1, 0, 0, -1, -1));
 
-			#else
+			#elif 0
 
 			AddView(e = new GEdit(IDC_EDIT1, 10, 10, 200, 22));
 			AddView(e2 = new GEdit(IDC_EDIT1, 10, 50, 200, 22));
@@ -229,11 +229,13 @@ public:
 			c.Size(10, 10);
 			Tbl->SetPos(c);
 		}
+		
+		GWindow::OnPosChange();
 	}
 
 	void OnPaint(GSurface *pDC)
 	{
-		pDC->Colour(LC_LOW, 24);
+		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle();
 	}
 	
@@ -386,8 +388,8 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "Lgi Test");
 	if (a.IsOk())
 	{
-		GStringTest();
-		DbTesting();
+		// GStringTest();
+		// DbTesting();
 
 		a.AppWnd = new App;
 		a.Run();

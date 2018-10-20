@@ -130,20 +130,40 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
-void GMouse::SetButton(uint32 Btn)
+void GMouse::SetFromEvent(NSEvent *ev, NSView *view)
 {
-	#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
-	
-	Flags |= Btn & NSEventMaskMouseMoved ? LGI_EF_MOVE : 0;
-	Down(Btn & (NSEventMaskLeftMouseDown | NSEventMaskRightMouseDown) );
-	Left(Btn & (NSEventMaskLeftMouseDown | NSEventMaskLeftMouseUp) );
-	Right(Btn & (NSEventMaskRightMouseDown | NSEventMaskRightMouseUp) );
-	
-	#else
-	
-	#error "Impl me"
+	auto r = view.superview.frame;
 
-	#endif
+	GMouse m;
+	x = (int)ev.locationInWindow.x;
+	y = (int)(r.size.height - ev.locationInWindow.y);
+	SetModifer((uint32)ev.modifierFlags);
+	Double(ev.clickCount == 2);
+
+	switch (ev.type)
+	{
+		case NSEventTypeLeftMouseDown:
+			Down(true); Left(true);
+			break;
+		case NSEventTypeLeftMouseUp:
+			Down(false); Left(true);
+			break;
+		case NSEventTypeRightMouseDown:
+			Down(true); Right(true);
+			break;
+		case NSEventTypeRightMouseUp:
+			Down(false); Right(true);
+			break;
+		case NSEventTypeOtherMouseDown:
+			Down(true); Middle(true);
+			break;
+		case NSEventTypeOtherMouseUp:
+			Down(false); Middle(true);
+			break;
+		case NSEventTypeMouseMoved:
+			IsMove(true);
+			break;
+	}
 }
 
 void GUiEvent::SetModifer(uint32 modifierKeys)
