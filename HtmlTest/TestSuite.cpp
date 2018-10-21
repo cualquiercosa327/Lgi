@@ -481,7 +481,7 @@ public:
 				Prog.SetDescription("Scanning for HTML...");
 				
 				char p[MAX_PATH];
-				LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+				LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
 				GArray<const char*> Ext;
 				GArray<char*> Files;
 				Ext.Add("*.html");
@@ -547,7 +547,7 @@ public:
 			case IDM_COMPARE_IMAGES:
 			{
 				char p[MAX_PATH];
-				LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+				LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
 				GArray<const char*> Ext;
 				GArray<char*> Files;
 				Ext.Add("*.png");

@@ -84,11 +84,11 @@ public:
 				char p[MAX_PATH];
 				if (Mode == InstallPortable)
 				{
-					LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+					LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
 				}
 				else
 				{
-					if (LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p)) &&
+					if (LGetSystemPath(LSP_APP_ROOT, p, sizeof(p)) &&
 						!DirExists(p))
 					{
 						FileDev->CreateFolder(p);
@@ -199,7 +199,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 	d->AppName = NewStr(appname?appname:(char*)"Lgi.GDocApp");
 
 	char p[MAX_PATH];
-	if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
+	if (LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
 	{
 		LgiMakePath(p, sizeof(p), p, "_write_test.txt");
 		GFile f;

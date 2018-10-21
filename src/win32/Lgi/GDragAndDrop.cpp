@@ -862,7 +862,7 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GStri
 				{
 					char Path[256];
 					GString Str;
-					LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path));
+					LGetSystemPath(LSP_TEMP, Path, sizeof(Path));
 					LgiMakePath(Path, sizeof(Path), Path, Str = Data->fgd[i].cFileName);
 
 					GFile f;

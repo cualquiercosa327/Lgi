@@ -418,7 +418,7 @@ public:
 					Edit->Name(Src);
 					#else
 					char p[MAX_PATH];
-					LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+					LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
 					LgiMakePath(p, sizeof(p), p, "Test");
 					LgiMakePath(p, sizeof(p), p, SrcFileName);
 					GAutoString html(ReadTextFile(p));

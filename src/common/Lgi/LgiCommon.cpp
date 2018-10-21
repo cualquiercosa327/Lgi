@@ -537,7 +537,7 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 			if (Dir)
 			{
 				strcpy_s(Leaf, sizeof(Leaf), Dir + 1);
-				LgiGetSystemPath(LSP_APP_ROOT, LogPath, BufLen);
+				LGetSystemPath(LSP_APP_ROOT, LogPath, BufLen);
 				if (!DirExists(LogPath))
 					FileDev->CreateFolder(LogPath);
 				LgiMakePath(LogPath, BufLen, LogPath, Leaf);
@@ -845,7 +845,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 			else if (!stricmp(T[i], ".."))
 				LgiTrimDir(Str);
 			else if (!stricmp(T[i], "~"))
-				LgiGetSystemPath(LSP_HOME, Str, StrSize);
+				LGetSystemPath(LSP_HOME, Str, StrSize);
 			else
 			{
 				size_t Len = strlen(Str);
@@ -871,10 +871,10 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 
 bool LgiGetTempPath(char *Dst, int DstSize)
 {
-	return LgiGetSystemPath(LSP_TEMP, Dst, DstSize);
+	return LGetSystemPath(LSP_TEMP, Dst, DstSize);
 }
 
-bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
+bool LGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 {
 	if (!Dst || DstSize <= 0)
 		return false;
@@ -888,7 +888,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 	return true;
 }
 
-GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
+GString LGetSystemPath(LgiSystemPath Which, int WordSize)
 {
 	GFile::Path p;
 	return p.GetSystem(Which, WordSize);
@@ -1042,7 +1042,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 		}
 		case LSP_USER_LINKS:
 		{
-			GString Home = LgiGetSystemPath(LSP_HOME);
+			GString Home = LGetSystemPath(LSP_HOME);
 			
 			#if defined(WIN32)
 
@@ -1077,7 +1077,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 
 			// Default to ~/Pictures
 			char p[MAX_PATH];
-			GString Home = LgiGetSystemPath(LSP_HOME);
+			GString Home = LGetSystemPath(LSP_HOME);
 			if (LgiMakePath(p, sizeof(p), Home, "Pictures"))
 				Path = p;
 			break;
@@ -1092,7 +1092,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 
 			// Default to ~/Documents
 			char p[MAX_PATH];
-			GString Home = LgiGetSystemPath(LSP_HOME);
+			GString Home = LGetSystemPath(LSP_HOME);
 			if (LgiMakePath(p, sizeof(p), Home, "Documents"))
 				Path = p;
 			break;
@@ -1121,7 +1121,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 			{
 				// Default to ~/Music
 				char p[MAX_PATH];
-				GString Home = LgiGetSystemPath(LSP_HOME);
+				GString Home = LGetSystemPath(LSP_HOME);
 				if (LgiMakePath(p, sizeof(p), Home, "Music"))
 					Path = p;
 			}
@@ -1151,7 +1151,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 			{
 				// Default to ~/Video
 				char p[MAX_PATH];
-				GString Home = LgiGetSystemPath(LSP_HOME);
+				GString Home = LGetSystemPath(LSP_HOME);
 				if (LgiMakePath(p, sizeof(p), Home, "Video"))
 					Path = p;
 			}
@@ -1187,7 +1187,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 		}
 		case LSP_APP_INSTALL:
 		{
-			Path = LgiGetSystemPath(LSP_EXE);
+			Path = LGetSystemPath(LSP_EXE);
 			if (Path)
 			{
 				size_t Last = Path.RFind(DIR_STR);
@@ -1605,7 +1605,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 				}
 				default:
 				{
-					GString Home = LgiGetSystemPath(LSP_HOME);
+					GString Home = LGetSystemPath(LSP_HOME);
 					if (!Home)
 					{
 						LgiTrace("%s:%i - Can't get LSP_HOME.\n", _FL);
@@ -1877,7 +1877,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 
 bool LgiGetExePath(char *Dst, int DstSize)
 {
-	return LgiGetSystemPath(LSP_EXE, Dst, DstSize);
+	return LGetSystemPath(LSP_EXE, Dst, DstSize);
 }
 
 char *LgiGetExtension(const char *File)
@@ -2212,7 +2212,7 @@ char *LgiTokStr(const char *&s)
 	return Status;
 }
 
-GString LgiGetEnv(const char *Var)
+GString LGetEnv(const char *Var)
 {
 #ifdef _MSC_VER
 	char *s = NULL;
@@ -2227,6 +2227,38 @@ GString LgiGetEnv(const char *Var)
 #else
 	return getenv("PATH");
 #endif
+}
+
+GString::Array LGetPath()
+{
+	GString::Array Paths;
+
+	#ifdef MAC
+		// OMG, WHY?! Seriously?
+		//
+		// The GUI application path is NOT the same as what is configured for the terminal.
+		// At least in 10.12. And I don't know how to make them the same. This works around
+		// that for the time being.
+		GFile::Path Home(LSP_HOME);
+		Home += ".profile";
+		GString::Array Paths;
+		auto Profile = GFile(Home, O_READ).Read().Split("\n");
+		for (auto Ln : Profile)
+		{
+			auto p = Ln.SplitDelimit(" =", 2);
+			if (p.Length() == 3 &&
+				p[0].Equals("export") &&
+				p[1].Equals("PATH"))
+			{
+				Paths = p[2].Strip("\"").SplitDelimit(LGI_PATH_SEPARATOR);
+				break;
+			}
+		}
+	#else
+		Paths = LGetEnv("PATH").SplitDelimit(LGI_PATH_SEPARATOR);
+	#endif
+
+	return Paths;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2535,7 +2567,7 @@ GString LGetAppForProtocol(const char *Protocol)
 			p = "xdg-email";
 		else
 			p = "xdg-open";
-		GString Path = LgiGetEnv("PATH");
+		GString Path = LGetEnv("PATH");
 		GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
 		for (auto i : a)
 		{

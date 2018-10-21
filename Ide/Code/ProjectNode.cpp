@@ -393,7 +393,7 @@ void ProjectNode::AutoDetectType()
 	if (FullPath)
 	{
 		char MimeType[256];
-		if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
+		if (LGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
 			strnicmp(MimeType, "image/", 6) == 0)
 		{
 			Type = NodeGraphic;

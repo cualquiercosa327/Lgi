@@ -688,7 +688,7 @@ public:
 				LgiMakePath(Obj, sizeof(Obj), TempPath, SourceFileName);
 			else
 			{
-				LgiGetSystemPath(LSP_TEMP, Obj, sizeof(Obj));
+				LGetSystemPath(LSP_TEMP, Obj, sizeof(Obj));
 				LgiMakePath(Obj, sizeof(Obj), Obj, SourceFileName);
 			}
 
@@ -706,7 +706,7 @@ public:
 			if (!DataPath)
 			{
 				char p[256];
-				if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
+				if (LGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
 					DataPath.Reset(NewStr(p));
 			}
 		

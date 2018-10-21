@@ -535,7 +535,7 @@ void GGraph::OnMouseClick(GMouse &m)
                 s.Parent(this);
                 s.Name("average.csv");
                 char Desktop[MAX_PATH];
-                LgiGetSystemPath(LSP_DESKTOP, Desktop, sizeof(Desktop));
+                LGetSystemPath(LSP_DESKTOP, Desktop, sizeof(Desktop));
                 s.InitialDir(Desktop);
                 if (!s.Save())
                     break;

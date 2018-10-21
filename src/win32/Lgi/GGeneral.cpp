@@ -49,7 +49,7 @@ void LgiSleep(DWORD i)
 	::Sleep(i);
 }
 
-GString LgiCurrentUserName()
+GString LCurrentUserName()
 {
 	TCHAR username[256];
 	DWORD username_len = sizeof(username);
@@ -90,7 +90,7 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 	return Ext.Length() > Start;
 }
 
-GString LgiGetFileMimeType(const char *File)
+GString LGetFileMimeType(const char *File)
 {
 	if (File)
 	{
@@ -426,7 +426,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-GString LgiGetAppForMimeType(const char *Mime)
+GString LGetAppForMimeType(const char *Mime)
 {
 	GString App;
 	GArray<GAppInfo*> Apps;

@@ -400,7 +400,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		}
 		else
 		{
-			GString::Array p = LgiGetEnv("PATH").Split(LGI_PATH_SEPARATOR);
+			GString::Array p = LGetEnv("PATH").Split(LGI_PATH_SEPARATOR);
 			for (auto Path : p)
 			{
 				char s[MAX_PATH];

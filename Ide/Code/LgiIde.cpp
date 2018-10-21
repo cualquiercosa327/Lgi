@@ -3539,7 +3539,7 @@ bool AppWnd::GetSystemIncludePaths(::GArray<GString> &Paths)
 		}
 		#else
 		char p[MAX_PATH];
-		LgiGetSystemPath(LSP_USER_DOCUMENTS, p, sizeof(p));
+		LGetSystemPath(LSP_USER_DOCUMENTS, p, sizeof(p));
 		LgiMakePath(p, sizeof(p), p, "Visual Studio 2008\\Settings\\CurrentSettings.xml");
 		if (FileExists(p))
 		{

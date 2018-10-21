@@ -1755,7 +1755,7 @@ void GTextView3::Value(int64 i)
 
 GString GTextView3::operator[](ssize_t LineIdx)
 {
-	if (LineIdx <= 0 || LineIdx > GetLines())
+	if (LineIdx <= 0 || LineIdx > (ssize_t)GetLines())
 		return GString();
 
 	GTextLine *Ln = Line[LineIdx-1];

@@ -386,7 +386,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				GAutoPtr<FindSymbolSystem::SymFileParams> Params((FindSymbolSystem::SymFileParams*)Msg->A());
 				if (Params)
 				{
-					GString::Array Mime = LgiGetFileMimeType(Params->File).Split("/");
+					GString::Array Mime = LGetFileMimeType(Params->File).Split("/");
 					if (!Mime[0].Equals("image"))
 					{
 						if (Params->Action == FindSymbolSystem::FileAdd)

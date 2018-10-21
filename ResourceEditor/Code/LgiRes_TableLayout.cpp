@@ -1640,7 +1640,7 @@ TableLayoutTest::TableLayoutTest(GViewI *par)
 	c->Add(new GButton(IDOK, 0, 0, -1, -1, "Close"));
 
 	char e[MAX_PATH];
-	LgiGetSystemPath(LSP_APP_INSTALL, e, sizeof(e));
+	LGetSystemPath(LSP_APP_INSTALL, e, sizeof(e));
 	LgiMakePath(e, sizeof(e), e, "../../..");
 	Base.Reset(NewStr(e));
 	

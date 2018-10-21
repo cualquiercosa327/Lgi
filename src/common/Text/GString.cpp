@@ -938,7 +938,7 @@ char *LgiEncodeUri(const char *uri, int len)
 	return p.NewStr();
 }
 
-GString LgiUrlEncode(const char *s, const char *delim)
+GString LUrlEncode(const char *s, const char *delim)
 {
 	if (!s || !*s)
 		return GString();
@@ -966,7 +966,7 @@ GString LgiUrlEncode(const char *s, const char *delim)
 	return out;
 }
 
-GString LgiUrlDecode(const char *s)
+GString LUrlDecode(const char *s)
 {
 	if (!s || !*s)
 		return GString();

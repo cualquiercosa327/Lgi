@@ -1130,7 +1130,7 @@ GSurface *GEmojiContext::GetEmojiImage()
 {
 	if (!EmojiImg)
 	{
-		GString p = LgiGetSystemPath(LSP_APP_INSTALL);
+		GString p = LGetSystemPath(LSP_APP_INSTALL);
 		if (!p)
 		{
 			LgiTrace("%s:%i - No app install path.\n", _FL);

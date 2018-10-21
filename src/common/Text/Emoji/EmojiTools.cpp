@@ -167,7 +167,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 	LgiGetExeFile(EmojiPng, sizeof(EmojiPng));
 	LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "Contents/Resources/EmojiMap.png");
 	#else
-	LgiGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
+	LGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
 	LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "resources/EmojiMap.png");
 	#endif
 

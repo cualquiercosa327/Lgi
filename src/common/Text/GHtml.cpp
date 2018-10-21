@@ -173,7 +173,7 @@ public:
 		LgiGetExeFile(EmojiPng, sizeof(EmojiPng));
 		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "Contents/Resources/Emoji.png");
 		#else
-		LgiGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
+		LGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
 		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "resources/emoji.png");
 		#endif
 		if (FileExists(EmojiPng))
@@ -8194,7 +8194,7 @@ void GHtml::OnMouseClick(GMouse &m)
 						}
 
 						char Path[MAX_PATH];
-						if (!LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
+						if (!LGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
 						{
 							LgiTrace("%s:%i - Failed to get the system path.\n", _FL);
 							break;

@@ -428,7 +428,7 @@ public:
 		if (Id)
 			_Path = WinGetSpecialFolderPath(Id);
 		else
-			_Path = LgiGetSystemPath(Type);
+			_Path = LGetSystemPath(Type);
 	}
 
 	GWin32Volume(const char *Drive)

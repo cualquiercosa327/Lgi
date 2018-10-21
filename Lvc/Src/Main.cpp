@@ -166,8 +166,7 @@ GString::Array GetProgramsInPath(const char *Program)
 	Prog += LGI_EXECUTABLE_EXT;
 	#endif
 
-	GString Path = LgiGetEnv("PATH");
-	GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+	GString::Array a = LGetPath();
 	for (auto p : a)
 	{
 		GFile::Path c(p, Prog);

@@ -30,7 +30,7 @@
 
 /// Returns the system path specified
 /// \ingroup Base
-LgiExtern GString LgiGetSystemPath(
+LgiExtern GString LGetSystemPath(
 	/// Which path to retreive
 	LgiSystemPath Which,
 	int WordSize = 0
@@ -38,7 +38,7 @@ LgiExtern GString LgiGetSystemPath(
 
 /// Returns the mime type of the file
 /// \ingroup Mime
-LgiExtern GString LgiGetFileMimeType
+LgiExtern GString LGetFileMimeType
 (
 	/// File to find mime type for
 	const char *File
@@ -46,23 +46,26 @@ LgiExtern GString LgiGetFileMimeType
 
 /// Returns the application associated with the mime type
 /// \ingroup Mime
-LgiExtern GString LgiGetAppForMimeType
+LgiExtern GString LGetAppForMimeType
 (
 	/// Type of the file to find and app for
 	const char *Mime
 );
 
 /// URL encode a string
-LgiExtern GString LgiUrlEncode(const char *s, const char *delim);
+LgiExtern GString LUrlEncode(const char *s, const char *delim);
 
 /// URL decode a string
-LgiExtern GString LgiUrlDecode(const char *s);
+LgiExtern GString LUrlDecode(const char *s);
 
 /// Gets the current user
-LgiExtern GString LgiCurrentUserName();
+LgiExtern GString LCurrentUserName();
 
 /// Returns an environment variable.
-LgiExtern GString LgiGetEnv(const char *Var);
+LgiExtern GString LGetEnv(const char *Var);
+
+/// Gets the system path..
+LgiExtern GString::Array LGetPath();
 
 /// Check for a valid email string
 LgiExtern bool LIsValidEmail(GString Email);
@@ -197,7 +200,7 @@ LgiFunc bool LgiGetTempPath(char *Dst, int DstSize);
 
 /// Returns the system path specified
 /// \ingroup Base
-LgiFunc bool LgiGetSystemPath
+LgiFunc bool LGetSystemPath
 (
 	/// Which path to retreive
 	LgiSystemPath Which,
@@ -311,16 +314,16 @@ LgiExtern bool LgiGetMimeTypeExtensions
 	GArray<GString> &Ext
 );
 
-inline bool LgiGetFileMimeType(const char *File, char *MimeType, int BufSize)
+inline bool LGetFileMimeType(const char *File, char *MimeType, int BufSize)
 {
-	GString p = LgiGetFileMimeType(File);
+	GString p = LGetFileMimeType(File);
 	if (MimeType && p) strcpy_s(MimeType, BufSize, p);
 	return p.Length() > 0;
 }
 
-inline bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+inline bool LGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
-	GString p = LgiGetAppForMimeType(Mime);
+	GString p = LGetAppForMimeType(Mime);
 	if (AppPath && p) strcpy_s(AppPath, BufSize, p);
 	return p.Length() > 0;
 }

@@ -1030,7 +1030,7 @@ GAutoString GApp::GetFileMimeType(const char *File)
 {
 	GAutoString r;
 	char m[128];
-	if (LgiGetFileMimeType(File, m, sizeof(m)))
+	if (LGetFileMimeType(File, m, sizeof(m)))
 		r.Reset(NewStr(m));
 	return r;
 }

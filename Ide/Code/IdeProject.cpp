@@ -1449,7 +1449,7 @@ GString BuildThread::FindExe()
 	{
 		// const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
 		
-		GString ProgFiles = LgiGetSystemPath(LSP_USER_APPS, 32);
+		GString ProgFiles = LGetSystemPath(LSP_USER_APPS, 32);
 		char p[MAX_PATH];
 		if (!LgiMakePath(p, sizeof(p), ProgFiles, "IAR Systems"))
 			return GString();
@@ -2547,7 +2547,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	{
 		d->FileName = FileName;
 	}
-	d->UserFile = d->FileName + "." + LgiCurrentUserName();
+	d->UserFile = d->FileName + "." + LCurrentUserName();
 
 	if (!d->FileName)
 	{
@@ -2739,7 +2739,7 @@ bool IdeProject::SetClean()
 			if (s.Save())
 			{
 				d->FileName = s.Name();
-				d->UserFile = d->FileName + "." + LgiCurrentUserName();
+				d->UserFile = d->FileName + "." + LCurrentUserName();
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}

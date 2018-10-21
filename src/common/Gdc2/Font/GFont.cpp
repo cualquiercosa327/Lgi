@@ -1924,7 +1924,7 @@ bool GFontType::GetSystemFont(const char *Which)
 	{
 		bool ConfigFontUsed = false;
 		char p[MAX_PATH];
-		LgiGetSystemPath(LSP_HOME, p, sizeof(p));
+		LGetSystemPath(LSP_HOME, p, sizeof(p));
 		LgiMakePath(p, sizeof(p), p, ".lgi.conf");
 		if (FileExists(p))
 		{

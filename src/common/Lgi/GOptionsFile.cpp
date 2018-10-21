@@ -39,7 +39,7 @@ GOptionsFile::~GOptionsFile()
 bool GOptionsFile::SetMode(PortableType Mode, const char *BaseName)
 {
 	char FullPath[MAX_PATH];
-	if (!LgiGetSystemPath(Mode == DesktopMode ? LSP_APP_ROOT : LSP_APP_INSTALL, FullPath, sizeof(FullPath)))
+	if (!LGetSystemPath(Mode == DesktopMode ? LSP_APP_ROOT : LSP_APP_INSTALL, FullPath, sizeof(FullPath)))
 		return false;
 
 	if (!DirExists(FullPath))

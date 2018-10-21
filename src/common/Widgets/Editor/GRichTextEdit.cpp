@@ -1153,7 +1153,7 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 			{
 				const char *f = Df[n];
 				char Mt[128];
-				if (LgiGetFileMimeType(f, Mt, sizeof(Mt)) &&
+				if (LGetFileMimeType(f, Mt, sizeof(Mt)) &&
 					!_strnicmp(Mt, "image/", 6))
 				{
 					if (AddIndex < 0)
