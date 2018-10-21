@@ -266,7 +266,7 @@ public:
 	#else
 	void SetButton(uint32 Btn)
 	{
-		#if defined(MAC) && !defined(__OBJC__)
+		#if defined(MAC) && defined(__CARBONEVENTS__)
 		Left(Btn == kEventMouseButtonPrimary);
 		Right(Btn == kEventMouseButtonSecondary);
 		Middle(Btn == kEventMouseButtonTertiary);

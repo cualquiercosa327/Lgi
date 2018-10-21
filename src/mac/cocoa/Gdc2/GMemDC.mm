@@ -153,9 +153,11 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 			pMem->Flags = 0;
 			pMem->x = x;
 			pMem->y = y;
+			pMem->Cs = CsNone;
 
 			NSSize Sz = {(double)x, (double)y};
 			d->Img = [[NSImage alloc] initWithSize:Sz];
+			/*
 			d->Bmp = [NSBitmapImageRep imageRepWithData:[d->Img TIFFRepresentation]];
 			if (d->Bmp && !pMem->Base)
 			{
@@ -163,6 +165,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 				pMem->Flags |= GBmpMem::BmpOwnMemory;
 				pMem->Cs = Cs;
 			}
+			*/
 			
 			ColourSpace = pMem->Cs;
 			
