@@ -4084,9 +4084,6 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_LEFT:
 			{
-				if (k.Alt())
-					return false;
-
 				if (k.Down())
 				{
 					if (SelStart >= 0 &&
@@ -4105,7 +4102,7 @@ bool GTextView3::OnKey(GKey &k)
 						}
 						else
 						#endif
-						if (k.Ctrl())
+						if (k.Ctrl() || k.Alt())
 						{
 							// word move/select
 							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
@@ -4160,9 +4157,6 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_RIGHT:
 			{
-				if (k.Alt())
-					return false;
-
 				if (k.Down())
 				{
 					if (SelStart >= 0 &&
@@ -4181,7 +4175,7 @@ bool GTextView3::OnKey(GKey &k)
 						}
 						else
 						#endif
-						if (k.Ctrl())
+						if (k.Ctrl() || k.Alt())
 						{
 							// word move/select
 							if (IsWhiteSpace(Text[n]))

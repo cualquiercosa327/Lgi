@@ -266,7 +266,7 @@ public:
 	#else
 	void SetButton(uint32 Btn)
 	{
-		#if LGI_CARBON
+		#if defined(MAC) && !defined(__OBJC__)
 		Left(Btn == kEventMouseButtonPrimary);
 		Right(Btn == kEventMouseButtonSecondary);
 		Middle(Btn == kEventMouseButtonTertiary);
