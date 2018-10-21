@@ -25,7 +25,7 @@ enum TabViewStyle
 };
 
 #define MAC_STYLE_RADIUS		7
-#define MAC_DBL_BUF				0
+#define MAC_DBL_BUF				1
 
 #if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 #define MAC_PAINT	1
@@ -998,7 +998,6 @@ void GTabView::OnPosChange()
 			{
 				GRect r = d->TabClient;
 				r.Offset(-r.x1, -r.y1);
-				r.Size(5, 5);
 				GRegion Rgn(r);
 
 				GAutoPtr<GViewIterator> It(p->IterateViews());

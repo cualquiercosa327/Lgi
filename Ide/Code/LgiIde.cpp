@@ -808,14 +808,6 @@ public:
 		return "IdeOutput";
 	}
 
-	/*
-	void OnPaint(GSurface *pDC)
-	{
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
-	}
-	*/
-	
 	void Save()
 	{
 		if (Watch)
@@ -939,33 +931,6 @@ public:
 		if (Changed >= 0)
 			Value(Changed);
 	}
-
-	/*
-	void OnPosChange()
-	{
-		GRect c = GetClient();
-		if (Tab)
-		{
-			GRect p = Tab->GetPos();
-			p.x2 = c.X() - 3;
-			p.y2 = c.Y() - 3;
-			Tab->SetPos(p);
-			// LgiTrace("%s:%i - OnPosChange() %s\n", _FL, c.GetStr());
-			
-			c = Tab->GetTabClient();
-			c.Offset(-c.x1, -c.y1);
-			p.Size(3, 3);
-
-			for (int n=0; n<CountOf(Txt); n++)
-			{
-				if (Txt[n])
-					Txt[n]->GView::SetPos(c);
-			}
-
-			FtpLog->SetPos(c);
-		}
-	}
-	*/
 };
 
 int DocSorter(IdeDoc *a, IdeDoc *b, NativeInt d)
