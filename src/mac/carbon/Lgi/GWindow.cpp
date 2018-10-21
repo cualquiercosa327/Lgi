@@ -864,6 +864,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					m.ViewCoords = false;
 					m.x = Pt.h;
 					m.y = Pt.v;
+					m.IsMove(true);
 					m.SetModifer(modifierKeys);
 					m.Down(eventKind == kEventMouseDragged);
 					if (m.Down())

@@ -36,7 +36,6 @@
 	v->OnPaint(&Dc);
 }
 
-
 - (void)layout
 {
 	v->OnPosChange();

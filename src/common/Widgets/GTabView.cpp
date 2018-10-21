@@ -677,7 +677,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		if (!NoPaint.IsTransparent())
 		{
 			pDC->Colour(NoPaint);
-			//pDC->Rectangle();
+			pDC->Rectangle();
 		}
 
 		#ifdef LGI_CARBON

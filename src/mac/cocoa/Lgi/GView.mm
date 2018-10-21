@@ -201,6 +201,7 @@ void GView::_Delete()
 	
 	if (_View)
 	{
+		[_View.p removeFromSuperview];
 		_View = NULL;
 	}
 }

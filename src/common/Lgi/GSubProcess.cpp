@@ -19,7 +19,7 @@
 		
 */ 
 
-#if defined(POSIX)
+#if defined(MAC) || defined(POSIX)
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>

@@ -219,7 +219,7 @@ OsBitmap GSurface::GetBitmap()
 	#if WINNATIVE
 	return hBmp;
 	#else
-	return 0;
+	return NULL;
 	#endif
 }
 

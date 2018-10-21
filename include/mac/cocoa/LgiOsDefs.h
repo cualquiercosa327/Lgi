@@ -61,6 +61,7 @@
 
 ObjCWrapper(NSWindow, OsWindow)
 ObjCWrapper(NSView, OsView)
+ObjCWrapper(NSImage, OsBitmap)
 
 typedef pthread_t           OsThread;
 typedef uint64_t			OsThreadId;
@@ -69,7 +70,6 @@ typedef uint16				OsChar;
 typedef int					OsProcessId;
 typedef int					OsProcess;
 typedef CGContextRef		OsPainter;
-typedef CGContextRef		OsBitmap;
 typedef CTFontRef			OsFont;
 
 #include "GMessage.h"
