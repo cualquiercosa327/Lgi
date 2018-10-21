@@ -8,28 +8,106 @@
 class GScreenPrivate
 {
 public:
+	CGContextRef Ctx;
 	GWindow *Wnd;
 	GView *View;
-	CGContextRef Ctx;
 	GRect Rc;
 	GArray<GRect> Stack;
-	COLOUR Cur;
+	GColour c;
 	int Bits;
 	int Op;
 	NativeInt ConstAlpha;
 	int Clipped;
 	
+	void Init()
+	{
+		Op = GDC_ALPHA;
+		Ctx = nil;
+		Wnd = NULL;
+		View = NULL;
+		Bits = GdcD->GetBits();
+		View = 0;
+		Rc.ZOff(-1, -1);
+		Clipped = 0;
+		ConstAlpha = 255;
+	}
+
+	#if COCOA
+	void SetContext(GView *v)
+	{
+		Rc = v->GetClient();
+		// printf("SetContext: %s -> %s\n", v->GetClass(), Rc.GetStr());
+		
+		Ctx = [NSGraphicsContext currentContext].CGContext;
+		if (Ctx)
+		{
+			#if 1
+			CGAffineTransform flipVertical = CGAffineTransformMake(1, 0, 0, -1, 0, Rc.Y());
+			CGContextConcatCTM(Ctx, flipVertical);
+			#endif
+		}
+	}
+	#endif
+	
 	GScreenPrivate()
 	{
-		Clipped = 0;
-		Op = GDC_SET;
-		ConstAlpha = 255;
-		Wnd = 0;
-		Bits = GdcD->GetBits();
-		Cur = Rgb32(0, 0, 0);
-		View = 0;
-		Ctx = 0;
-		Rc.ZOff(-1, -1);
+		Init();
+	}
+	
+	GScreenPrivate(GWindow *w, void *param = NULL)
+	{
+		Init();
+		Wnd = w;
+		#if COCOA
+		SetContext(w);
+		#else
+		Ctx = (CGContextRef)param;
+		if (Ctx && Wnd)
+		{
+			Rect r;
+			if (GetWindowBounds(Wnd->WindowHandle(), kWindowContentRgn, &r))
+			{
+				printf("%s:%i - GetWindowBounds failed\n", _FL);
+			}
+			else
+			{
+				Rc = r;
+				Rc.Offset(-d->Rc.x1, -d->Rc.y1);
+			}
+			
+			// CGContextTranslateCTM (d->Ctx, 0, d->Rc.Y()-1); 
+			// CGContextScaleCTM (d->Ctx, 1.0, -1.0); 
+			CGContextSetLineWidth(Ctx, 1.0);
+		}
+		else printf("%s:%i - No context.\n", __FILE__, __LINE__);
+		#endif
+	}
+
+	GScreenPrivate(GView *v)
+	{
+		Init();
+		View = v;
+		#if COCOA
+		SetContext(v);
+		#else
+		Ctx = (CGContextRef)param;
+		if (Ctx)
+		{
+			HIRect r;
+			if (View && !HIViewGetBounds(View->Handle(), &r))
+			{
+				Rc.ZOff((int)r.size.width, (int)r.size.height);
+			}
+			else
+			{
+				// dock icon
+				Rc.ZOff(127, 127);
+			}
+			
+			CGContextSetLineWidth(Ctx, 1.0);
+		}
+		else printf("%s:%i - No context.\n", _FL);
+		#endif
 	}
 	
 	GRect Client()
@@ -63,56 +141,13 @@ GScreenDC::GScreenDC(GPrintDcParams *Params)
 
 GScreenDC::GScreenDC(GWindow *w, void *param)
 {
-	d = new GScreenPrivate;
+	d = new GScreenPrivate(w, param);
 	d->Wnd = w;
-	d->Ctx = (CGContextRef)param;
-	if (d->Ctx && d->Wnd)
-	{
-		Rect r;
-		if (GetWindowBounds(d->Wnd->WindowHandle(), kWindowContentRgn, &r))
-		{
-			printf("%s:%i - GetWindowBounds failed\n", _FL);
-		}
-		else
-		{
-			d->Rc = r;
-			d->Rc.Offset(-d->Rc.x1, -d->Rc.y1);
-		}
-		
-		// CGContextTranslateCTM (d->Ctx, 0, d->Rc.Y()-1); 
-		// CGContextScaleCTM (d->Ctx, 1.0, -1.0); 
-		CGContextSetLineWidth(d->Ctx, 1.0);
-	}
-	else
-	{
-		printf("%s:%i - No context.\n", __FILE__, __LINE__);
-	}
 }
 
 GScreenDC::GScreenDC(GView *v, void *param)
 {
-	d = new GScreenPrivate;
-	d->View = v;
-	d->Ctx = (CGContextRef)param;
-	if (d->Ctx)
-	{
-		HIRect r;
-		if (d->View && !HIViewGetBounds(d->View->Handle(), &r))
-		{
-			d->Rc.ZOff((int)r.size.width, (int)r.size.height);
-		}
-		else
-		{
-			// dock icon
-			d->Rc.ZOff(127, 127);
-		}
-		
-		CGContextSetLineWidth(d->Ctx, 1.0);
-	}
-	else
-	{
-		printf("%s:%i - No context.\n", _FL);
-	}
+	d = new GScreenPrivate(v, param);
 }
 
 GScreenDC::~GScreenDC()
@@ -282,15 +317,16 @@ GRect GScreenDC::ClipRgn()
 
 GColour GScreenDC::Colour(GColour c)
 {
-	GColour Prev(d->Cur, 32);
+	GColour Prev = d->c;
 
-	d->Cur = c.c32();
+	d->c = c;
+
 	if (d->Ctx)
 	{
-		float r = (float)R32(d->Cur)/255.0;
-		float g = (float)G32(d->Cur)/255.0;
-		float b = (float)B32(d->Cur)/255.0;
-		float a = (float)A32(d->Cur)/255.0;
+		float r = (float)d->c.r()/255.0;
+		float g = (float)d->c.g()/255.0;
+		float b = (float)d->c.b()/255.0;
+		float a = (float)d->c.a()/255.0;
 		
 		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
 		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
@@ -301,21 +337,31 @@ GColour GScreenDC::Colour(GColour c)
 
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
-	COLOUR Prev = d->Cur;
+	GColour Prev = d->c;
 
-	d->Cur = CBit(32, c, Bits);
+	d->c.Set(c, Bits);
 	if (d->Ctx)
 	{
-		float r = (float)R32(d->Cur)/255.0;
-		float g = (float)G32(d->Cur)/255.0;
-		float b = (float)B32(d->Cur)/255.0;
-		float a = (float)A32(d->Cur)/255.0;
+		float r = (float)d->c.r()/255.0;
+		float g = (float)d->c.g()/255.0;
+		float b = (float)d->c.b()/255.0;
+		float a = (float)d->c.a()/255.0;
 		
 		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
 		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
 	}
 
-	return Prev;
+	return CBit(d->Bits, Prev.c32(), 32);
+}
+
+COLOUR GScreenDC::Colour()
+{
+	return CBit(d->Bits, d->c.c32(), 32);
+}
+
+int GScreenDC::Op()
+{
+	return d->Op;
 }
 
 int GScreenDC::Op(int op, NativeInt Param)
@@ -324,16 +370,6 @@ int GScreenDC::Op(int op, NativeInt Param)
 	d->Op = op;
 	d->ConstAlpha = Param;
 	return Old;
-}
-
-COLOUR GScreenDC::Colour()
-{
-	return CBit(d->Bits, d->Cur, 32);
-}
-
-int GScreenDC::Op()
-{
-	return d->Op;
 }
 
 int GScreenDC::X()
@@ -566,6 +602,22 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 					CGImg *i = Mem->GetImg(a ? &b : 0);
 					if (i)
 					{
+						#if COCOA
+						CGRect r;
+						r.origin.x = x;
+						r.origin.y = -y;
+						r.size.width = b.X();
+						r.size.height = b.Y();
+						CGImageRef Img = *i;
+						
+						CGContextSaveGState(d->Ctx);
+						CGContextTranslateCTM(d->Ctx, 0.0f, b.Y());
+						CGContextScaleCTM(d->Ctx, 1.0f, -1.0f);
+						
+						CGContextDrawImage(d->Ctx, r, Img);
+						
+						CGContextRestoreGState(d->Ctx);
+						#else
 						HIRect r;
 						r.origin.x = x;
 						r.origin.y = y;
@@ -581,10 +633,12 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 						if (HasConstAlpha)
 							CGContextSetAlpha(d->Ctx, 1.0);
+						#endif
 						
 						DeleteObj(i);
 					}
 					
+					#if !COCOA
 					if (err < 0)
 					{
 						GMemDC Tmp(b.X(), b.Y(), GdcD->GetColourSpace());
@@ -612,6 +666,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 							DeleteObj(i);
 						}
 					}
+					#endif
 				}
 			}
 		}

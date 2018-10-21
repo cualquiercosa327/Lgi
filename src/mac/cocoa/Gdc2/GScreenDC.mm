@@ -76,6 +76,10 @@ GScreenDC::GScreenDC()
 	d = new GScreenPrivate;
 }
 
+GScreenDC::GScreenDC(GPrintDcParams *params)
+{
+	d = new GScreenPrivate;
+}
 GScreenDC::GScreenDC(GWindow *w, void *param)
 {
 	d = new GScreenPrivate(w);
@@ -87,10 +91,7 @@ GScreenDC::GScreenDC(GView *v, void *param)
 	d = new GScreenPrivate(v);
 }
 
-GScreenDC::GScreenDC(GPrintDcParams *params)
-{
-	d = new GScreenPrivate;
-}
+
 
 GScreenDC::~GScreenDC()
 {
@@ -252,11 +253,6 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 	}
 
 	return CBit(d->Bits, Prev.c32(), 32);
-}
-
-bool GScreenDC::SupportsAlphaCompositing()
-{
-	return true;
 }
 
 COLOUR GScreenDC::Colour()
