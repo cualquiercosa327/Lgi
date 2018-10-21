@@ -882,7 +882,7 @@ public:
 	}
 };
 
-#if defined(MAC) && !defined(COCOA)
+#if defined(MAC)
 class CGImg
 {
 	class CGImgPriv *d;
@@ -947,7 +947,7 @@ public:
 		#if defined MAC
 				
 			OsBitmap GetBitmap();
-			#if !defined(COCOA) && !defined(LGI_SDL)
+			#if !defined(LGI_SDL)
 				CGColorSpaceRef GetColourSpaceRef();
 				CGImg *GetImg(GRect *Sub = 0);
 			#endif

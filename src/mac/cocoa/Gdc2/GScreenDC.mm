@@ -494,22 +494,25 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				GMemDC *Mem = dynamic_cast<GMemDC*>(Src);
 				if (Mem)
 				{
-					/*
 					CGImg *i = Mem->GetImg(a ? &b : 0);
 					if (i)
 					{
-						HIRect r;
+						CGRect r;
 						r.origin.x = x;
-						r.origin.y = y;
+						r.origin.y = -y;
 						r.size.width = b.X();
 						r.size.height = b.Y();
 						CGImageRef Img = *i;
 						
-						HIViewDrawCGImage(d->Ctx, &r, Img);
+						CGContextSaveGState(d->Ctx);
+						CGContextTranslateCTM(d->Ctx, 0.0f, b.Y());
+						CGContextScaleCTM(d->Ctx, 1.0f, -1.0f);
 						
+						CGContextDrawImage(d->Ctx, r, Img);
+						
+						CGContextRestoreGState(d->Ctx);
 						DeleteObj(i);
 					}
-					*/
 				}
 			}
 		}
