@@ -3566,6 +3566,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 			if (!stricmp(Formats.First(), LGI_FileDropFormat))
 			{
 				SelectDropTarget(Hit);
+				LgiTrace("File Drop\n");
 				return DROPEFFECT_LINK;
 			}
 			else
@@ -3579,6 +3580,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 					{
 						if (n == Src)
 						{
+							LgiTrace("No parent\n");
 							return DROPEFFECT_NONE;
 						}
 					}
@@ -3586,12 +3588,14 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 
 				// Valid target
 				SelectDropTarget(Hit);
+				LgiTrace("Node Drop\n");
 				return DROPEFFECT_MOVE;
 			}
 		}
 	}
 	else LgiTrace("%s:%i - No valid drop formats.\n", _FL);
 
+	LgiTrace("No Drop\n");
 	return DROPEFFECT_NONE;
 }
 
