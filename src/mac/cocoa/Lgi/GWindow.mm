@@ -12,6 +12,12 @@ extern void SetDefaultFocus(GViewI *v);
 
 #define DEBUG_KEYS			0
 
+#define objc_dynamic_cast(TYPE, object) \
+  ({ \
+      TYPE *dyn_cast_object = (TYPE*)(object); \
+      [dyn_cast_object isKindOfClass:[TYPE class]] ? dyn_cast_object : nil; \
+  })
+
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -35,6 +41,7 @@ public:
 	
 	void OnPaint(GSurface *pDC)
 	{
+		printf("%s:%i, paint c=%i\n", _FL, (int) w->WindowHandle().p.retainCount);
 		w->OnPaint(pDC);
 	}
 	
@@ -46,12 +53,10 @@ public:
 };
 
 
-@interface GWindowDelegate : NSObject <NSWindowDelegate>
+@interface LWindowDelegate : NSObject <NSWindowDelegate>
 {
-	GWindowPrivate *d;
-	GWindowContent *Content;
 }
-- (id)init:(GWindowPrivate*)priv;
+- (id)init;
 - (void)dealloc;
 - (void)windowDidResize:(NSNotification *)aNotification;
 - (void)windowWillClose:(NSNotification*)aNotification;
@@ -59,6 +64,15 @@ public:
 - (void)windowDidBecomeMain:(NSNotification*)notification;
 - (void)windowDidResignMain:(NSNotification*)notification;
 @end
+
+@interface LNsWindow : NSWindow
+{
+}
+@property GWindowPrivate *d;
+- (id)init:(GWindowPrivate*)priv Frame:(NSRect)rc;
+@end
+
+LWindowDelegate *Delegate = nil;
 
 class GWindowPrivate
 {
@@ -134,14 +148,31 @@ public:
 	}
 };
 
-@implementation GWindowDelegate
+@implementation LNsWindow
 
-- (id)init:(GWindowPrivate*)priv
+- (id)init:(GWindowPrivate*)priv Frame:(NSRect)rc
 {
-	d = nil;
-	Content = NULL;
+	self.d = priv;
+	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+	if ((self = [super initWithContentRect:rc
+					styleMask:windowStyleMask
+					backing:NSBackingStoreBuffered
+					defer:NO ]) != nil)
+	{
+		
+	}
+	return self;
+}
+
+@end
+
+@implementation LWindowDelegate
+
+- (id)init
+{
     if ((self = [super init]) != nil)
     {
+    	/*
         d = priv;
 
 		NSWindow *w = d->Wnd->WindowHandle().p;
@@ -151,50 +182,57 @@ public:
 		Content->SetPos(r);
 		
 		auto ctrl = [[NSViewController alloc] init];
-		ctrl.view = [[LCocoaView alloc] init:Content];
+		Painter = [[LCocoaView alloc] init:Content];
+		ctrl.view = Painter;
 		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 		*Content = ctrl.view;
 		d->Wnd->WindowHandle().p.contentViewController = ctrl;
+		[ctrl release];
+		*/
     }
     return self;
 }
 
 - (void)dealloc
 {
-	DeleteObj(Content);
-    d = nil;
-    [super dealloc];
+	[super dealloc];
 }
 
 - (void)windowDidResize:(NSNotification*)event
 {
-	if (d->Wnd)
-		d->OnResize();
+	LNsWindow *w = event.object;
+	if (w && w.d)
+		w.d->OnResize();
 }
 
-- (BOOL)windowShouldClose:(id)sender
+- (BOOL)windowShouldClose:(NSWindow*)sender
 {
-	if (!d->Wnd)
-		return YES;
-	return d->Wnd->OnRequestClose(false);
+	LNsWindow *w = objc_dynamic_cast(LNsWindow, sender);
+	if (w && w.d && w.d->Wnd)
+		return w.d->Wnd->OnRequestClose(false);
+	
+	return YES;
 }
 
-- (void)windowWillClose:(NSNotification*)aNotification
+- (void)windowWillClose:(NSNotification*)event
 {
-	if (d->Wnd && !d->Closing)
-		d->Wnd->Quit();
+	LNsWindow *w = event.object;
+	if (w && w.d && !w.d->Closing)
+		w.d->Wnd->Quit();
 }
 
-- (void)windowDidBecomeMain:(NSNotification*)notification
+- (void)windowDidBecomeMain:(NSNotification*)event
 {
-	if (d->Wnd)
-		d->Wnd->OnFrontSwitch(true);
+	LNsWindow *w = event.object;
+	if (w && w.d)
+		w.d->Wnd->OnFrontSwitch(true);
 }
 
-- (void)windowDidResignMain:(NSNotification*)notification
+- (void)windowDidResignMain:(NSNotification*)event
 {
-	if (d->Wnd)
-		d->Wnd->OnFrontSwitch(false	);
+	LNsWindow *w = event.object;
+	if (w && w.d)
+		w.d->Wnd->OnFrontSwitch(false);
 }
 
 @end
@@ -217,15 +255,13 @@ GWindow::GWindow() : GView(NULL)
 	
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
-	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
-	Wnd.p = [[NSWindow alloc] initWithContentRect:frame
-                    styleMask:windowStyleMask
-                    backing:NSBackingStoreBuffered
-                    defer:NO];
+	Wnd.p = [[LNsWindow alloc] init:d Frame:frame];
 	if (Wnd)
 	{
+		if (!Delegate)
+			Delegate = [[LWindowDelegate alloc] init];
 		[Wnd.p makeKeyAndOrderFront:NSApp];
-		Wnd.p.delegate = [[GWindowDelegate alloc] init:d];
+		Wnd.p.delegate = Delegate;
 	}
 }
 
@@ -240,7 +276,11 @@ GWindow::~GWindow()
 	
 	if (Wnd)
 	{
+		LNsWindow *w = objc_dynamic_cast(LNsWindow, Wnd.p);
+		if (w)
+			w.d = NULL;
 		auto c = Wnd.p.retainCount;
+		printf("~GWindow %i\n", (int)c);
 		[Wnd.p release];
 		Wnd.p = nil;
 	}
@@ -1518,9 +1558,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	
 	Pos = r;
 	if (Wnd)
-	{
 		[Wnd.p setFrame:Pos display:YES];
-	}
 	
 	return true;
 }

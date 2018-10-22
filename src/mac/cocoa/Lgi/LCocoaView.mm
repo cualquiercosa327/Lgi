@@ -10,13 +10,14 @@
 #import <Foundation/Foundation.h>
 #import "LCocoaView.h"
 
+#define check() if (!self.v) return
 @implementation LCocoaView
 
 - (id)init:(GView*)view
 {
 	if ((self = [super initWithFrame:view->GetPos()]) != nil)
 	{
-		v = view;
+		self.v = view;
 		[self setAutoresizingMask:NSViewNotSizable];
 		[self setTranslatesAutoresizingMaskIntoConstraints:YES];
 	}
@@ -25,21 +26,22 @@
 
 - (void)dealloc
 {
-	v = nil;
+	self.v = nil;
 	[super dealloc];
 }
 
 - (void)drawRect:(NSRect)dirtyRect
 {
-	// auto Cls = v->GetClass();
-	GScreenDC Dc(v);
-	v->OnPaint(&Dc);
+	check();
+	GScreenDC Dc(self.v);
+	self.v->OnPaint(&Dc);
 }
 
 - (void)layout
 {
-	v->OnPosChange();
-	GAutoPtr<GViewIterator> views(v->IterateViews());
+	check();
+	self.v->OnPosChange();
+	GAutoPtr<GViewIterator> views(self.v->IterateViews());
 	for (auto c = views->First(); c; c = views->Next())
 	{
 		OsView h = c->Handle();
@@ -55,37 +57,42 @@
 
 - (void)mouseDown:(NSEvent*)ev
 {
+	check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
-	v->OnMouseClick(m);
+	self.v->OnMouseClick(m);
 }
 
 - (void)mouseUp:(NSEvent*)ev
 {
+	check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
-	v->OnMouseClick(m);
+	self.v->OnMouseClick(m);
 }
 
 - (void)rightMouseDown:(NSEvent*)ev
 {
+	check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
-	v->OnMouseClick(m);
+	self.v->OnMouseClick(m);
 }
 
 - (void)rightMouseUp:(NSEvent*)ev
 {
+	check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
-	v->OnMouseClick(m);
+	self.v->OnMouseClick(m);
 }
 
 - (void)mouseMoved:(NSEvent*)ev
 {
+	check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
-	v->OnMouseMove(m);
+	self.v->OnMouseMove(m);
 }
 
 @end

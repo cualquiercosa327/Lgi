@@ -102,7 +102,7 @@
 		345B20F22179696E0079E3C9 /* GHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHistory.h; path = ../Code/GHistory.h; sourceTree = "<group>"; };
 		345B20F32179696E0079E3C9 /* levenshtein.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = levenshtein.h; path = ../Code/levenshtein.h; sourceTree = "<group>"; };
 		345B20F52179696E0079E3C9 /* LgiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiUtils.cpp; path = ../Code/LgiUtils.cpp; sourceTree = "<group>"; };
-		345B20F62179696E0079E3C9 /* LgiIde.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiIde.cpp; path = ../Code/LgiIde.cpp; sourceTree = "<group>"; };
+		345B20F62179696E0079E3C9 /* LgiIde.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = LgiIde.cpp; path = ../Code/LgiIde.cpp; sourceTree = "<group>"; };
 		345B20F72179696F0079E3C9 /* IdeCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeCommon.cpp; path = ../Code/IdeCommon.cpp; sourceTree = "<group>"; };
 		345B20F82179696F0079E3C9 /* IdeProject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IdeProject.h; path = ../Code/IdeProject.h; sourceTree = "<group>"; };
 		345B20F92179696F0079E3C9 /* LgiIde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiIde.h; path = ../Code/LgiIde.h; sourceTree = "<group>"; };
@@ -550,6 +550,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
@@ -584,6 +585,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";

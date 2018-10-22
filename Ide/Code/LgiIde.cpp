@@ -1466,11 +1466,14 @@ public:
 	}
 };
 
+#define Chk printf("%s:%i - Cnt=%i\n", LgiGetLeaf(__FILE__), __LINE__, (int)WindowHandle().p.retainCount)
 AppWnd::AppWnd()
 {
 	#ifdef __GTK_H__
 	LgiGetResObj(true, AppName);
 	#endif
+	
+Chk;
 
 	GRect r(0, 0, 1300, 900);
 	#ifdef BEOS
@@ -1478,20 +1481,27 @@ AppWnd::AppWnd()
 	SetPos(r);
 	#else
 	SetPos(r);
+Chk;
 	MoveToCenter();
 	#endif
+
+Chk;
 
 	d = new AppWndPrivate(this);
 	Name(AppName);
 	SetQuitOnClose(true);
+
+Chk;
 
 	#if WINNATIVE
 	SetIcon((char*)MAKEINTRESOURCE(IDI_APP));
 	#else
 	SetIcon("Icon64.png");
 	#endif
+Chk;
 	if (Attach(0))
 	{
+Chk;
 		Menu = new GMenu;
 		if (Menu)
 		{
@@ -1525,6 +1535,7 @@ AppWnd::AppWnd()
 			}
 		}
 
+Chk;
 		GToolBar *Tools;
 		if (GdcD->Y() > 1200)
 			Tools = LgiLoadToolbar(this, "cmds-32px.png", 32, 32);
@@ -1533,6 +1544,7 @@ AppWnd::AppWnd()
 		
 		if (Tools)
 		{
+Chk;
 			Tools->AppendButton("New", IDM_NEW, TBT_PUSH, true, CMD_NEW);
 			Tools->AppendButton("Open", IDM_OPEN, TBT_PUSH, true, CMD_OPEN);
 			Tools->AppendButton("Save", IDM_SAVE_ALL, TBT_PUSH, true, CMD_SAVE_ALL);
@@ -1541,6 +1553,7 @@ AppWnd::AppWnd()
 			Tools->AppendButton("Copy", IDM_COPY, TBT_PUSH, true, CMD_COPY);
 			Tools->AppendButton("Paste", IDM_PASTE, TBT_PUSH, true, CMD_PASTE);
 			Tools->AppendSeparator();
+Chk;
 			Tools->AppendButton("Compile", IDM_COMPILE, TBT_PUSH, true, CMD_COMPILE);
 			Tools->AppendButton("Build", IDM_BUILD, TBT_PUSH, true, CMD_BUILD);
 			Tools->AppendButton("Stop", IDM_STOP_BUILD, TBT_PUSH, true, CMD_STOP_BUILD);
@@ -1563,6 +1576,7 @@ AppWnd::AppWnd()
 		}
 		else LgiTrace("%s:%i - No tools obj?", _FL);
 		
+Chk;
 		GVariant v = 270, OutPx = 250;
 		d->Options.GetValue(OPT_SPLIT_PX, v);
 		d->Options.GetValue(OPT_OUTPUT_PX, OutPx);
@@ -1586,6 +1600,7 @@ AppWnd::AppWnd()
 			d->Mdi->HasButton(true);
 		}
 
+Chk;
 		d->HBox->Value(MAX(v.CastInt32(), 20));
 
 		GRect c = GetClient();
@@ -1597,6 +1612,7 @@ AppWnd::AppWnd()
 		AttachChildren();
 		OnPosChange();
 	
+Chk;
 		#ifdef LINUX
 		GString f = LgiFindFile("lgiide.png");
 		if (f)
@@ -1607,9 +1623,11 @@ AppWnd::AppWnd()
 		
 		UpdateState();
 		
+Chk;
 		Visible(true);
 		DropTarget(true);
 
+Chk;
 		SetPulse(1000);
 	}
 	
@@ -1620,6 +1638,7 @@ AppWnd::AppWnd()
 	#if USE_HAIKU_PULSE_HACK
 	d->Output->SetPulse(1000);
 	#endif
+Chk;
 }
 
 AppWnd::~AppWnd()

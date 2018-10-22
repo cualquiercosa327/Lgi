@@ -12,8 +12,8 @@
 // This class wraps a Cocoa NSView and redirects all the calls to LGI's GView object.
 @interface LCocoaView : NSView
 {
-	GView *v;
 }
+@property GView *v;
 - (id)init:(GView*)view;
 - (void)dealloc;
 - (void)drawRect:(NSRect)dirtyRect;
