@@ -1466,7 +1466,12 @@ public:
 	}
 };
 
+#ifdef COCOA
 #define Chk printf("%s:%i - Cnt=%i\n", LgiGetLeaf(__FILE__), __LINE__, (int)WindowHandle().p.retainCount)
+#else
+#define Chk
+#endif
+
 AppWnd::AppWnd()
 {
 	#ifdef __GTK_H__

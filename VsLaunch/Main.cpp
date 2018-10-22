@@ -53,9 +53,14 @@ public:
         {
 			AddView(Log = new GTextLog(100));
 			AttachChildren();
-            Visible(true);
+			SetPulse(500);
         }
     }
+
+	void OnPulse()
+	{
+		Visible(true);
+	}
     
 	void OnReceiveFiles(GArray<char*> &Files)
 	{
@@ -75,9 +80,9 @@ public:
 					f.Close();
 					
 					double FileVersion = 0.0;
-					int64 VsYear = 0;
+					int64 VsYear = -1;
 					double VsVersion = 0.0;
-					for (unsigned i=0; i<a.Length(); i++)
+					for (unsigned i=0; i<a.Length() && VsVersion == 0.0; i++)
 					{
 						if (a[i].Find("File, Format Version") >= 0)
 						{
@@ -87,8 +92,16 @@ public:
 						else if (a[i](0) == '#')
 						{
 							GString::Array p = a[i].Split(" ");
-							VsYear = p.Last().Int();
-							VsVersion = YearToVer(VsYear);
+							for (auto s : p)
+							{
+								auto i = s.Int();
+								if (i > 2000 && i < 2030)
+								{
+									VsYear = i;
+									VsVersion = YearToVer(VsYear);
+									break;
+								}
+							}
 						}
 					}
 					
