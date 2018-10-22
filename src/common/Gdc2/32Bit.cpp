@@ -115,7 +115,7 @@ public:
 		cp.b = this->p32.b;
 		
 		REG int lines = y;
-		REG int ystep = this->Dest->Line;
+		REG ssize_t ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
 			REG Pixel *i = this->p, *e = i + x;
@@ -311,7 +311,7 @@ public:
 		InitColour();
 		
 		REG int lines = y;
-		REG int ystep = this->Dest->Line;
+		REG ssize_t ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
 			REG Pixel *i = this->p, *e = i + x;
@@ -625,7 +625,7 @@ public:
 		{																						\
 			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b;						\
 			REG int lines = y;																	\
-			REG int ystep = this->Dest->Line;													\
+			REG ssize_t ystep = this->Dest->Line;													\
 			while (lines-- > 0)																	\
 			{																					\
 				REG Pixel *i = this->p, *e = i + x;												\
@@ -662,7 +662,7 @@ public:
 		{																						\
 			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			REG int lines = y;																\
-			REG int ystep = this->Dest->Line;												\
+			REG ssize_t ystep = this->Dest->Line;												\
 			while (lines-- > 0)																	\
 			{																					\
 				REG Pixel *i = this->p, *e = i + x;										\

@@ -104,7 +104,7 @@ public:
 		px.r = R15(this->c); \
 		px.g = G15(this->c); \
 		px.b = B15(this->c); \
-		REG uint32 line = this->Dest->Line; \
+		REG ssize_t line = this->Dest->Line; \
 		d8 = this->u8;
 
 	void VLine(int height)

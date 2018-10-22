@@ -50,7 +50,7 @@ class LgiClass GFilter : public GDom
 protected:
 	GBmpMem *GetSurface(GSurface *pDC) { return pDC->pMem; }
 	GRect *GetClip(GSurface *pDC) { return &pDC->Clip; }
-	int GetLineLength(GSurface *pDC) { return (pDC->pMem) ? pDC->pMem->Line : 0; }
+	ssize_t GetLineLength(GSurface *pDC) { return (pDC->pMem) ? pDC->pMem->Line : 0; }
 
 	Progress *Meter;
 

@@ -29,7 +29,7 @@ public:
 	int Op(int Op, NativeInt Param = -1) { return GDC_SET; }
 	int X();
 	int Y();
-	int GetRowStep();
+	ssize_t GetRowStep();
 	int DpiX();
 	int DpiY();
 	int GetBits();
