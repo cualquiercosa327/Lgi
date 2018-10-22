@@ -260,7 +260,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-GString LgiGetAppForMimeType(const char *Mime)
+GString LGetAppForMimeType(const char *Mime)
 {
 	GArray<GAppInfo*> Apps;
 	if (LgiGetAppsForMimeType(Mime, Apps, 1))

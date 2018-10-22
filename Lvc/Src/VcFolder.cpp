@@ -707,7 +707,8 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 
 bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 {
-	Select(true);
+	if (GTreeItem::Select())
+		Select(true);
 	
 	CommitListDirty = Result == 0;
 	CurrentCommit.Empty();
@@ -978,7 +979,10 @@ void VcFolder::OnPulse()
 	}
 
 	if (Reselect)
-		Select(true);
+	{
+		if (GTreeItem::Select())
+			Select(true);
+	}
 	if (CmdsChanged)
 		Update();
 }

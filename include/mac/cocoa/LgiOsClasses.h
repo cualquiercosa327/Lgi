@@ -20,13 +20,6 @@ public:
 	const char **GetArg() { return Arg; }
 };
 
-#ifdef __OBJC__
-
-extern GdcPt2 LFlip(NSView *v, GdcPt2 p);
-extern GRect LFlip(NSView *v, GRect p);
-
-#endif
-
 extern OsView DefaultOsView(class GView *v);
 
 #endif

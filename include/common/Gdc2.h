@@ -190,7 +190,8 @@ public:
 	};
 
 	uchar *Base;
-	int x, y, Line;
+	int x, y;
+	ssize_t Line;
 	GColourSpace Cs;
 	int Flags;
 
@@ -527,7 +528,7 @@ public:
 	/// Gets the bounds of the image as a GRect
 	GRect Bounds() { return GRect(0, 0, X()-1, Y()-1); }
 	/// Gets the length of a scanline in bytes
-	virtual int GetRowStep() { return (pMem) ? pMem->Line : 0; }
+	virtual ssize_t GetRowStep() { return (pMem) ? pMem->Line : 0; }
 	/// Returns the horizontal resolution of the device
 	virtual int DpiX() { return 100; }
 	/// Returns the vertical resolution of the device
@@ -887,10 +888,10 @@ class CGImg
 {
 	class CGImgPriv *d;
 
-	void Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette, GRect *r);
+	void Create(int x, int y, int Bits, ssize_t Line, uchar *data, uchar *palette, GRect *r);
 
 public:
-	CGImg(int x, int y, int Bits, int Line, uchar *data, uchar *palette, GRect *r);
+	CGImg(int x, int y, int Bits, ssize_t Line, uchar *data, uchar *palette, GRect *r);
 	CGImg(GSurface *pDC);
 	~CGImg();
 	

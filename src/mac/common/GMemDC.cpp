@@ -66,17 +66,17 @@ CGImg::CGImg(GSurface *pDC)
 		uchar *a = (*pDC)[0];
 		uchar *b = (*pDC)[1];
 		if (a && b)
-			Create(pDC->X(), pDC->Y(), pDC->GetBits(), b - a, a, 0, 0);
+			Create(pDC->X(), pDC->Y(), pDC->GetBits(), (int)(b - a), a, 0, 0);
 	}
 }
 
-CGImg::CGImg(int x, int y, int Bits, int Line, uchar *data, uchar *palette, GRect *r)
+CGImg::CGImg(int x, int y, int Bits, ssize_t Line, uchar *data, uchar *palette, GRect *r)
 {
 	d = new CGImgPriv;
 	Create(x, y, Bits, Line, data, palette, r);
 }
 
-void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette, GRect *r)
+void CGImg::Create(int x, int y, int Bits, ssize_t Line, uchar *data, uchar *palette, GRect *r)
 {
 	GRect All(0, 0, x-1, y-1);
 	GRect B;
@@ -119,7 +119,7 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 				B.Y(),
 				Bits == 16 ? 5 : 8,
 				Bits,
-				abs(Line),
+				ABS(Line),
 				d->Cs,
 				Bits == 32 ? AlphaType : kCGImageAlphaNone,
 				d->Prov,
@@ -129,7 +129,7 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 			);
 			if (!d->Img)
 			{
-				printf("%s:%i - CGImageCreate(%i, %i, %i, %i, %i, ...) failed.\n",
+				printf("%s:%i - CGImageCreate(%i, %i, %i, %i, " LPrintfSSizeT ", ...) failed.\n",
 					_FL,
 					B.X(),
 					B.Y(),
@@ -319,7 +319,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 	if (x > 0 && y > 0 && Cs != CsNone)
 	{
         int Bits = GColourSpaceToBits(Cs);
-		int LineLen = ((Bits * x + 31) / 32) * 4;
+		size_t LineLen = ((Bits * x + 31) / 32) * 4;
 		if (Bits > 16)
 		{
 			d->Cs = CGColorSpaceCreateDeviceRGB();

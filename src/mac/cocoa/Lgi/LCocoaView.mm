@@ -10,7 +10,7 @@
 #import <Foundation/Foundation.h>
 #import "LCocoaView.h"
 
-#define check() if (!self.v) return
+#define Check() if (!self.v) return
 @implementation LCocoaView
 
 - (id)init:(GView*)view
@@ -28,36 +28,25 @@
 {
 	self.v = nil;
 	[super dealloc];
+	printf("LCocoaView.dealloc\n");
 }
 
 - (void)drawRect:(NSRect)dirtyRect
 {
-	check();
+	Check();
 	GScreenDC Dc(self.v);
 	self.v->OnPaint(&Dc);
 }
 
 - (void)layout
 {
-	check();
-	self.v->OnPosChange();
-	GAutoPtr<GViewIterator> views(self.v->IterateViews());
-	for (auto c = views->First(); c; c = views->Next())
-	{
-		OsView h = c->Handle();
-		if (h)
-		{
-			GRect Flip = c->GetPos();
-			if (h.p.superview)
-				Flip = LFlip(h.p.superview, Flip);
-			[h.p setFrame:Flip];
-		}
-	}
+	Check();
+	self.v->OnCocoaLayout();
 }
 
 - (void)mouseDown:(NSEvent*)ev
 {
-	check();
+	Check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
 	self.v->OnMouseClick(m);
@@ -65,7 +54,7 @@
 
 - (void)mouseUp:(NSEvent*)ev
 {
-	check();
+	Check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
 	self.v->OnMouseClick(m);
@@ -73,7 +62,7 @@
 
 - (void)rightMouseDown:(NSEvent*)ev
 {
-	check();
+	Check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
 	self.v->OnMouseClick(m);
@@ -81,7 +70,7 @@
 
 - (void)rightMouseUp:(NSEvent*)ev
 {
-	check();
+	Check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
 	self.v->OnMouseClick(m);
@@ -89,7 +78,7 @@
 
 - (void)mouseMoved:(NSEvent*)ev
 {
-	check();
+	Check();
 	GMouse m;
 	m.SetFromEvent(ev, self);
 	self.v->OnMouseMove(m);

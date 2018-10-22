@@ -319,9 +319,9 @@ int GDrawListSurface::Y()
 	return d->y;
 }
 
-int GDrawListSurface::GetRowStep()
+ssize_t GDrawListSurface::GetRowStep()
 {
-	int Row = (d->Bits * d->x + 7) >> 3;
+	ssize_t Row = (d->Bits * d->x + 7) >> 3;
 	return Row;
 }
 

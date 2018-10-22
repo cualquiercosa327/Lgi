@@ -480,7 +480,7 @@ public:
 	void VLine(int height)
 	{
 		Setup15();
-		REG int line = this->Dest->Line;
+		REG ssize_t line = this->Dest->Line;
 
 		while (height--)
 		{
@@ -493,7 +493,7 @@ public:
 	void Rectangle(int x, int y)
 	{
 		Setup15();
-		REG int line = this->Dest->Line;
+		REG ssize_t line = this->Dest->Line;
 
 		while (y--)
 		{
@@ -596,7 +596,7 @@ public:
 	void VLine(int height)
 	{
 		Setup16();
-		REG int line = this->Dest->Line;
+		REG ssize_t line = this->Dest->Line;
 
 		while (height--)
 		{
@@ -609,7 +609,7 @@ public:
 	void Rectangle(int x, int y)
 	{
 		Setup16();
-		REG int line = this->Dest->Line;
+		REG ssize_t line = this->Dest->Line;
 
 		while (y--)
 		{
