@@ -77,14 +77,11 @@ bool GCheckBox::ThreeState()
 
 void GCheckBox::ThreeState(bool t)
 {
+	auto Cur = GetStyle();
 	if (t)
-	{
-		SetStyle(GetStyle() | BS_AUTO3STATE);
-	}
+		SetStyle((Cur & ~BS_AUTOCHECKBOX) | BS_AUTO3STATE);
 	else
-	{
-		SetStyle(GetStyle() & ~BS_AUTO3STATE);
-	}
+		SetStyle((Cur & ~BS_AUTO3STATE) | BS_AUTOCHECKBOX);
 }
 
 bool GCheckBox::Name(const char *n)
