@@ -311,8 +311,11 @@ public:
 			}
 
 			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
+			ToolsBox->Name("ToolsBox");
 			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
+			FoldersBox->Name("FoldersBox");
 			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
+			CommitsBox->Name("CommitsBox");
 
 			ToolBar *Tools = new ToolBar;
 

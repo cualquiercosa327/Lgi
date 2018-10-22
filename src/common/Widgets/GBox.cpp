@@ -21,9 +21,11 @@ public:
 	GArray<GBox::Spacer> Spacers;
 	GBox::Spacer *Dragging;
 	GdcPt2 DragOffset;
+	bool Dirty;
 	
 	GBoxPriv()
 	{
+		Dirty = false;
 		Vertical = false;
 		Dragging = NULL;
 	}
@@ -208,6 +210,12 @@ bool GBox::Pour(GRegion &r)
 
 void GBox::OnPaint(GSurface *pDC)
 {
+	if (d->Dirty)
+	{
+		d->Dirty = false;
+		OnPosChange();
+	}
+
 	GRect cli = GetClient();
 	GCssTools tools(GetCss(), GetFont());
 	cli = tools.PaintBorderAndPadding(pDC, cli);
@@ -545,12 +553,13 @@ void GBox::OnMouseMove(GMouse &m)
 
 void GBox::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
-	#if 0
-	LgiTrace("GBox::OnChildrenChanged(%s, %i)\n", Wnd ? Wnd->GetClass() : NULL, Attaching);
+	#if 1
+	LgiTrace("GBox(%s)::OnChildrenChanged(%s, %i)\n", Name(), Wnd ? Wnd->GetClass() : NULL, Attaching);
 	for (int i=0; i<Children.Length(); i++)
 		LgiTrace("	[%i]=%s hnd=%p vis=%i\n", i, Children[i]->GetClass(), Children[i]->Handle(), Children[i]->Visible());
 	#endif
 	
+	d->Dirty = true;
 	if (Handle())
 		PostEvent(M_CHILDREN_CHANGED);
 }
@@ -630,7 +639,11 @@ GMessage::Result GBox::OnEvent(GMessage *Msg)
 {
 	if (Msg->Msg() == M_CHILDREN_CHANGED)
 	{
-		OnPosChange();
+		if (d->Dirty)
+		{
+			d->Dirty = false;
+			OnPosChange();
+		}
 	}
 	
 	return GView::OnEvent(Msg);
