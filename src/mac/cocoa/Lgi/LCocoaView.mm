@@ -28,6 +28,7 @@
 {
 	self.v = nil;
 	[super dealloc];
+	printf("LCocoaView.dealloc\n");
 }
 
 - (void)drawRect:(NSRect)dirtyRect

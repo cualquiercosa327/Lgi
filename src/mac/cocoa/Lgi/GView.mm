@@ -196,13 +196,14 @@ void GView::_Delete()
 
 		DeleteObj(c);
 	}
-
-	Detach();
 	
+	Detach();
+
 	if (_View)
 	{
-		[_View.p removeFromSuperview];
-		_View = NULL;
+		printf("%s::_Delete %i\n", GetClass(), (int)_View.p.retainCount);
+		[_View.p release];
+		_View.p = nil;
 	}
 }
 
@@ -1012,8 +1013,8 @@ bool GView::Detach()
 
 	if (_View)
 	{
+		[_View.p retain];
 		[_View.p removeFromSuperview];
-		_View.p = nil;
 	}
 	
 	if (d->Parent)
