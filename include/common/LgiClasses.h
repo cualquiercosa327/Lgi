@@ -527,6 +527,11 @@ protected:
 	
 	bool _Attach(GViewI *parent);
 	#if defined(COCOA)
+public:
+	GdcPt2 Flip(GdcPt2 p);
+	GRect Flip(GRect p);
+	void OnCocoaLayout();
+protected:
 	#else
 	OsView _CreateCustomView();
 	virtual bool _OnGetInfo(HISize &size, HISize &line, HIRect &bounds, HIPoint &origin) { return false; }

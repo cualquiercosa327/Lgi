@@ -36,12 +36,12 @@ public:
 	GWindowContent(GWindow *wnd)
 	{
 		w = wnd;
-		printf("%s:%i - w=%p %s\n", _FL, w, w->GetClass());
+		// printf("%s:%i - w=%p %s\n", _FL, w, w->GetClass());
 	}
 	
 	void OnPaint(GSurface *pDC)
 	{
-		printf("%s:%i, paint c=%i\n", _FL, (int) w->WindowHandle().p.retainCount);
+		// printf("%s:%i, paint c=%i\n", _FL, (int) w->WindowHandle().p.retainCount);
 		w->OnPaint(pDC);
 	}
 	
@@ -50,12 +50,18 @@ public:
 		_View.p = v;
 		return *this;
 	}
+	
+	GViewIterator *IterateViews()
+	{
+		return w->IterateViews();
+	}
 };
 
 
 @interface LWindowDelegate : NSObject <NSWindowDelegate>
 {
 }
+
 - (id)init;
 - (void)dealloc;
 - (void)windowDidResize:(NSNotification *)aNotification;
@@ -63,13 +69,19 @@ public:
 - (BOOL)windowShouldClose:(id)sender;
 - (void)windowDidBecomeMain:(NSNotification*)notification;
 - (void)windowDidResignMain:(NSNotification*)notification;
+
 @end
 
 @interface LNsWindow : NSWindow
 {
 }
+
 @property GWindowPrivate *d;
+@property GWindowContent *content;
+
 - (id)init:(GWindowPrivate*)priv Frame:(NSRect)rc;
+- (void)dealloc;
+
 @end
 
 LWindowDelegate *Delegate = nil;
@@ -142,9 +154,28 @@ public:
 	
 	void OnResize()
 	{
-		Wnd->Pos = Wnd->WindowHandle().p.frame;
+		NSWindow *nsw = Wnd->WindowHandle().p;
+		
+		Wnd->Pos = nsw.frame;
 		Wnd->PourAll();
 		Wnd->OnPosChange();
+
+		nsw.contentView.needsLayout = YES;
+		
+		/*/
+		GAutoPtr<GViewIterator> views(Wnd->IterateViews());
+		for (auto c = views->First(); c; c = views->Next())
+		{
+			OsView h = c->Handle();
+			if (h)
+			{
+				GRect Flip = c->GetPos();
+				if (h.p.superview)
+					Flip = LFlip(h.p.superview, Flip);
+				[h.p setFrame:Flip];
+			}
+		}
+		*/
 	}
 };
 
@@ -159,9 +190,24 @@ public:
 					backing:NSBackingStoreBuffered
 					defer:NO ]) != nil)
 	{
+		auto old = self.contentView.frame;
+		self.content = new GWindowContent(priv->Wnd);
+		GRect r = old;
+		self.content->SetPos(r);
 		
+		auto ctrl = [[NSViewController alloc] init];
+		ctrl.view = [[LCocoaView alloc] init:self.content];
+		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+		*self.content = ctrl.view;
+		self.contentViewController = ctrl;
+		//[ctrl release];
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	[super dealloc];
 }
 
 @end
@@ -172,23 +218,6 @@ public:
 {
     if ((self = [super init]) != nil)
     {
-    	/*
-        d = priv;
-
-		NSWindow *w = d->Wnd->WindowHandle().p;
-		auto OldPos = w.contentView.frame;
-		Content = new GWindowContent(d->Wnd);
-		GRect r = OldPos;
-		Content->SetPos(r);
-		
-		auto ctrl = [[NSViewController alloc] init];
-		Painter = [[LCocoaView alloc] init:Content];
-		ctrl.view = Painter;
-		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-		*Content = ctrl.view;
-		d->Wnd->WindowHandle().p.contentViewController = ctrl;
-		[ctrl release];
-		*/
     }
     return self;
 }
@@ -202,7 +231,10 @@ public:
 {
 	LNsWindow *w = event.object;
 	if (w && w.d)
+	{
 		w.d->OnResize();
+		[w.content->Handle().p layout];
+	}
 }
 
 - (BOOL)windowShouldClose:(NSWindow*)sender

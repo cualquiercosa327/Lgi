@@ -320,8 +320,20 @@ GRect &GView::GetClient(bool ClientSpace)
 	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 
 	static GRect c;
+	/*
 	if (_View)
-		Pos = _View.p.frame;
+	{
+		GRect r = _View.p.frame;
+		auto Parent = GetParent();
+		if (Parent)
+		{
+			GRect pr = Parent->GetClient(false);
+			int y1 = pr.y2 - f.y2;
+			r.Offset(0, pr.y1 + y1 - r.y1);
+		}
+		Pos = r;
+	}
+	*/
 
 	c = Pos;
 	c.Offset(-c.x1, -c.y1);
@@ -351,6 +363,69 @@ void GView::Quit(bool DontDelete)
 	}
 }
 
+GdcPt2 GView::Flip(GdcPt2 p)
+{
+	auto Parent = GetParent();
+	if (Parent)
+	{
+		GRect r = Parent->GetClient(false);
+		p.y = r.y2 - p.y;
+	}
+	return p;
+}
+
+GRect GView::Flip(GRect p)
+{
+	auto Parent = GetParent();
+	if (Parent)
+	{
+		GRect r = Parent->GetClient(false);
+		int y2 = r.y2 - p.y1;
+		int y1 = y2 - p.Y() + 1;
+		p.Offset(0, y1-p.y1);
+	}
+	return p;
+}
+
+void GView::OnCocoaLayout()
+{
+	GRect f = Flip(Pos);
+	GRect r = _View.p.frame;
+	if (f != r)
+	{
+		auto Parent = GetParent();
+		if (Parent)
+		{
+			// Unflip
+			GRect pr = Parent->GetClient(false);
+			int y1 = pr.y2 - r.y2;
+			r.Offset(0, pr.y1 + y1 - r.y1);
+		}
+		Pos = r;
+		
+		OnPosChange();
+	}
+
+	/*
+	GAutoPtr<GViewIterator> views(self.v->IterateViews());
+	printf("%s.layout %i %s\n", self.v->GetClass(), (int)views->Length(), self.v->GetPos().GetStr());
+	for (auto c = views->First(); c; c = views->Next())
+	{
+		OsView h = c->Handle();
+		if (h)
+		{
+			GRect Flip = c->GetPos();
+			if (h.p.superview)
+				Flip = LFlip(h.p.superview, Flip);
+			[h.p setFrame:Flip];
+			[h.p layout];
+		}
+	}
+	
+	// [nsv layoutSubtreeIfNeeded];
+	*/
+}
+
 bool GView::SetPos(GRect &p, bool Repaint)
 {
 	Pos = p;
@@ -366,24 +441,13 @@ bool GView::SetPos(GRect &p, bool Repaint)
 				o = p->_BorderSize;
 		}
 
-		GRect Flip = Pos;
-		auto Parent = GetParent();
-		GRect Pr;
-		if (Parent)
-			Pr = Parent->GetClient();
-		else if (GetWindow())
-			Pr = GetWindow()->GetClient();
-		if (Pr.Valid())
+		GRect f = Flip(Pos);
+		GRect Cur = _View.p.frame;
+		if (Cur != f)
 		{
-			int y2 = Pr.y2 - Flip.y1;
-			int y1 = y2 - Flip.Y() + 1;
-			Flip.Offset(0, y1-Flip.y1);
+			[_View.p setFrame:f];
+			OnPosChange();
 		}
-		
-		[_View.p setFrame:Flip];
-		if (_View.p.superview)
-			_View.p.superview.needsLayout = TRUE;
-		// printf("%s.SetPos %s\n", GetClass(), Pos.GetStr());
 	}
 	else if (GetParent())
 		OnPosChange();
@@ -897,7 +961,8 @@ bool GView::_Attach(GViewI *parent)
 		}
 		else
 		{
-			[_View.p setFrame:LFlip(ph, Pos)];
+			GRect f = Flip(Pos);
+			[_View.p setFrame:f];
 			[ph addSubview:_View.p];
 		}
 	}

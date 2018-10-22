@@ -40,19 +40,7 @@
 - (void)layout
 {
 	Check();
-	self.v->OnPosChange();
-	GAutoPtr<GViewIterator> views(self.v->IterateViews());
-	for (auto c = views->First(); c; c = views->Next())
-	{
-		OsView h = c->Handle();
-		if (h)
-		{
-			GRect Flip = c->GetPos();
-			if (h.p.superview)
-				Flip = LFlip(h.p.superview, Flip);
-			[h.p setFrame:Flip];
-		}
-	}
+	self.v->OnCocoaLayout();
 }
 
 - (void)mouseDown:(NSEvent*)ev

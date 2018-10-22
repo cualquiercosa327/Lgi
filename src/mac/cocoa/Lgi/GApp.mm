@@ -190,22 +190,6 @@ void GMessage::Set(int msg, Param A, Param B)
 	b = B;
 }
 
-GdcPt2 LFlip(NSView *v, GdcPt2 p)
-{
-	GRect r = v.frame;
-	p.y = r.y2 - p.y;
-	return p;
-}
-
-GRect LFlip(NSView *v, GRect p)
-{
-	GRect r = v.frame;
-	int y2 = r.y2 - p.y1;
-	int y1 = y2 - p.Y() + 1;
-	p.Offset(0, y1-p.y1);
-	return p;
-}
-
 ////////////////////////////////////////////////////////////////
 typedef GArray<GAppInfo*> AppArray;
 
