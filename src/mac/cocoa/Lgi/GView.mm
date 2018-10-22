@@ -944,10 +944,16 @@ bool GView::Detach()
 			Wnd->SetFocus(this, GWindow::ViewDelete);
 		_Window = NULL;
 	}
+
+	if (_View)
+	{
+		[_View.p removeFromSuperview];
+		_View.p = nil;
+	}
+	
 	if (d->Parent)
 	{
 		// Remove the view from the parent
-		// Events
 		int D = 0;
 		while (d->Parent->HasView(this))
 		{
@@ -962,7 +968,7 @@ bool GView::Detach()
 		}
 
 		d->Parent->OnChildrenChanged(this, false);
-		d->Parent = 0;
+		d->Parent = NULL;
 	}
 
 	Status = true;

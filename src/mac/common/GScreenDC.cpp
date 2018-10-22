@@ -36,15 +36,11 @@ public:
 	void SetContext(GView *v)
 	{
 		Rc = v->GetClient();
-		// printf("SetContext: %s -> %s\n", v->GetClass(), Rc.GetStr());
-		
 		Ctx = [NSGraphicsContext currentContext].CGContext;
 		if (Ctx)
 		{
-			#if 1
 			CGAffineTransform flipVertical = CGAffineTransformMake(1, 0, 0, -1, 0, Rc.Y());
 			CGContextConcatCTM(Ctx, flipVertical);
-			#endif
 		}
 	}
 	#endif

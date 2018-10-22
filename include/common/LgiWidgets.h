@@ -232,6 +232,8 @@ public:
 	/// Destructor
 	~GDialog();
 
+	const char *GetClass() { return "GDialog"; }
+
 	/// \brief Run the dialog in modal mode.
 	///
 	/// The user has to dismiss the dialog to continue.

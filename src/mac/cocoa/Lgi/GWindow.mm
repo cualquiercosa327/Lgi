@@ -30,6 +30,7 @@ public:
 	GWindowContent(GWindow *wnd)
 	{
 		w = wnd;
+		printf("%s:%i - w=%p %s\n", _FL, w, w->GetClass());
 	}
 	
 	void OnPaint(GSurface *pDC)
@@ -63,7 +64,6 @@ class GWindowPrivate
 {
 public:
 	GWindow *Wnd;
-	GWindowDelegate *Delegate;
 	GDialog *ChildDlg;
 	GMenu *EmptyMenu;
 	GViewI *Focus;
@@ -85,7 +85,6 @@ public:
 	
 	GWindowPrivate(GWindow *wnd)
 	{
-		Delegate = NULL;
 		Focus = NULL;
 		InitVisible = false;
 		LastMinimize = 0;
@@ -162,6 +161,7 @@ public:
 
 - (void)dealloc
 {
+	DeleteObj(Content);
     d = nil;
     [super dealloc];
 }
@@ -225,8 +225,7 @@ GWindow::GWindow() : GView(NULL)
 	if (Wnd)
 	{
 		[Wnd.p makeKeyAndOrderFront:NSApp];
-		d->Delegate = [[GWindowDelegate alloc] init:d];
-		[Wnd.p setDelegate:d->Delegate];
+		Wnd.p.delegate = [[GWindowDelegate alloc] init:d];
 	}
 }
 
@@ -241,11 +240,7 @@ GWindow::~GWindow()
 	
 	if (Wnd)
 	{
-		// Is all this neccesary?
-		[Wnd.p setDelegate:nil];
-		[d->Delegate release];
-		d->Delegate = nil;
-
+		auto c = Wnd.p.retainCount;
 		[Wnd.p release];
 		Wnd.p = nil;
 	}
