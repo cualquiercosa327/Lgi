@@ -161,7 +161,7 @@ OsView DefaultOsView(GView *v)
 	return 0;
 }
 
-GString LgiGetFileMimeType(const char *File)
+GString LGetFileMimeType(const char *File)
 {
 	GAutoString m = LgiApp->GetFileMimeType(File);
 	if (!m)

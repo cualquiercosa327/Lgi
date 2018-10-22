@@ -484,7 +484,7 @@ public:
 		{
 			_Name = "Desktop";
 			_Type = VT_DESKTOP;
-			_Path = LgiGetSystemPath(LSP_DESKTOP);
+			_Path = LGetSystemPath(LSP_DESKTOP);
 		}
 	}
 	
@@ -895,7 +895,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, boo
 		// Posix
 
 		char p[MAX_PATH];
-		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
+		if (LGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{

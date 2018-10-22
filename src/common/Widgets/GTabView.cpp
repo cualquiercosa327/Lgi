@@ -446,7 +446,7 @@ GRect &GTabView::GetTabClient()
 		d->TabClient.Size(2, 2); // The inset border
 		d->TabClient.y1 = d->Tabs.y2 + 1; // The tab strip
 
-		GTabPage *p = GetCurrent();
+		GTabPage *p = Children.Length() ? GetCurrent() : NULL;
 		if (p && p->GetCss())
 		{
 			// Inset by any padding

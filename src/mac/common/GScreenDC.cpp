@@ -68,7 +68,7 @@ public:
 			else
 			{
 				Rc = r;
-				Rc.Offset(-d->Rc.x1, -d->Rc.y1);
+				Rc.Offset(-Rc.x1, -Rc.y1);
 			}
 			
 			// CGContextTranslateCTM (d->Ctx, 0, d->Rc.Y()-1); 
@@ -339,7 +339,7 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
 	GColour Prev = d->c;
 
-	d->c.Set(c, Bits);
+	d->c.Set(c, Bits ? Bits : GetBits());
 	if (d->Ctx)
 	{
 		float r = (float)d->c.r()/255.0;

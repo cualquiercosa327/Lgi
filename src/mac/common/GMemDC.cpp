@@ -129,7 +129,7 @@ void CGImg::Create(int x, int y, int Bits, ssize_t Line, uchar *data, uchar *pal
 			);
 			if (!d->Img)
 			{
-				printf("%s:%i - CGImageCreate(%i, %i, %i, %i, %i, ...) failed.\n",
+				printf("%s:%i - CGImageCreate(%i, %i, %i, %i, " LPrintfSSizeT ", ...) failed.\n",
 					_FL,
 					B.X(),
 					B.Y(),
