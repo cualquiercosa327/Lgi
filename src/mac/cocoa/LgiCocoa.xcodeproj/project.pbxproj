@@ -28,8 +28,8 @@
 		3477C2891CBF086A0028B84B /* GWindow.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2811CBF086A0028B84B /* GWindow.mm */; };
 		3477C28F1CBF08C10028B84B /* Gdc2.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28B1CBF08C10028B84B /* Gdc2.mm */; };
 		3477C2901CBF08C10028B84B /* GMemDC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28C1CBF08C10028B84B /* GMemDC.cpp */; };
-		3477C2911CBF08C10028B84B /* GPrintDC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28D1CBF08C10028B84B /* GPrintDC.mm */; };
-		3477C2921CBF08C10028B84B /* GScreenDC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28E1CBF08C10028B84B /* GScreenDC.mm */; };
+		3477C2911CBF08C10028B84B /* GPrintDC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28D1CBF08C10028B84B /* GPrintDC.cpp */; };
+		3477C2921CBF08C10028B84B /* GScreenDC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C28E1CBF08C10028B84B /* GScreenDC.cpp */; };
 		3477C2971CBF09320028B84B /* GFile.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2941CBF09320028B84B /* GFile.mm */; };
 		3477C2981CBF09320028B84B /* GMem.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2951CBF09320028B84B /* GMem.mm */; };
 		3477C2991CBF09320028B84B /* ShowFileProp_Mac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2961CBF09320028B84B /* ShowFileProp_Mac.mm */; };
@@ -155,9 +155,9 @@
 		3477C2801CBF086A0028B84B /* GWidgets.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GWidgets.mm; sourceTree = "<group>"; };
 		3477C2811CBF086A0028B84B /* GWindow.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GWindow.mm; sourceTree = "<group>"; };
 		3477C28B1CBF08C10028B84B /* Gdc2.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Gdc2.mm; path = Gdc2/Gdc2.mm; sourceTree = SOURCE_ROOT; };
-		3477C28C1CBF08C10028B84B /* GMemDC.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = GMemDC.cpp; path = Gdc2/GMemDC.cpp; sourceTree = SOURCE_ROOT; };
-		3477C28D1CBF08C10028B84B /* GPrintDC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = GPrintDC.mm; path = Gdc2/GPrintDC.mm; sourceTree = SOURCE_ROOT; };
-		3477C28E1CBF08C10028B84B /* GScreenDC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = GScreenDC.mm; path = Gdc2/GScreenDC.mm; sourceTree = SOURCE_ROOT; };
+		3477C28C1CBF08C10028B84B /* GMemDC.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = GMemDC.cpp; path = ../common/GMemDC.cpp; sourceTree = SOURCE_ROOT; };
+		3477C28D1CBF08C10028B84B /* GPrintDC.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = GPrintDC.cpp; path = ../common/GPrintDC.cpp; sourceTree = SOURCE_ROOT; };
+		3477C28E1CBF08C10028B84B /* GScreenDC.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = GScreenDC.cpp; path = ../common/GScreenDC.cpp; sourceTree = SOURCE_ROOT; };
 		3477C2941CBF09320028B84B /* GFile.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = GFile.mm; path = General/GFile.mm; sourceTree = SOURCE_ROOT; };
 		3477C2951CBF09320028B84B /* GMem.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = GMem.mm; path = General/GMem.mm; sourceTree = SOURCE_ROOT; };
 		3477C2961CBF09320028B84B /* ShowFileProp_Mac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ShowFileProp_Mac.mm; path = General/ShowFileProp_Mac.mm; sourceTree = SOURCE_ROOT; };
@@ -432,9 +432,9 @@
 			isa = PBXGroup;
 			children = (
 				3477C2E61CC04B1E0028B84B /* GSurface.cpp */,
-				3477C28E1CBF08C10028B84B /* GScreenDC.mm */,
+				3477C28E1CBF08C10028B84B /* GScreenDC.cpp */,
 				3477C28C1CBF08C10028B84B /* GMemDC.cpp */,
-				3477C28D1CBF08C10028B84B /* GPrintDC.mm */,
+				3477C28D1CBF08C10028B84B /* GPrintDC.cpp */,
 			);
 			name = Surfaces;
 			sourceTree = "<group>";
@@ -719,7 +719,7 @@
 				3477C3031CC04BF00028B84B /* GCombo.cpp in Sources */,
 				3477C30B1CC04BF00028B84B /* GTextLabel.cpp in Sources */,
 				3477C2B71CBF973F0028B84B /* GGuiUtils.cpp in Sources */,
-				3477C2911CBF08C10028B84B /* GPrintDC.mm in Sources */,
+				3477C2911CBF08C10028B84B /* GPrintDC.cpp in Sources */,
 				3477C2B91CBF977F0028B84B /* LgiCommon.cpp in Sources */,
 				34D1B3C121748A2800BC6B58 /* GPath.cpp in Sources */,
 				3477C2CA1CC046310028B84B /* GUtf8.cpp in Sources */,
@@ -733,7 +733,7 @@
 				3477C2B11CBF96C40028B84B /* Res.cpp in Sources */,
 				3477C4ED1CC27F1C0028B84B /* GTrayIcon.cpp in Sources */,
 				3477C2991CBF09320028B84B /* ShowFileProp_Mac.mm in Sources */,
-				3477C2921CBF08C10028B84B /* GScreenDC.mm in Sources */,
+				3477C2921CBF08C10028B84B /* GScreenDC.cpp in Sources */,
 				3477C2981CBF09320028B84B /* GMem.mm in Sources */,
 				3477C2CB1CC046310028B84B /* GXmlTree.cpp in Sources */,
 				3477C2EF1CC04BBB0028B84B /* GItemContainer.cpp in Sources */,

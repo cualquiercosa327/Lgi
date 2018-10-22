@@ -2241,7 +2241,6 @@ GString::Array LGetPath()
 		// that for the time being.
 		GFile::Path Home(LSP_HOME);
 		Home += ".profile";
-		GString::Array Paths;
 		auto Profile = GFile(Home, O_READ).Read().Split("\n");
 		for (auto Ln : Profile)
 		{

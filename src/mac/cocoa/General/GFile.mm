@@ -479,7 +479,7 @@ public:
 		{
 			_Name = "Desktop";
 			_Type = VT_DESKTOP;
-			_Path = LgiGetSystemPath(LSP_DESKTOP);
+			_Path = LGetSystemPath(LSP_DESKTOP);
 		}
 	}
 	

@@ -31,12 +31,16 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 	GPrintDcParams *Params = (GPrintDcParams*)Handle;
 	if (Params)
 	{
+		#if defined COCOA
+		#else
 		int x = Params->Page.right - Params->Page.left;
 		int y = Params->Page.bottom - Params->Page.top;
 		
 		d->Dpi.x = Params->Dpi.hRes;
 		d->Dpi.y = Params->Dpi.vRes;
-		
+
+		d->Ctx = Params->Ctx;
+
 		#if 0
 		d->x = x * d->Dpi.x;
 		d->y = y * d->Dpi.y;
@@ -45,11 +49,10 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 		d->y = y;
 		#endif
 
-		d->Ctx = Params->Ctx;
-
 		// Invert the co-ordinate space so 0,0 is the top left corner.
 		CGContextTranslateCTM(d->Ctx, 0, y);
 		CGContextScaleCTM(d->Ctx, 1.0, -1.0);
+		#endif
 	}
 }
 

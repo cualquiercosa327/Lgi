@@ -174,7 +174,7 @@ OsView DefaultOsView(GView *v)
 	return NULL;
 }
 
-GString LgiGetFileMimeType(const char *File)
+GString LGetFileMimeType(const char *File)
 {
 	GAutoString m = LgiApp->GetFileMimeType(File);
 	if (!m)
@@ -571,7 +571,7 @@ if (Ext2) Ext.Add(Ext2); }
 }
 
 
-GString LgiCurrentUserName()
+GString LCurrentUserName()
 {
 	struct passwd *pw = getpwuid(geteuid());
 	if (pw)

@@ -83,7 +83,7 @@ public:
 		#endif
 	}
 
-	GScreenPrivate(GView *v)
+	GScreenPrivate(GView *v, void *param = NULL)
 	{
 		Init();
 		View = v;
@@ -127,6 +127,9 @@ GScreenDC::GScreenDC()
 GScreenDC::GScreenDC(GPrintDcParams *Params)
 {
 	d = new GScreenPrivate;
+	
+	#if defined COCOA
+	#else
 	d->Ctx = Params->Ctx;
 	if (d->Ctx)
 	{
@@ -137,6 +140,7 @@ GScreenDC::GScreenDC(GPrintDcParams *Params)
 		
 		CGContextSetLineWidth(d->Ctx, 1.0);
 	}
+	#endif
 }
 
 GScreenDC::GScreenDC(GWindow *w, void *param)
