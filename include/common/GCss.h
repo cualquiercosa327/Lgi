@@ -136,6 +136,8 @@ public:
 		PropFontFamily = TypeStrings << 8,
 	};
 
+	PropTypes GetType(PropType p) { return (PropTypes) ((int)p >> 8); }
+
 	enum BorderCollapseType {
 		CollapseInherit,
 		CollapseCollapse,

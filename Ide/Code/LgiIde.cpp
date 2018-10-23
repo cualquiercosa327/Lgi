@@ -563,6 +563,8 @@ public:
 			Fixed.Create();			
 		}		
 
+		GetCss(true)->MinHeight("60px");
+
 		Build = Append("Build");
 		Output = Append("Output");
 		Find = Append("Find");
@@ -1611,7 +1613,8 @@ Chk;
 		GRect c = GetClient();
 		if (c.Y() > OutPx.CastInt32())
 		{
-			d->VBox->Value(c.Y() - OutPx.CastInt32());
+			GCss::Len y(GCss::LenPx, OutPx.CastDouble());
+			d->Output->GetCss(true)->Height(y);
 		}
 
 		AttachChildren();
@@ -1653,10 +1656,9 @@ AppWnd::~AppWnd()
 		GVariant v = d->HBox->Value();
 		d->Options.SetValue(OPT_SPLIT_PX, v);
 	}
-	if (d->VBox)
+	if (d->Output)
 	{
-		GRect c = GetClient();
-		GVariant v = c.Y() - d->VBox->Value();
+		GVariant v = d->Output->Y();
 		d->Options.SetValue(OPT_OUTPUT_PX, v);
 	}
 
