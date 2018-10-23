@@ -6,6 +6,7 @@
 #include "INet.h"
 #include "LDateTime.h"
 #include "GStringClass.h"
+#include "LPermissions.h"
 
 // Start ftp list parser stuff
 struct ftpparse
@@ -45,24 +46,8 @@ time is correct in the local time zone, and gmtime() for REMOTE* times.
 
 #define DefaultFtpCharset	"iso-8859-1"
 
-#define IFTP_READ			0x0400
-#define IFTP_WRITE			0x0200
-#define IFTP_EXECUTE		0x0100
-#define IFTP_DIR			0x0800
-
-#define IFTP_GRP_READ		0x0040
-#define IFTP_GRP_WRITE		0x0020
-#define IFTP_GRP_EXECUTE	0x0010
-
-#define IFTP_GLOB_READ		0x0004
-#define IFTP_GLOB_WRITE		0x0002
-#define IFTP_GLOB_EXECUTE	0x0001
-
-#define IFTP_ARCHIVE		0x1000
-#define IFTP_HIDDEN			0x2000
-#define IFTP_SYSTEM			0x4000
-
-#define IFTP_SYM_LINK		0x8000
+#define IFTP_DIR			0x01
+#define IFTP_SYM_LINK		0x02
 
 // Options
 #define OPT_LogOpen			"LogOpen"
@@ -91,6 +76,7 @@ class IFtpEntry
 {
 public:
 	int Attributes;
+	LPermissions Perms;
 	int64 Size;
 	GString Name;
 	GString Path;
@@ -112,9 +98,25 @@ public:
 	IFtpEntry(IFtpEntry *Entry);
 	virtual ~IFtpEntry();
 
-	bool IsDir() { return (Attributes & IFTP_DIR) != 0; }
-	bool IsHidden() { return TestFlag(Attributes, IFTP_HIDDEN); }
 	IFtpEntry &operator =(const IFtpEntry &e);
+
+	bool IsDir()
+	{
+		if (Perms.IsWindows)
+			return Perms.Win.Folder;
+		return (Attributes & IFTP_DIR) != 0;
+	}
+
+	bool IsHidden()
+	{
+		if (Perms.IsWindows)
+			return Perms.Win.Hidden;
+		if (Name)
+			return Name(0) == '.';
+		return false;
+	}
+
+	bool PermissionsFromStr(const char *s);
 };
 
 /// The remote folder system interfaceß
@@ -159,7 +161,7 @@ public:
 	virtual bool DownloadFile(const char *Local, IFtpEntry *Remote, bool Binary = true) = 0;
 	virtual bool UploadFile(const char *Local, const char *Remote, bool Binary = true) = 0;
 	virtual bool RenameFile(const char *From, const char *To) = 0;
-	virtual bool SetPerms(const char *File, int Perms) = 0;
+	virtual bool SetPerms(const char *File, LPermissions Perms) = 0;
 	virtual bool ResumeAt(int64 Pos) = 0;
 	virtual void Abort() = 0;
 };
@@ -257,7 +259,7 @@ public:
 	/// Rename a file or folder in the current remote folder
 	bool RenameFile(const char *From, const char *To);
 	/// Set the permissions on a file in the current remote folder
-	bool SetPerms(const char *File, int Perms);
+	bool SetPerms(const char *File, LPermissions Perms);
 	/// Set the resume point before downloading a file
 	bool ResumeAt(int64 Pos);
 	/// Abort the current transfer

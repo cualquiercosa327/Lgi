@@ -80,6 +80,46 @@ IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 		*this = *Entry;
 }
 
+bool IFtpEntry::PermissionsFromStr(const char *perm)
+{
+	if (!perm)
+		return false;
+	if (strlen(perm) < 10)
+		return false;
+
+	Perms.IsWindows = false;
+	Perms.u32 = 0;
+
+	if (perm[0] == 'd' ||
+		perm[0] == 'l') Attributes |= IFTP_DIR;
+			
+	Perms.Unix.UserRead = perm[1] != '-';
+	Perms.Unix.UserWrite = perm[2] != '-';
+	Perms.Unix.UserExecute = perm[3] != '-';
+
+	Perms.Unix.GroupRead = perm[4] != '-';
+	Perms.Unix.GroupWrite = perm[5] != '-';
+	Perms.Unix.GroupExecute = perm[6] != '-';
+
+	Perms.Unix.GlobalRead = perm[7] != '-';
+	Perms.Unix.GlobalWrite = perm[8] != '-';
+	Perms.Unix.GlobalExecute = perm[9] != '-';
+
+	if (perm[0] == 'l')
+	{
+		// link...
+		Attributes |= IFTP_SYM_LINK;
+		if (Name)
+		{
+			ssize_t Arrow = Name.Find("->");
+			if (Arrow > 0)
+				Name.Length(Arrow-1);
+		}
+	}
+
+	return true;
+}
+
 IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 {
 	UserData = NULL;
@@ -88,8 +128,6 @@ IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 	if (Fp)
 	{
 		Name.Set(Fp->name, Fp->namelen);
-		if (Name(0) == '.')
-			Attributes |= IFTP_HIDDEN;
 		
 		Size = (Fp->sizetype == FTPPARSE_SIZE_BINARY) ? Fp->size : -1;
 		
@@ -105,35 +143,7 @@ IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 				Date = local;
 		}
 
-		char *perm = Fp->perms;
-		if (strlen(perm) > 0)
-		{
-			if (perm[0] == 'd' ||
-				perm[0] == 'l') Attributes |= IFTP_DIR;
-			if (perm[1] != '-') Attributes |= IFTP_READ;
-			if (perm[2] != '-') Attributes |= IFTP_WRITE;
-			if (perm[3] != '-') Attributes |= IFTP_EXECUTE;
-
-			if (perm[4] != '-') Attributes |= IFTP_GRP_READ;
-			if (perm[5] != '-') Attributes |= IFTP_GRP_WRITE;
-			if (perm[6] != '-') Attributes |= IFTP_GRP_EXECUTE;
-
-			if (perm[7] != '-') Attributes |= IFTP_GLOB_READ;
-			if (perm[8] != '-') Attributes |= IFTP_GLOB_WRITE;
-			if (perm[9] != '-') Attributes |= IFTP_GLOB_EXECUTE;
-
-			if (perm[0] == 'l')
-			{
-				// link...
-				Attributes |= IFTP_SYM_LINK;
-				if (Name)
-				{
-					ssize_t Arrow = Name.Find("->");
-					if (Arrow > 0)
-						Name.Length(Arrow-1);
-				}
-			}
-		}
+		PermissionsFromStr(Fp->perms);
 	}
 }
 
@@ -226,43 +236,10 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 				
 				GAutoString Utf((char*) LgiNewConvertCp("utf-8", n, Cs));
 				Name = Utf.Get();
-				if (Name)
-				{
-					if (Name[0] == '.')
-					{
-						Attributes |= IFTP_HIDDEN;
-					}
-				}
 			}
 
 			if (_Perm && strlen(_Perm) == 10)
-			{
-				if (_Perm[0] == 'd' ||
-					_Perm[0] == 'l') Attributes |= IFTP_DIR;
-				if (_Perm[1] != '-') Attributes |= IFTP_READ;
-				if (_Perm[2] != '-') Attributes |= IFTP_WRITE;
-				if (_Perm[3] != '-') Attributes |= IFTP_EXECUTE;
-
-				if (_Perm[4] != '-') Attributes |= IFTP_GRP_READ;
-				if (_Perm[5] != '-') Attributes |= IFTP_GRP_WRITE;
-				if (_Perm[6] != '-') Attributes |= IFTP_GRP_EXECUTE;
-
-				if (_Perm[7] != '-') Attributes |= IFTP_GLOB_READ;
-				if (_Perm[8] != '-') Attributes |= IFTP_GLOB_WRITE;
-				if (_Perm[9] != '-') Attributes |= IFTP_GLOB_EXECUTE;
-
-				if (_Perm[0] == 'l')
-				{
-					// link...
-					Attributes |= IFTP_SYM_LINK;
-					
-					char *Arrow = Name ? strstr(Name, "->") : 0;
-					if (Arrow)
-					{
-						Arrow[-1] = 0;
-					}
-				}
-			}
+				PermissionsFromStr(_Perm);
 
 			if (_Size)
 			{
@@ -279,6 +256,7 @@ IFtpEntry::~IFtpEntry()
 IFtpEntry &IFtpEntry::operator =(const IFtpEntry &e)
 {
 	Attributes = e.Attributes;
+	Perms = e.Perms;
 	Size = e.Size;
 	Date = e.Date;
 	UserData = e.UserData;
@@ -1303,9 +1281,15 @@ bool IFtp::ConnectData()
 	return false;
 }
 
-bool IFtp::SetPerms(const char *File, int Perms)
+bool IFtp::SetPerms(const char *File, LPermissions Perms)
 {
 	bool Status = false;
+
+	if (Perms.IsWindows)
+	{
+		LgiAssert(!"Wrong perms type.");
+		return false;
+	}
 
 	try
 	{
@@ -1314,7 +1298,7 @@ bool IFtp::SetPerms(const char *File, int Perms)
 			char *f = ToFtpCs(File);
 			if (f)
 			{
-				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "SITE CHMOD %3.3X %s\r\n", Perms, File);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "SITE CHMOD %03X %s\r\n", Perms.u32 & 0x777, File);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
