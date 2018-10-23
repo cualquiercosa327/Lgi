@@ -172,7 +172,7 @@
 		3477C2AB1CBF72170028B84B /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../../../include/common/GViewPriv.h; sourceTree = "<group>"; };
 		3477C2AE1CBF96B90028B84B /* LgiRes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes.cpp; path = ../../../common/Resource/LgiRes.cpp; sourceTree = "<group>"; };
 		3477C2B01CBF96C40028B84B /* Res.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Res.cpp; path = ../../../common/Resource/Res.cpp; sourceTree = "<group>"; };
-		3477C2B31CBF96F20028B84B /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
+		3477C2B31CBF96F20028B84B /* LgiMsg.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = LgiMsg.cpp; path = ../../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
 		3477C2B61CBF973F0028B84B /* GGuiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GGuiUtils.cpp; path = ../../../common/Lgi/GGuiUtils.cpp; sourceTree = "<group>"; };
 		3477C2B81CBF977F0028B84B /* LgiCommon.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = LgiCommon.cpp; path = ../../../common/Lgi/LgiCommon.cpp; sourceTree = "<group>"; };
 		3477C2BA1CBF97C80028B84B /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
