@@ -1,10 +1,8 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by Script1.rc
 //
 #define IDI_ICON1                       101
-#define IDD_DIALOG1                     102
-#define IDC_COMBO1                      1000
 
 // Next default values for new objects
 // 

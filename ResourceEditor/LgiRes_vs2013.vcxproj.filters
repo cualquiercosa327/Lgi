@@ -86,6 +86,9 @@
     <ClInclude Include="Code\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Resources\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">
@@ -96,5 +99,10 @@
     <ResourceCompile Include="Resources\Script1.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\icon-win.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

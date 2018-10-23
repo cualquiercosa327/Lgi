@@ -30,7 +30,7 @@ Section ""
   ; Program files
   File ..\lib\Lgi12x64.dll
   File .\x64Release12\LgiRes.exe
-  File ..\..\..\..\CodeLib\libpng\build\MinSizeRel\libpng15.dll
+  File ..\lib\libpng12x64.dll
 
   ; Resources
   File .\Resources\lgires.lr8

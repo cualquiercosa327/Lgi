@@ -206,6 +206,7 @@
     <ClInclude Include="Code\LgiRes_String.h" />
     <ClInclude Include="Code\resdefs.h" />
     <ClInclude Include="Code\resource.h" />
+    <ClInclude Include="Resources\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest" />
@@ -218,6 +219,9 @@
       <Project>{95df9ca4-6d37-4a85-a648-80c2712e0da1}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\icon-win.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
