@@ -660,7 +660,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 	File.Type[0] = 'B';
 	File.Type[1] = 'M';
 	File.OffsetToData = 14 + Info.Size;
-	File.Size = File.OffsetToData + (ABS(pMem->Line) * pMem->y);
+	File.Size = File.OffsetToData + (int)(ABS(pMem->Line) * pMem->y);
 	File.Reserved1 = 0;
 	File.Reserved2 = 0;
 
