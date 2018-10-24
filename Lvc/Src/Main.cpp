@@ -310,12 +310,9 @@ public:
 				Menu->Load(this, "IDM_MENU");
 			}
 
-			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
-			ToolsBox->Name("ToolsBox");
-			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
-			FoldersBox->Name("FoldersBox");
-			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
-			CommitsBox->Name("CommitsBox");
+			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true, "ToolsBox");
+			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false, "FoldersBox");
+			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true, "CommitsBox");
 
 			ToolBar *Tools = new ToolBar;
 
@@ -333,6 +330,7 @@ public:
 
 			Lst = new LList(IDC_LIST, 0, 0, 200, 200);
 			Lst->Attach(CommitsBox);
+			Lst->GetCss(true)->Height("40%");
 			Lst->AddColumn("---", 40);
 			Lst->AddColumn("Commit", 270);
 			Lst->AddColumn("Author", 240);
@@ -343,6 +341,7 @@ public:
 			FilesBox->Attach(CommitsBox);
 
 			Files = new LList(IDC_FILES, 0, 0, 200, 200);
+			Files->GetCss(true)->Width("35%");
 			Files->Attach(FilesBox);
 			Files->AddColumn("[ ]", 30);
 			Files->AddColumn("State", 100);
@@ -353,6 +352,7 @@ public:
 			
 			CommitCtrls *Commit = new CommitCtrls;
 			Commit->Attach(MsgBox);
+			Commit->GetCss(true)->Height("25%");
 			if (Commit->GetViewById(IDC_MSG, Msg))
 			{
 				GTextView3 *Tv = dynamic_cast<GTextView3*>(Msg);

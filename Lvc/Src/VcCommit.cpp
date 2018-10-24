@@ -179,6 +179,7 @@ void VcCommit::Select(bool b)
 				w->SetCtrlEnabled(IDC_COMMIT_AND_PUSH, false);
 			}
 		}
+		else LgiAssert(0);
 	}
 }
 

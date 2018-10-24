@@ -62,11 +62,13 @@ public:
 	}	
 };
 
-GBox::GBox(int Id, bool Vertical)
+GBox::GBox(int Id, bool Vertical, const char *name)
 {
 	d = new GBoxPriv;
 	SetId(Id);
 	SetVertical(Vertical);
+	if (name)
+		Name(name);
 	LgiResources::StyleElement(this);
 }
 
