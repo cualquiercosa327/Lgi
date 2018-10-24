@@ -507,6 +507,8 @@ public:
 	{
 		GViewI *Ctrl = FindControl(Id);
 		Ptr = dynamic_cast<T*>(Ctrl);
+		if (Ctrl != NULL && Ptr == NULL)
+			LgiAssert(!"Wrong ctrl type.");
 		return Ptr != NULL;
 	}
 

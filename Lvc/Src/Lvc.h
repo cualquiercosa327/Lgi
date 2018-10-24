@@ -9,6 +9,7 @@
 #include "GTextView3.h"
 #include "GTextLog.h"
 #include "GTabView.h"
+#include "GEdit.h"
 
 #define OPT_Folders		"Folders"
 #define OPT_Folder		"Folder"
@@ -89,7 +90,7 @@ struct AppPriv
 	LList *Lst;
 	LList *Files;
 	GOptionsFile Opts;
-	GTextView3 *Msg;
+	GEdit *Msg;
 	GTextLog *Diff;
 	GTextLog *Log;
 	GTabView *Tabs;

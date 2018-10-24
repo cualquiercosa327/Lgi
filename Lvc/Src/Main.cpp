@@ -355,9 +355,14 @@ public:
 			Commit->Attach(MsgBox);
 			if (Commit->GetViewById(IDC_MSG, Msg))
 			{
-				Msg->Sunken(true);
-				Msg->SetWrapType(TEXTED_WRAP_NONE);
+				GTextView3 *Tv = dynamic_cast<GTextView3*>(Msg);
+				if (Tv)
+				{
+					Tv->Sunken(true);
+					Tv->SetWrapType(TEXTED_WRAP_NONE);
+				}
 			}
+			else LgiAssert(!"No ctrl?");
 
 			Tabs = new GTabView(IDC_TAB_VIEW);
 			Tabs->Attach(MsgBox);
