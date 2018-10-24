@@ -321,7 +321,8 @@ public:
 			FoldersBox->Attach(ToolsBox);
 
 			Tree = new GTree(IDC_TREE, 0, 0, 200, 200);
-			Tree->GetCss(true)->Width(GCss::Len("300px"));
+			Tree->GetCss(true)->Width(GCss::Len("320px"));
+			Tree->ShowColumnHeader(true);
 			Tree->AddColumn("Folder", 250);
 			Tree->AddColumn("Counts", 50);
 			Tree->Attach(FoldersBox);
