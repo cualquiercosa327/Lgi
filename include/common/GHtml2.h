@@ -84,7 +84,7 @@ public:
 
 	// Html
 	const char *GetClass() { return "GHtml2"; }
-	bool GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media = 0);
+	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<GDocView::ContentMedia> *Media = 0);
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(int x, int y, int *Index);

@@ -272,7 +272,7 @@ protected:
 	/// A hash table of attributes.
 	///
 	/// All strings stored in here should be in UTF-8. Each string is allocated on the heap.
-	GHashTbl<const char*, char*> Attr;
+	LHashTbl<ConstStrKey<char,false>, char*> Attr;
 
 	// Forms
 	GViewI *Ctrl;
@@ -433,7 +433,7 @@ public:
 	// Control handling
 	GTag *FindCtrlId(int Id);
 	int OnNotify(int f);
-	void CollectFormValues(GHashTbl<const char*,char*> &f);
+	void CollectFormValues(LHashTbl<ConstStrKey<char,false>,char*> &f);
 
 	// GDom impl
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);

@@ -13,6 +13,7 @@ struct VsInfo
 }
 Versions[] =
 {
+	{2017, _MSC_VER_VS2017, 15.0},
 	{2015, _MSC_VER_VS2015, 14.0},
 	{2013, _MSC_VER_VS2013,	12.0},
 	{2012, _MSC_VER_VS2012, 11.0},
@@ -34,6 +35,17 @@ double YearToVer(int64 y)
 	}
 	
 	return 0.0;
+}
+
+int VerToYear(double v)
+{
+	for (int i=0; i<CountOf(Versions); i++)
+	{
+		if (Versions[i].Ver - v < 0.001)
+			return Versions[i].Year;
+	}
+	
+	return 0;
 }
 
 class App : public GWindow
@@ -100,6 +112,11 @@ public:
 									VsYear = i;
 									VsVersion = YearToVer(VsYear);
 									break;
+								}
+								else if (i >= 10 && i <= 15)
+								{
+									VsVersion = (double)i;
+									VsYear = VerToYear(VsVersion);
 								}
 							}
 						}

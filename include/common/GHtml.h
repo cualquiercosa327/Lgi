@@ -48,7 +48,7 @@ protected:
 	int					ViewWidth;
 	GToolTip			Tip;
 	GCss::Store			CssStore;
-	GHashTbl<const char*, bool> CssHref;
+	LHashTbl<ConstStrKey<char,false>, bool> CssHref;
 	
 	// Display
 	GAutoPtr<GSurface>	MemDC;

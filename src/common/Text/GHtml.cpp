@@ -1322,7 +1322,7 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 //////////////////////////////////////////////////////////////////////
 GTag::GTag(GHtml *h, GHtmlElement *p) :
 	GHtmlElement(p),
-	Attr(8, false, NULL, NULL)
+	Attr(8)
 {
 	Ctrl = 0;
 	CtrlType = CtrlNone;
@@ -2493,7 +2493,7 @@ int GTag::OnNotify(int f)
 	return 0;
 }
 
-void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
+void GTag::CollectFormValues(LHashTbl<ConstStrKey<char,false>,char*> &f)
 {
 	if (CtrlType != CtrlNone)
 	{
@@ -7774,7 +7774,7 @@ bool GHtml::OnSubmitForm(GTag *Form)
 		return false;
 	}
 		
-	GHashTbl<const char*,char*> f(0, false);
+	LHashTbl<ConstStrKey<char,false>,char*> f;
 	Form->CollectFormValues(f);
 	bool Status = false;
 	if (!_stricmp(Method, "post"))
@@ -9200,7 +9200,7 @@ void GHtmlTableLayout::Dump()
 
 void GHtmlTableLayout::GetAll(List<GTag> &All)
 {
-	GHashTbl<void*, bool> Added;
+	LHashTbl<PtrKey<void*>, bool> Added;
 	for (size_t y=0; y<c.Length(); y++)
 	{
 		CellArray &a = c[y];

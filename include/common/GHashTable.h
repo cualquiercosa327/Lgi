@@ -1,4 +1,4 @@
-#ifndef _GHashTbl_H_
+#if 0 // ndef _GHashTbl_H_
 #define _GHashTbl_H_
 
 #include <ctype.h>

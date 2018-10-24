@@ -10,58 +10,6 @@ namespace Html2
 //////////////////////////////////////////////////////////////////////////////////
 // Enums                                                                        //
 //////////////////////////////////////////////////////////////////////////////////
-enum HtmlTag
-{
-	CONTENT,
-	CONDITIONAL,
-	ROOT,
-	TAG_UNKNOWN,
-	TAG_HTML,
-	TAG_HEAD,
-	TAG_BODY,
-	TAG_B,
-	TAG_I,
-	TAG_U,
-	TAG_P,
-	TAG_BR,
-	TAG_UL,
-	TAG_OL,
-	TAG_LI,
-	TAG_FONT,
-	TAG_A,
-	TAG_TABLE,
-		TAG_TR,
-		TAG_TD,
-	TAG_IMG,
-	TAG_DIV,
-	TAG_SPAN,
-	TAG_CENTER,
-	TAG_META,
-	TAG_TBODY,
-	TAG_STYLE,
-	TAG_SCRIPT,
-	TAG_STRONG,
-	TAG_BLOCKQUOTE,
-	TAG_PRE,
-	TAG_H1,
-	TAG_H2,
-	TAG_H3,
-	TAG_H4,
-	TAG_H5,
-	TAG_H6,
-	TAG_HR,
-	TAG_IFRAME,
-	TAG_LINK,
-	TAG_BIG,
-	TAG_INPUT,
-	TAG_BUTTON,
-	TAG_SELECT,
-	TAG_LABEL,
-	TAG_FORM,
-	TAG_NOSCRIPT,
-	TAG_LAST
-};
-
 enum TagInfoFlags
 {
 	TI_NONE			= 0x00,
@@ -234,7 +182,7 @@ protected:
 	static bool Selected;
 	friend class HtmlEdit;
 
-	GHashTbl<const char*, char*> Attr;
+	LHashTbl<ConstStrKey<char,false>, char*> Attr;
 
 	// Forms
 	GViewI *Ctrl;
@@ -366,7 +314,7 @@ public:
 	void SetTag(const char *Tag);
 	void GetTagByPos(GTagHit &hit, int x, int y);
 	GTag *GetTagByName(const char *Name);
-	void CopyClipboard(GBytePipe &p);
+	void CopyClipboard(GMemQueue &p);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
 	void Find(int TagType, GArray<GTag*> &Tags);
@@ -375,7 +323,7 @@ public:
 	// Control handling
 	GTag *FindCtrlId(int Id);
 	int OnNotify(int f);
-	void CollectFormValues(GHashTbl<const char*,char*> &f);
+	void CollectFormValues(LHashTbl<ConstStrKey<char,false>,char*> &f);
 
 	// GDom impl
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);

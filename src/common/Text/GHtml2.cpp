@@ -10,7 +10,6 @@
 #include "GScrollBar.h"
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
-#include "GUtf8.h"
 #include "Emoji.h"
 #include "GClipBoard.h"
 #include "GButton.h"
@@ -94,7 +93,7 @@ namespace Html2
 class GHtmlPrivate2
 {
 public:
-	GHashTbl<const char*, bool> Loading;
+	LHashTbl<ConstStrKey<char,false>, bool> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
@@ -133,7 +132,7 @@ public:
 		LgiGetExeFile(EmojiPng, sizeof(EmojiPng));
 		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "Contents/Resources/Emoji.png");
 		#else
-		LgiGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
+		LGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
 		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "resources/emoji.png");
 		#endif
 		if (FileExists(EmojiPng))
@@ -153,7 +152,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
-static GHashTbl<const char*, GInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
+static LHashTbl<ConstStrKey<char,false>, GInfo*> TagMap(TAG_LAST * 3);
 static GInfo *UnknownTag = NULL;
 
 static GInfo *GetTagInfo(const char *Tag)
