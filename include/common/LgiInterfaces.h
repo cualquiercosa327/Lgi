@@ -50,7 +50,7 @@ public:
 /// Typically this means being able to swap files with sockets or data
 /// buffers etc.
 /// 
-class GStreamI : virtual public GDomI
+class LgiClass GStreamI : virtual public GDomI
 {
 public:
 	/// Open a connection
@@ -157,7 +157,7 @@ public:
 		/// Sets the current timeout for operations in ms
 		virtual void SetTimeout(int ms) {}
 		/// Sets the continue token
-		virtual void SetContinue(bool *Token) {}
+		// virtual void SetContinue(bool *Token) {}
 
 
 	// State
@@ -508,7 +508,7 @@ public:
 		GViewI *Ctrl = FindControl(Id);
 		Ptr = dynamic_cast<T*>(Ctrl);
 		if (Ctrl != NULL && Ptr == NULL)
-			LgiAssert(!"Wrong ctrl type.");
+			LgiTrace("%s:%i - Can't cast '%s' to target type.\n", _FL, Ctrl->GetClass());
 		return Ptr != NULL;
 	}
 

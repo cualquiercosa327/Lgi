@@ -765,53 +765,56 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 			
 			// Parse the results
 			GString Text = Buf.NewGStr();
-			if (Status && Text)
+			if (Status)
 			{
-				#ifdef LOG_LISTINGS
-				GFile F;
-				if (F.Open("c:\\temp\\ftplog.txt", O_WRITE))
+				if (Text)
 				{
-					F.Write(Text, Len);
-					F.Close();
-				}
-				#endif
-
-				GString::Array Ln = Text.Split("\n");
-
-				// Parse lines...
-				for (unsigned i=0; i<Ln.Length(); i++)
-				{
-					GString Line = Ln[i].Strip();
-
-					#if 1					
-					struct ftpparse fp;					
-					int r = ftpparse(&fp, Line, (int)Line.Length());
-					if (!r)
-						LgiTrace("Error: %s\n", Line.Get());
-					IFtpEntry *e = r ? new IFtpEntry(&fp, GetCharset()) : NULL;
-					#else
-					IFtpEntry *e = new IFtpEntry(Line, GetCharset());
-					#endif
-					if (e && e->Name)
+					#ifdef LOG_LISTINGS
+					GFile F;
+					if (F.Open("c:\\temp\\ftplog.txt", O_WRITE))
 					{
-						if (strcmp(e->Name, ".") != 0 &&
-							strcmp(e->Name, "..") != 0)
+						F.Write(Text, Len);
+						F.Close();
+					}
+					#endif
+
+					GString::Array Ln = Text.Split("\n");
+
+					// Parse lines...
+					for (unsigned i=0; i<Ln.Length(); i++)
+					{
+						GString Line = Ln[i].Strip();
+
+						#if 1					
+						struct ftpparse fp;					
+						int r = ftpparse(&fp, Line, (int)Line.Length());
+						if (!r)
+							LgiTrace("Error: %s\n", Line.Get());
+						IFtpEntry *e = r ? new IFtpEntry(&fp, GetCharset()) : NULL;
+						#else
+						IFtpEntry *e = new IFtpEntry(Line, GetCharset());
+						#endif
+						if (e && e->Name)
 						{
-							Dir.Add(e);
-							e = 0;
+							if (strcmp(e->Name, ".") != 0 &&
+								strcmp(e->Name, "..") != 0)
+							{
+								Dir.Add(e);
+								e = 0;
+							}
 						}
+							
+						DeleteObj(e);
 					}
 						
-					DeleteObj(e);
+					VerifyRange(ReadLine(), 2);
+					Status = true;
 				}
-					
-				VerifyRange(ReadLine(), 2);
-				Status = true;
-			}
-			else
-			{
-				VerifyRange(ReadLine(), 2);
-				Status = true;
+				else
+				{
+					VerifyRange(ReadLine(), 2);
+					Status = true;
+				}
 			}
 		}
 		else printf("%s:%i - SetupData failed.\n", _FL);
@@ -1148,7 +1151,8 @@ bool IFtp::SetupData(bool Binary)
 			}
 			else
 			{
-				d->Data.Reset(new GSocket());
+				if (d->Data.Reset(new GSocket()))
+					d->Data->SetCancel(Socket->GetCancel());
 			}
 		}
 

@@ -254,7 +254,13 @@ public:
 	bool SetMulticastInterface(uint32 Interface);
 
 	// Impl
-	GStreamI *Clone() { return new GSocket; }
+	GStreamI *Clone()
+	{
+		GSocket *s = new GSocket;
+		if (s)
+			s->SetCancel(GetCancel());
+		return s;
+	}
 
 	// Statics
 

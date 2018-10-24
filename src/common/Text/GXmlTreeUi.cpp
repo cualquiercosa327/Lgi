@@ -310,8 +310,8 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 					int Type = Map.value->Hint ? Map.value->Hint : GetDataType(v.Str());
 
 					if (Type == GV_BOOL ||
-							Type == GV_INT32 ||
-							Type == GV_INT64)
+						Type == GV_INT32 ||
+						Type == GV_INT64)
 					{
 						Ui->SetCtrlValue(Map.value->Id, v.CastInt32());
 					}
