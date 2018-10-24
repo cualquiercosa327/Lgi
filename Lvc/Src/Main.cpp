@@ -129,6 +129,7 @@ public:
 			GTableLayout *v;
 			if (GetViewById(IDC_COMMIT_TABLE, v))
 			{
+				v->GetCss(true)->PaddingRight("8px");
 				GRect r = v->GetPos();
 				r.Offset(-r.x1, -r.y1);
 				r.x2++;
@@ -367,6 +368,8 @@ public:
 
 			Tabs = new GTabView(IDC_TAB_VIEW);
 			Tabs->Attach(MsgBox);
+			const char *Style = "Padding: 0px 8px 8px 0px";
+			Tabs->GetCss(true)->Parse(Style);
 
 			GTabPage *p = Tabs->Append("Diff");
 			p->Append(Diff = new DiffView(IDC_TXT));

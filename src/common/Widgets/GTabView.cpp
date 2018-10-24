@@ -642,10 +642,11 @@ GRect &GTabView::CalcInset()
 	auto f = GetFont();
 	if (GetCss())
 	{
-		auto l = GetCss()->Padding();
-		int Px = l.ToPx(d->Inset.X(), f);
-		if (l.IsValid())
-			Padding.Set(Px, Px, Px, Px);
+		GCss::Len l;
+		if ((l = GetCss()->PaddingLeft()).IsValid()) Padding.x1 = l.ToPx(d->Inset.X(), f);
+		if ((l = GetCss()->PaddingTop()).IsValid()) Padding.y1 = l.ToPx(d->Inset.Y(), f);
+		if ((l = GetCss()->PaddingRight()).IsValid()) Padding.x2 = l.ToPx(d->Inset.X(), f);
+		if ((l = GetCss()->PaddingBottom()).IsValid()) Padding.y2 = l.ToPx(d->Inset.Y(), f);
 	}
 
 	int FnHalf = (f->GetHeight() + 3) / 2;
