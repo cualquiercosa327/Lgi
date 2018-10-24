@@ -999,7 +999,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_COMPARE:
 		{
-			GHashTbl<char*, char*> Left;
+			LHashTbl<StrKey<char,false>, char*> Left;
 			GDirectory LDir, RDir;
 			char p[MAX_PATH];				
 			for (bool b=LDir.First(d->l->Name()); b; b=LDir.Next())

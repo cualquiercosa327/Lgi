@@ -1519,7 +1519,7 @@ int AppWnd::GetUniqueCtrlId()
 		List<Resource> l;
 		if (Objs->ListObjects(l))
 		{
-			GHashTbl<int, int> t;
+			LHashTbl<IntKey<int>, int> t;
 			for (Resource *r = l.First(); r; r = l.Next())
 			{
 				StringList *sl = r->GetStrs();
@@ -1565,7 +1565,7 @@ int AppWnd::GetUniqueStrRef(int	Start)
 	if (!Objs->ListObjects(l))
 		return -1;
 
-	GHashTbl<int, ResString*> Map;
+	LHashTbl<IntKey<int>, ResString*> Map;
 	GArray<ResString*> Dupes;
 
 	for (Resource *r = l.First(); r; r = l.Next())
@@ -2070,7 +2070,7 @@ public:
 			}
 		}
 
-		GHashTbl<char*,GXmlAttr*> a(0, false);		
+		LHashTbl<StrKey<char,false>,GXmlAttr*> a;
 		for (int i=0; i<t1->Attr.Length(); i++)
 		{
 			GXmlAttr *a1 = &t1->Attr[i];
@@ -2654,7 +2654,7 @@ bool AppWnd::LoadLgi(char *FileName)
 
 					// Scan for languages and update the view lang menu
 					Languages.Length(0);
-					GHashTbl<const char*, GLanguage*> Langs;
+					LHashTbl<ConstStrKey<char,false>, GLanguage*> Langs;
 					if (ViewMenu)
 					{
 						// Remove existing language menu items
@@ -2907,8 +2907,8 @@ bool AppWnd::WriteDefines(GFile &Defs)
 	List<Resource> Lst;
 	if (ListObjects(Lst))
 	{
-		GHashTbl<char*,int> Def;
-		GHashTbl<char*,char*> Ident;
+		LHashTbl<StrKey<char>,int> Def;
+		LHashTbl<StrKey<char>,char*> Ident;
 
 		for (Resource *r = Lst.First(); r; r = Lst.Next())
 		{
@@ -3424,7 +3424,7 @@ bool AppWnd::LoadWin32(char *FileName)
 {
 	bool Status = false;
 	GFileSelect Select;
-	GHashTbl<const char*,bool> CtrlNames;
+	LHashTbl<ConstStrKey<char,false>,bool> CtrlNames;
 	CtrlNames.Add("LTEXT", true);
 	CtrlNames.Add("EDITTEXT", true);
 	CtrlNames.Add("COMBOBOX", true);

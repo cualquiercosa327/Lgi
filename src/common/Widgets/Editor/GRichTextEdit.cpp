@@ -2835,7 +2835,7 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 
 	int MaxIdx = 0;
 	GRange EmojiBlocks[2] = { GRange(0x203c, 0x3299 - 0x203c + 1), GRange(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
-	GHashTbl<int, int> Map;
+	LHashTbl<IntKey<int>, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
 		GRange &r = EmojiBlocks[b];

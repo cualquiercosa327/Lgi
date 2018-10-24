@@ -3,10 +3,10 @@
 
 #include "GVariant.h"
 
-class GHashDom : public GHashTbl<const char*, GVariant*>, public GDom
+class GHashDom : public LHashTbl<ConstStrKey<char,false>, GVariant*>, public GDom
 {
 public:
-	GHashDom(int Size = 0) : GHashTbl<const char*, GVariant*>(Size, false)
+	GHashDom(int Size = 0) : LHashTbl<ConstStrKey<char,false>, GVariant*>(Size)
 	{
 	}
 	

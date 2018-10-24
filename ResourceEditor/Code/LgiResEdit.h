@@ -321,7 +321,7 @@ protected:
 	GDom *Store;
 	bool Deep;
 
-	GHashTbl<void*, FieldArr*> f;
+	LHashTbl<PtrKey<void*>, FieldArr*> f;
 
 	FieldArr *Get(void *Token, bool Create = false)
 	{
@@ -707,7 +707,7 @@ protected:
 	// Languages
 	int				CurLang;
 	GArray<GLanguage*> Languages;
-	GHashTbl<const char*, bool> ShowLanguages;
+	LHashTbl<ConstStrKey<char,false>, bool> ShowLanguages;
 
 	void SetupUi();
 	void SortDialogs();

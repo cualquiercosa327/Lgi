@@ -36,7 +36,7 @@ class WindowsSpellCheck : public GSpellCheck
 		GString::Array Dictionaries;
 	};
 
-	GHashTbl<const char *, Lang*> Languages;
+	LHashTbl<ConstStrKey<char,false>, Lang*> Languages;
 
 	bool ReadCsv()
 	{
@@ -72,8 +72,7 @@ class WindowsSpellCheck : public GSpellCheck
 
 public:
 	WindowsSpellCheck() :
-		GSpellCheck("GSpellCheck"),
-		Languages(0, false, NULL, 0)
+		GSpellCheck("GSpellCheck")
 	{
 		Ok = false;
 		Sc = NULL;

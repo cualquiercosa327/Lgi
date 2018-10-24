@@ -392,8 +392,8 @@ char *FormPost::GetActionUri()
 char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 {
 	GStringPipe p;
-	GHashTbl<char*,bool> Done;
-	GHashTbl<char*,char*> Real;
+	LHashTbl<StrKey<char,false>,bool> Done;
+	LHashTbl<StrKey<char,false>,char*> Real;
 
 	if (RealFields)
 	{

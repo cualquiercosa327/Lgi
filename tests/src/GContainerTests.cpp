@@ -131,6 +131,7 @@ bool GContainers::Run()
 			return FAIL(_FL, "list delete one");
 	}
 
+	#if 0
 	{
 		GHashTbl<int, int> h;
 		for (int i=1; i<=100; i++)
@@ -157,6 +158,7 @@ bool GContainers::Run()
 		if (count != h.Length())
 			return FAIL(_FL, "hash delete during iterate");
 	}
+	#endif
 
 	{
 		LUnrolledList<int> IntLst;

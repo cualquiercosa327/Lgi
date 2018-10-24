@@ -672,7 +672,7 @@ public:
 	char FolderSep;
 	char *Current;
 	char *Flags;
-	GHashTbl<char*,bool> Capability;
+	LHashTbl<StrKey<char,false>,bool> Capability;
 	GString WebLoginUri;
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
@@ -1591,7 +1591,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									ssize_t b = ConvertBase64ToBinary(Out, sizeof(Out), In, strlen(In));
 									Out[b] = 0;
 									
-									GHashTbl<const char*, char*> Map;
+									LHashTbl<ConstStrKey<char,false>, char*> Map;
 									char *s = (char*)Out;
 									while (s && *s)
 									{
@@ -1810,7 +1810,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								GString Req = WebServer.GetRequest(d->Cancel ? d->Cancel : &LocalCancel);
 								if (Req)
 								{
-									GHashTbl<const char*,GString> Map;
+									LHashTbl<ConstStrKey<char,false>,GString> Map;
 									GString::Array a = Req.Split("\r\n");
 									if (a.Length() > 0)
 									{

@@ -116,7 +116,7 @@ enum RteCommands
 
 class GRichEditElem : public GHtmlElement
 {
-	GHashTbl<const char*, GString> Attr;
+	LHashTbl<ConstStrKey<char,false>, GString> Attr;
 
 public:
 	GRichEditElem(GHtmlElement *parent) : GHtmlElement(parent)

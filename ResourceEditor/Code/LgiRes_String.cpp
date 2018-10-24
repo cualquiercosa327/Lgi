@@ -1407,7 +1407,7 @@ bool ResStringGroup::Read(GXmlTag *t, SerialiseContext &Ctx)
 		
 		Empty();
 
-		GHashTbl<const char*, bool> L;
+		LHashTbl<ConstStrKey<char,false>, bool> L;
 		L.Add("en", true);
 		Status = true;
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())

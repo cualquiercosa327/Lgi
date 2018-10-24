@@ -1316,7 +1316,7 @@ bool MailSmtp::Open(GSocketI *S,
 				bool Authed = false;
 				bool NoAuthTypes = false;
 				bool SupportsStartTLS = false;
-				GHashTbl<const char*, bool> TheirAuthTypes;
+				LHashTbl<ConstStrKey<char,false>, bool> TheirAuthTypes;
 
 				// Look through the response for the auth line
 				char *Response = Str.NewStr();
@@ -1366,7 +1366,7 @@ bool MailSmtp::Open(GSocketI *S,
 				if (ValidStr(UserName) &&
 					ValidStr(Password))
 				{
-					GHashTbl<const char*, bool> MyAuthTypes(16);
+					LHashTbl<ConstStrKey<char,false>, bool> MyAuthTypes(16);
 					MyAuthTypes.Add("PLAIN", true);
 					MyAuthTypes.Add("LOGIN", true);
 
