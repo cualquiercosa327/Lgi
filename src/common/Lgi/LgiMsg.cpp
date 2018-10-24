@@ -5,6 +5,10 @@
 #include "GTextLabel.h"
 #include "GButton.h"
 
+#if COCOA
+#import <Cocoa/Cocoa.h>
+#endif
+
 class GMsgDlg : public GDialog
 {
 public:
@@ -80,35 +84,33 @@ public:
 int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 {
 	int Res = 0;
+	va_list Arg;
+	va_start(Arg, Type);
+	GString Msg;
+	Msg.Printf(Str, Arg);
+	va_end(Arg);
 
 	#if defined BEOS
 
 	if (Str)
 	{
-		char Buffer[1024];
-		va_list Arg;
-
-		va_start(Arg, Type);
-		vsprintf(Buffer, Str, Arg);
-		va_end(Arg);
-
 		BAlert *Dlg = 0;
 		
 		switch (Type)
 		{
 			case MB_OK:
 			{
-				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Ok");
+				Dlg = new BAlert((Title) ? Title : "Message", Msg, "Ok");
 				break;
 			}
 			case MB_YESNO:
 			{
-				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", NULL, B_WIDTH_AS_USUAL, B_IDEA_ALERT);
+				Dlg = new BAlert((Title) ? Title : "Message", Msg, "Yes", "No", NULL, B_WIDTH_AS_USUAL, B_IDEA_ALERT);
 				break;
 			}
 			case MB_YESNOCANCEL:
 			{
-				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", "Cancel", B_WIDTH_AS_USUAL, B_IDEA_ALERT);
+				Dlg = new BAlert((Title) ? Title : "Message", Msg, "Yes", "No", "Cancel", B_WIDTH_AS_USUAL, B_IDEA_ALERT);
 				break;
 			}
 			default:
@@ -139,17 +141,10 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 
 	if (Str)
 	{
-		char Buffer[4096];
-
-		va_list Arg;
-		va_start(Arg, Type);
-		vsnprintf_s(Buffer, sizeof(Buffer)-1, Str, Arg);
-		va_end(Arg);
-
 		if (LgiGetOs() == LGI_OS_WIN9X)
 		{
 			char *t = LgiToNativeCp(Title ? Title : (char*)"Message");
-			char *m = LgiToNativeCp(Buffer);
+			char *m = LgiToNativeCp(Msg);
 			Res = MessageBoxA(Parent ? Parent->Handle() : 0, m?m:"", t?t:"", Type);
 			DeleteArray(t);
 			DeleteArray(m);
@@ -157,36 +152,61 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		else
 		{
 			char16 *t = Utf8ToWide(Title ? Title : (char*)"Message");
-			char16 *m = Utf8ToWide(Buffer);
+			char16 *m = Utf8ToWide(Msg);
 			Res = MessageBoxW(Parent ? Parent->Handle() : 0, m?m:L"", t?t:L"", Type);
 			DeleteArray(t);
 			DeleteArray(m);
 		}
 	}
 	
+	#elif COCOA
+	
+	NSAlert *alert = [[NSAlert alloc] init];
+	auto msg = Msg.NsStr();
+	auto title = GString(Title).NsStr();
+	[alert setMessageText:msg];
+	[alert setInformativeText:title];
+	switch (Type & ~MB_SYSTEMMODAL)
+	{
+		default:
+		case MB_OK:
+		{
+			[alert addButtonWithTitle:@"Ok"];
+			break;
+		}
+		case MB_OKCANCEL:
+		{
+			[alert addButtonWithTitle:@"Cancel"];
+			[alert addButtonWithTitle:@"Ok"];
+			break;
+		}
+		case MB_YESNO:
+		{
+			[alert addButtonWithTitle:@"No"];
+			[alert addButtonWithTitle:@"Yes"];
+			break;
+		}
+		case MB_YESNOCANCEL:
+		{
+			[alert addButtonWithTitle:@"Cancel"];
+			[alert addButtonWithTitle:@"No"];
+			[alert addButtonWithTitle:@"Yes"];
+			break;
+		}
+	}
+	[alert runModal];
+	[msg release];
+	[title release];
+	
 	#else // Lgi only controls (used for Linux + Mac)
 
 	if (Str && LgiApp)
 	{
-		va_list Arg;
-		va_start(Arg, Type);
-		int Size = vsnprintf(0, 0, Str, Arg);
-		va_end(Arg);
-
-		va_start(Arg, Type);
-		char *Buffer = new char[Size+1];
-		if (Buffer)
-		{
-			vsprintf(Buffer, Str, Arg);
-		}
-		va_end(Arg);
-
 		GMsgDlg Dlg;
 		Dlg.SetParent(Parent);
 		Dlg.Name((char*)(Title ? Title : "Message"));
 
-		GTextLabel *Text = new GTextLabel(-1, 10, 10, -1, -1, Buffer);
-		DeleteArray(Buffer);
+		GTextLabel *Text = new GTextLabel(-1, 10, 10, -1, -1, Msg);
 		Dlg.AddView(Text);
 
 		List<GButton> Btns;
@@ -252,16 +272,6 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 
 	if (Str)
 	{
-		va_list Arg;
-		va_start(Arg, Type);
-		int Size = vsnprintf(0, 0, Str, Arg);
-		char *Buffer = new char[Size+1];
-		if (Buffer)
-		{
-			vsprintf(Buffer, Str, Arg);
-		}
-		va_end(Arg);
-	
 		SInt16 r;
 		Str255 t;
 		Str255 s;

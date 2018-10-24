@@ -1157,6 +1157,15 @@ public:
 		return CFStringCreateWithCString(kCFAllocatorDefault, s, kCFStringEncodingUTF8);
 	}
 	
+	#ifdef __OBJC__
+	NSString *NsStr()
+	{
+		if (Str)
+			return [[NSString alloc] initWithBytes:Str->Str length:Str->Len encoding:NSUTF8StringEncoding];
+		return nil;
+	}
+	#endif
+	
 	#endif
 
 };

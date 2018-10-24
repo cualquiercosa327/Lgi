@@ -116,11 +116,7 @@ struct LPermissions
 		if (!Win.System || Win.ReadOnly || Win.Hidden) return false;
 		#endif
 
-		#ifndef WINDOWS
-		u32 = S_IRUSR;
-		#else
 		u32 = 0x400;
-		#endif
 		if (!Unix.UserRead || Unix.UserWrite || Unix.UserExecute) return false;
 
 		return true;
