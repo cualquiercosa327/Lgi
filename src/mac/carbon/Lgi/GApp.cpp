@@ -255,7 +255,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTbl<char*,AppArray*> MimeToApp;
+	LHashTbl<StrKey<char,false>,AppArray*> MimeToApp;
 	OsThread GuiThread;
 	OsThreadId GuiThreadId;
 	GSymLookup SymLookup;

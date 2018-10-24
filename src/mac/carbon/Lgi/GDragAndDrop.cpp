@@ -431,7 +431,7 @@ struct DragParams
 		}
 		else
 		{
-			GHashTbl<char*, int> Map(32, false, NULL, -1);
+			LHashTbl<StrKey<char,false>, int> Map(32, -1);
 			ItemCount Items = 0;
 			PasteboardGetItemCount(Pb, &Items);
 			
