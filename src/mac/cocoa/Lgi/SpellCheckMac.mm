@@ -199,7 +199,7 @@ public:
 				NSEnumerator *e = [availableLanguages objectEnumerator];
 
 				NSString *lang_code;
-				GHashTbl<char*,bool> Map;
+				LHashTbl<StrKey<char,false>,bool> Map;
 				while (lang_code = [e nextObject])
 				{
 					GString &lang = Dictionaries.New();

@@ -39,7 +39,7 @@ public:
 class GBrowserPriv : public GDocumentEnv
 {
 public:
-	typedef GHashTbl<char*,GStream*> Collection;
+	typedef LHashTbl<StrKey<char,false>,GStream*> Collection;
 
 	struct FileLock : public LMutex::Auto
 	{
