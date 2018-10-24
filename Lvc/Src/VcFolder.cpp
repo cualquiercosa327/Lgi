@@ -1332,7 +1332,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 			{
 				if (Partial)
 				{
-					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
+					LgiMsg(GetTree(), "%s:%i - Not impl.", _FL, AppName, MB_OK, _FL);
 					break;
 				}
 				else

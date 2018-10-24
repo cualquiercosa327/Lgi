@@ -333,7 +333,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 		GdcPt2 TxtPt(6, 0);
 		GRect TxtRc = d->GetBounds();
 		TxtRc.Offset(TxtPt.x, TxtPt.y);		
-		d->Paint(pDC, TxtPt, Back, TxtRc, Enabled());
+		d->Paint(pDC, TxtPt, Back, TxtRc, Enabled(), false);
 	}
 }
 
@@ -709,7 +709,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		// bool e = Enabled();
 		GRect fill(c.x2 + 1, r.y1, r.x2, r.x2);
 		GdcPt2 TxtPt(c.x2 + 11, (r.Y() - d->GetBounds().Y()) >> 1);
-		d->Paint(pDC, TxtPt, Back, fill, Enabled());
+		d->Paint(pDC, TxtPt, Back, fill, Enabled(), false);
 		
 		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 

@@ -409,7 +409,7 @@ void GButton::OnPaint(GSurface *pDC)
 		GRect r = GetClient();
 		pt.x = r.x1 + ((r.X()-d->TxtSz.X())/2) + (d->Pressed != 0);
 		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
-		d->Paint(pDC, pt, GColour(), r, Enabled());
+		d->Paint(pDC, pt, GColour(), r, Enabled(), d->Pressed || Default());
 	}
 	
 	#else

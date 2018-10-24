@@ -623,7 +623,7 @@ void GTabView::OnAttach()
 	auto c = (int) ((double)cDialog.r() * mul);
 	d->cBorder.Rgb(c, c, c);
 			
-	mul = pow(0.94f, 1+d->Depth);
+	mul = pow(0.959f, 1+d->Depth);
 	c = (int) ((double)cDialog.r() * mul);
 	d->cFill.Rgb(c, c, c);
 
@@ -637,7 +637,7 @@ void GTabView::OnAttach()
 
 GRect &GTabView::CalcInset()
 {
-	GRect Padding(6, 6, 6, 6);
+	GRect Padding(0, 0, 0, 0);
 	d->Inset = GetClient();
 	auto f = GetFont();
 	if (GetCss())
@@ -704,7 +704,6 @@ void GTabView::OnPaint(GSurface *pDC)
 			pDC->Box(&Bounds);
 			Bounds.Size(1, 1);
 			pDC->Colour(d->cFill);
-			//pDC->Colour(GColour::White);
 			pDC->Rectangle(&Bounds);
 
 		#endif

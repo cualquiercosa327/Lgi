@@ -296,6 +296,19 @@ size_t GTreeNode::GetItems()
 	return Items.Length();
 }
 
+int GTreeNode::ForEach(std::function<void(GTreeItem*)> Fn)
+{
+	int Count = 0;
+	
+	for (auto t : Items)
+	{
+		Fn(t);
+		Count += t->ForEach(Fn);
+	}
+	
+	return Count + 1;
+}
+
 ssize_t GTreeNode::IndexOf()
 {
 	if (Parent)
@@ -2074,6 +2087,11 @@ bool GTree::Select(GTreeItem *Obj)
 GTreeItem *GTree::Selection()
 {
 	return d->Selection.First();
+}
+
+bool GTree::ForAllItems(std::function<void(GTreeItem*)> Callback)
+{
+	return ForEach(Callback) > 0;
 }
 
 void GTree::OnItemClick(GTreeItem *Item, GMouse &m)

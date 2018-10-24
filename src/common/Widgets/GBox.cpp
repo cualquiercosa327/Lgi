@@ -504,7 +504,6 @@ void GBox::OnMouseMove(GMouse &m)
 	GRect SplitPos = d->Dragging->Pos;
 
 	GCss *PrevStyle = Prev->GetCss();
-	GCss *NextStyle = Next ? Next->GetCss() : NULL;
 	GCss::PropType Style = d->Vertical ? GCss::PropHeight : GCss::PropWidth;
 	bool EditPrev = !Next || IsValidLen(PrevStyle, Style);
 	GViewI *Edit = EditPrev ? Prev : Next;
@@ -585,7 +584,7 @@ void GBox::OnMouseMove(GMouse &m)
 				int rx = r.X();
 				if (r.X() < MinPx)
 				{
-					int Diff = MinPx - r.X();
+					int Diff = MinPx - rx;
 					Offset += Diff;
 					r.x2 += Diff;
 				}
@@ -596,7 +595,7 @@ void GBox::OnMouseMove(GMouse &m)
 				int rx = r.X();
 				if (r.X() < MinPx)
 				{
-					int Diff = MinPx - r.X();
+					int Diff = MinPx - rx;
 					Offset -= Diff;
 					r.x1 -= Diff;
 				}

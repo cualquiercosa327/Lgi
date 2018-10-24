@@ -1595,7 +1595,7 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 							if (t)
 							{
 								char Text[256];
-								sprintf(Text, "Tab %i", Tabs.Length()+1);
+								sprintf(Text, "Tab " LPrintfSizeT, Tabs.Length()+1);
 								t->Str->Set(Text);
 								t->SetParent(this);
 
@@ -1821,7 +1821,7 @@ void CtrlList::OnMouseClick(GMouse &m)
 								if (c)
 								{
 									char Text[256];
-									sprintf(Text, "Col %i", Cols.Length()+1);
+									sprintf(Text, "Col " LPrintfSizeT, Cols.Length()+1);
 									c->Str->Set(Text);
 									Cols.Insert(c);
 								}

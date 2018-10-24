@@ -6,6 +6,7 @@
 #define __GTREE2_H
 
 #include "GItemContainer.h"
+#include <functional>
 
 enum GTreeItemRect
 {
@@ -77,6 +78,9 @@ public:
 		Items.Sort(Compare, user_param);
 		return true;
 	}
+
+	/// Calls a f(n) for each
+	int ForEach(std::function<void(GTreeItem*)> Fn);
 
 	virtual bool Expanded() { return false; }
 	virtual void Expanded(bool b) {}
@@ -254,6 +258,22 @@ public:
 		}
 		return n.Length() > 0;
 	}
+	
+	/// Gets an array of all items
+	template<class T>
+	bool GetAll(GArray<T*> &n)
+	{
+		n.Empty();
+		return ForAllItems([&n](GTreeItem *item)
+			{
+				T *t = dynamic_cast<T*>(item);
+				if (t)
+					n.Add(t);
+			});
+	}
+	
+	/// Call a function for every item
+	bool ForAllItems(std::function<void(GTreeItem*)> Callback);
 
 	/// Returns the item at an x,y location
 	GTreeItem *ItemAtPoint(int x, int y, bool Debug = false);

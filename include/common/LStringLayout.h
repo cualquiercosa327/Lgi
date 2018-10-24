@@ -108,7 +108,8 @@ public:
 				GdcPt2 pt,
 				GColour Back,
 				GRect &rc,
-				bool Enabled);
+				bool Enabled,
+				bool Focused);
 };
 
 #endif

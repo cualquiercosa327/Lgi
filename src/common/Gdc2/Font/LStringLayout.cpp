@@ -485,7 +485,8 @@ void LStringLayout::Paint(	GSurface *pDC,
 							GdcPt2 pt,
 							GColour Back,
 							GRect &rc,
-							bool Enabled)
+							bool Enabled,
+							bool Focused)
 {
 	if (!pDC)
 		return;
@@ -501,7 +502,9 @@ void LStringLayout::Paint(	GSurface *pDC,
 	}
 	int Shift = GDisplayString::FShift;
 	#endif		
-
+	
+	GColour FocusFore(LC_FOCUS_SEL_FORE, 24);
+	
 	// Draw all the text
 	for (GDisplayString **ds = NULL; Strs.Iterate(ds); )
 	{
@@ -523,7 +526,7 @@ void LStringLayout::Paint(	GSurface *pDC,
 
 		if (Enabled)
 		{
-			f->Colour(s->Fore, Bk);
+			f->Colour(Focused ? FocusFore : s->Fore, Bk);
 			#ifdef WINDOWS
 			s->Draw(pDC, r.x1, r.y1, &r);
 			#else

@@ -76,7 +76,7 @@
 		3457FE472081CB3D00014BE4 /* VcFolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VcFolder.cpp; path = ../Src/VcFolder.cpp; sourceTree = "<group>"; };
 		3457FE482081CB3D00014BE4 /* VcFolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VcFolder.h; path = ../Src/VcFolder.h; sourceTree = "<group>"; };
 		3457FE4F2081CBE500014BE4 /* GSubProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GSubProcess.cpp; path = ../../src/common/Lgi/GSubProcess.cpp; sourceTree = "<group>"; };
-		3457FE512081CC4800014BE4 /* Lvc.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Lvc.lr8; path = ../Resources/Lvc.lr8; sourceTree = "<group>"; };
+		3457FE512081CC4800014BE4 /* Lvc.lr8 */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; name = Lvc.lr8; path = ../Resources/Lvc.lr8; sourceTree = "<group>"; };
 		348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		34BD35B020C5484A0001838A /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = "<group>"; };
 		34BD35B220C548710001838A /* GXmlTreeUi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GXmlTreeUi.cpp; path = ../../src/common/Text/GXmlTreeUi.cpp; sourceTree = "<group>"; };

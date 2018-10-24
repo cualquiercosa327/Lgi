@@ -283,7 +283,7 @@ void GTextLabel::OnPaint(GSurface *pDC)
 	{
 		GRect c = GetClient();
 		GdcPt2 pt(c.x1, c.y1);
-		d->Paint(pDC, pt, Back, c, Enabled());
+		d->Paint(pDC, pt, Back, c, Enabled(), false);
 		d->Unlock();
 	}
 	else if (!Back.IsTransparent())

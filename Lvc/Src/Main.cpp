@@ -515,13 +515,17 @@ public:
 					case LvcCommandStart:
 					{
 						SetCtrlEnabled(IDC_PUSH, false);
+						SetCtrlEnabled(IDC_PUSH_ALL, false);
 						SetCtrlEnabled(IDC_PULL, false);
+						SetCtrlEnabled(IDC_PULL_ALL, false);
 						break;
 					}
 					case LvcCommandEnd:
 					{
 						SetCtrlEnabled(IDC_PUSH, true);
+						SetCtrlEnabled(IDC_PUSH_ALL, true);
 						SetCtrlEnabled(IDC_PULL, true);
+						SetCtrlEnabled(IDC_PULL_ALL, true);
 						break;
 					}
 				}
@@ -568,6 +572,16 @@ public:
 				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
 				if (f)
 					f->Pull();
+				break;
+			}
+			case IDC_PULL_ALL:
+			{
+				GArray<VcFolder*> Folders;
+				Tree->GetAll(Folders);
+				for (auto f : Folders)
+				{
+					f->Pull();
+				}
 				break;
 			}
 		}
