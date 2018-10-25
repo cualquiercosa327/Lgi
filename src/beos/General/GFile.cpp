@@ -335,29 +335,6 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::SetCurrentFolder(char *PathName)
-{
-	if (DirExists(PathName))
-	{
-		DeleteArray(d->CurDir);
-		d->CurDir = NewStr(PathName);
-		return true;
-	}
-	
-	return false;
-}
-
-bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
-{
-	if (PathName && d->CurDir)
-	{
-		strcpy_s(PathName, Length, d->CurDir);
-		return true;
-	}
-	
-	return false;
-}
-
 bool GFileSystem::Move(char *OldName, char *NewName)
 {
 	if (!ValidStr(OldName) ||

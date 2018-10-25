@@ -2050,7 +2050,7 @@ bool GFileSelect::Save()
 #endif
 bool LgiGetUsersLinks(GArray<GString> &Links)
 {
-	GString Folder = LgiGetSystemPath(LSP_USER_LINKS);
+	GString Folder = LGetSystemPath(LSP_USER_LINKS);
 	if (!Folder)
 		return false;
 	

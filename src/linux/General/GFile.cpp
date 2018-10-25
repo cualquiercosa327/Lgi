@@ -549,7 +549,7 @@ public:
 		{
 			_Name = "Desktop";
 			_Type = VT_DESKTOP;
-			_Path = LgiGetSystemPath(LSP_DESKTOP);
+			_Path = LGetSystemPath(LSP_DESKTOP);
 		}
 	}
 
@@ -807,7 +807,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, boo
 	if (ToTrash)
 	{
 		char p[MAX_PATH];
-		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
+		if (LGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
@@ -900,19 +900,6 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	}
 
 	return rmdir(PathName) == 0;
-}
-
-bool GFileSystem::SetCurrentFolder(const char *PathName)
-{
-	return chdir(PathName) == 0;
-}
-
-GString GFileSystem::GetCurrentFolder()
-{
-	char s[MAX_PATH];
-	if (getcwd(s, sizeof(s)))
-		return s;
-	return NULL;
 }
 
 bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)

@@ -596,9 +596,9 @@ public:
 			Pair *e = Table + Size;
 			while (c < e)
 			{
-				if (CmpKey(c->v, val))
+				if (CmpKey(c->value, val))
 				{
-					return c->k;
+					return c->key;
 				}
 				c++;
 			}

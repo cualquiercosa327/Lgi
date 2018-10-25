@@ -59,7 +59,7 @@ bool _lgi_check_file(char *Path)
 	return false;
 }
 
-GString LgiCurrentUserName()
+GString LCurrentUserName()
 {
 	struct passwd *pw = getpwuid(geteuid());
 	if (pw)
@@ -166,7 +166,7 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 	return Ext.Length() > Start;
 }
 
-GString LgiGetFileMimeType(const char *File)
+GString LGetFileMimeType(const char *File)
 {
 	GAutoString s = LgiApp->GetFileMimeType(File);
 	return GString(s.Get());
@@ -317,7 +317,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-GString LgiGetAppForMimeType(const char *Mime)
+GString LGetAppForMimeType(const char *Mime)
 {
 	GString App;
 	GArray<GAppInfo*> Apps;
@@ -361,7 +361,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 			strnicmp(File, "https://", 8) == 0)
 		{
 			IsUrl = true;
-			LgiGetAppForMimeType("text/html", App, sizeof(App));
+			LGetAppForMimeType("text/html", App, sizeof(App));
 		}
 		else
 		{
@@ -392,15 +392,15 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 				if (S_ISDIR(f.st_mode))
 				{
 					// open the directory in the current browser
-					LgiGetAppForMimeType("inode/directory", App, sizeof(App));
+					LGetAppForMimeType("inode/directory", App, sizeof(App));
 				}
 				else
 				{
 					// look up the type...
 					char Mime[256] = "";
-					if (LgiGetFileMimeType(File, Mime, sizeof(Mime)))
+					if (LGetFileMimeType(File, Mime, sizeof(Mime)))
 					{
-						// printf("LgiGetFileMimeType(%s)=%s\n", File, Mime);
+						// printf("LGetFileMimeType(%s)=%s\n", File, Mime);
 						
 						if (stricmp(Mime, "application/x-executable") == 0 ||
 							stricmp(Mime, "application/x-shellscript") == 0)
@@ -413,7 +413,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 						else
 						{
 							// got the mime type
-							if (!LgiGetAppForMimeType(Mime, App, sizeof(App)))
+							if (!LGetAppForMimeType(Mime, App, sizeof(App)))
 							{
 								// printf("%s:%i: LgiExecute - LgiGetAppForMimeType failed to return the app for '%s'\n", _FL, File);
 								goto TreatAsExe;
@@ -422,7 +422,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 					}
 					else
 					{
-						// printf("LgiExecute: LgiGetFileMimeType failed to return a mime type for '%s'\n", File);
+						// printf("LgiExecute: LGetFileMimeType failed to return a mime type for '%s'\n", File);
 						
 						// If a file can't be typed it's most likely an executable.
 						// goto TreatAsExe;

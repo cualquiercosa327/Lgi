@@ -62,7 +62,7 @@ long _lgi_play_sound(void *Ptr)
 
 ////////////////////////////////////////////////////////////////////////
 // Implementations
-bool LgiGetFileMimeType(const char *File, char *Mime)
+bool LGetFileMimeType(const char *File, char *Mime)
 {
 	bool Status = false;
 	if (File && Mime)

@@ -315,7 +315,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				strcpy_s(Ext, sizeof(Ext), EndPart);
 
 				// This is a hack to get around file types without a MIME database entry
-				// but do have a .ext entry. LgiGetFileMimeType knows about the hack too.
+				// but do have a .ext entry. LGetFileMimeType knows about the hack too.
 				GRegKey ExtEntry(false, "HKEY_CLASSES_ROOT\\%s", Ext + 1);
 				char *Name = ExtEntry.GetStr();
 				if (Name)

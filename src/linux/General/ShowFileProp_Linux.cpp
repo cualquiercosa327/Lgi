@@ -11,7 +11,7 @@ bool LgiBrowseToFile(const char *Filename)
 		return false;
 
 	char Browser[MAX_PATH];
-	if (!LgiGetAppForMimeType("inode/directory", Browser, sizeof(Browser)))
+	if (!LGetAppForMimeType("inode/directory", Browser, sizeof(Browser)))
 		return false;
 	
 	GString f;

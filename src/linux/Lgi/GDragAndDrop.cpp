@@ -16,7 +16,7 @@
 // #define DND_DEBUG_TRACE
 
 static int NextDndType = 600;
-static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
+static LHashTbl<ConstStrKey<char,false>, int> DndTypes(0, -1);
 
 typedef Gtk::GList GnuList;
 using namespace Gtk;
