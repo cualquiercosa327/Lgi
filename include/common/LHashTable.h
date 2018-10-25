@@ -41,6 +41,7 @@ public:
 	{
 		return a == b;
 	}
+	size_t TotalSize() { return 0; }
 };
 
 template<typename T, T DefaultNull = (T)NULL>
@@ -65,6 +66,7 @@ public:
 	{
 		return a == b;
 	}
+	size_t TotalSize() { return 0; }
 };
 
 template<typename T, bool CaseSen = true, T *DefaultNull = (T*)NULL>
@@ -86,6 +88,7 @@ public:
 	size_t SizeKey(T *a) { return (Strlen(a)+1)*sizeof(*a); }
 	void FreeKey(T *&a) { if (a) delete [] a; a = NullKey; }
 	bool CmpKey(T *a, T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+	size_t TotalSize() { return 0; }
 };
 
 template<typename T, int BlockSize = 0>
@@ -120,6 +123,36 @@ public:
 	{
 		Mem.Length(0);
 	}
+
+	size_t TotalSize()
+	{
+		size_t s = 0;
+		for (auto &b : Mem)
+			s += sizeof(Buf) + (b.Length() * sizeof(T));
+		return s;
+	}
+};
+
+template<typename T, bool CaseSen = true, const T *DefaultNull = (const T*)NULL>
+class ConstStrKey
+{
+public:
+	typedef const T *Type;
+
+	const T *NullKey;
+
+	ConstStrKey<T,CaseSen,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
+	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
+	T *CopyKey(const T *a) { return Strdup(a); }
+	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
+	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
+	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+	size_t TotalSize() { return 0; }
 };
 
 template<typename T, bool CaseSen = true, T *DefaultNull = (T*)NULL, int BlockSize = 0>
@@ -156,27 +189,6 @@ public:
 		// Do nothing... memory is own by KeyPool
 		a = NullKey;
 	}
-};
-
-template<typename T, bool CaseSen = true, const T *DefaultNull = (const T*)NULL>
-class ConstStrKey
-{
-public:
-	typedef const T *Type;
-
-	const T *NullKey;
-
-	ConstStrKey<T,CaseSen,DefaultNull>()
-	{
-		NullKey = DefaultNull;
-	}
-
-	void EmptyKeys() {}
-	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
-	T *CopyKey(const T *a) { return Strdup(a); }
-	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
-	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
-	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
 };
 
 template<typename T, bool CaseSen = true, const T *DefaultNull = (const T*)NULL, int BlockSize = 0>
@@ -634,22 +646,24 @@ public:
 
 		Sz += Sz * sizeof(Pair);
 
-		// LgiFormatSize(s, Size);
-		// LgiTrace("%s in %i hash entries (%i used)\n", s, Size, Used);
-
-		int Keys = 0;
 		int64 KeySize = 0;
-		for (size_t i=0; i<Size; i++)
+		size_t Total = KeyTrait::TotalSize();
+		if (Total)
 		{
-			if (Table[i].key != this->NullKey)
+			KeySize += Total;
+		}
+		else
+		{
+			int Keys = 0;
+			for (size_t i=0; i<Size; i++)
 			{
-				Keys++;
-				KeySize += SizeKey(Table[i].key);
+				if (Table[i].key != this->NullKey)
+				{
+					Keys++;
+					KeySize += this->SizeKey(Table[i].key);
+				}
 			}
 		}
-
-		// LgiFormatSize(s, KeySize);
-		// LgiTrace("%s in %i keys\n", s, Keys);
 
 		return Sz + KeySize;
 	}

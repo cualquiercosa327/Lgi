@@ -622,7 +622,7 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 	return Ext.Length() > Start;
 }
 
-GString LgiCurrentUserName()
+GString LCurrentUserName()
 {
     struct passwd *pw = getpwuid(geteuid());
     if (pw)
