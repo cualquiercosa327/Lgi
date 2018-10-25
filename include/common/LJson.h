@@ -130,9 +130,22 @@ class LJson
 
 			return r.NewGStr();
 		}
+
+		Key *Deref(GString Addr, bool Create)
+		{
+			GString::Array p = Addr.SplitDelimit(".");
+			Key *k = this;
+			for (unsigned i=0; k && i<p.Length(); i++)
+			{
+				auto n = p[i];
+				k = k->Get(n, Create);
+			}
+			return k;
+		}
 	};
 
 	Key Root;
+	const char *Start;
 
 	bool ParseString(GString &s, const char *&c)
 	{
@@ -182,6 +195,11 @@ class LJson
 		{
 			// Objects
 			c++;
+			if (*c == '}')
+			{
+				int asd=0;
+			}
+
 			if (!Parse(k.Obj, c))
 				return false;
 			if (!ParseChar('}', c))
@@ -272,6 +290,11 @@ class LJson
 				if (!ParseChar('}', c))
 					return false;
 			}
+			else if (*c == '}')
+			{
+				// Empty object i.e. {}
+				return true;
+			}
 			else 
 				return false;
 
@@ -286,16 +309,13 @@ class LJson
 
 	Key *Deref(GString Addr, bool Create)
 	{
-		GString::Array p = Addr.SplitDelimit(".");
-		Key *k = &Root;
-		for (unsigned i=0; k && i<p.Length(); i++)
-			k = k->Get(p[i], Create);
-		return k;
+		return Root.Deref(Addr, Create);
 	}
 
 public:
 	LJson()
 	{
+		Start = NULL;
 	}
 
 	LJson(const char *c)
@@ -311,7 +331,14 @@ public:
 	bool SetJson(const char *c)
 	{
 		Empty();
-		return c ? Parse(Root.Obj, c) : false;
+		if (!c)
+			return false;
+
+		Start = c;
+		bool b = Parse(Root.Obj, c);
+		if (!b)
+			LgiTrace("%s:%i - Error at char " LPrintfSizeT "\n", _FL, c - Start);
+		return b;
 	}
 
 	GString GetJson()
@@ -374,11 +401,26 @@ public:
 				if (Pos >= Arr.Length())
 					return GString();
 				Key &k = Arr[Pos];
-				Key *v = k.Get(Addr);
+				Key *v = k.Deref(Addr, false);
 				if (!v)
 					return GString();
 
 				return v->Str;
+			}
+
+			Iter GetArray(GString Addr)
+			{
+				Iter a(It->j);
+
+				auto Arr = *It->a;
+				if (Pos < Arr.Length())
+				{
+					Key *k = Arr[Pos].Deref(Addr, false);
+					if (k)
+						a.Set(&k->Array);
+				}
+
+				return a;
 			}
 		};
 
