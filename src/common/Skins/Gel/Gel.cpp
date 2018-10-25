@@ -422,21 +422,11 @@ class GelSkin : public GSkinEngine
 		return Mem;
 	}
 
-	void DrawText(GSkinState *State, int x, int y, GRect &rcFill, bool Enabled, GViewI *Ctrl)
+	void DrawText(GSkinState *State, int x, int y, GRect &rcFill, bool Enabled, GView *Ctrl, GCssTools &Tools)
 	{
 		GCss::ColorDef CssFore, CssBack;
-		GColour Fore(LC_TEXT, 24), Back(LC_MED, 24), Light, Low;
-		if (Ctrl->GetCss())
-		{
-			CssFore = Ctrl->GetCss()->Color();
-			if (CssFore.Type == GCss::ColorRgb)
-				Fore.Set(CssFore.Rgb32, 32);
-			CssBack = Ctrl->GetCss()->BackgroundColor();
-			if (CssBack.Type == GCss::ColorRgb)
-				Back.Set(CssBack.Rgb32, 32);
-			else
-				Back.Empty();
-		}
+		GColour Fore = Tools.GetFore(), Back = Tools.GetBack(), Light, Low;
+
 		if (!Enabled)
 		{
 			Light.Set(LC_LIGHT, 24);
@@ -850,7 +840,7 @@ public:
 					(Ctrl->Enabled() ? Btn_Enabled : 0);
 		
 		// Create the bitmaps in cache if not already there
-		GCssTools Tools(Ctrl->GetCss(), Ctrl->GetFont());
+		GCssTools Tools(Ctrl);
 		GColour &Back = Tools.GetBack();
 
 		GMemDC *Temp = 0;
@@ -899,7 +889,8 @@ public:
 						Mem->X() + 4, 0,
 						t,
 						(Flags & Btn_Enabled) != 0,
-						Ctrl);
+						Ctrl,
+						Tools);
 			}
 		}
 		else
@@ -928,7 +919,7 @@ public:
 		{
 			// Draw icon
 			GRect ico;
-			GCssTools Tools(Ctrl->GetCss(), Ctrl->GetFont());
+			GCssTools Tools(Ctrl);
 			GColour &Fore = Tools.GetFore(), &Back = Tools.GetBack();
 
 			ico.ZOff(Mem->X()-1, Mem->Y()-1);
@@ -962,7 +953,8 @@ public:
 						Mem->X() + 4, y,
 						t,
 						(Flags & Btn_Enabled) != 0,
-						Ctrl);
+						Ctrl,
+						Tools);
 			}
 		}
 		else

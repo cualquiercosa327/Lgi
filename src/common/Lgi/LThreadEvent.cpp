@@ -348,10 +348,12 @@ LThreadEvent::WaitStatus LThreadEvent::Wait(int32 Timeout)
 			printf("%s:%i - starting sem_timedwait(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
 			#endif
 			r = sem_timedwait(Sem, &to);
+			int ErrCode = r ? errno : 0;
 			#if DEBUG_THREADING
-			printf("%s:%i - sem_timedwait(%i) = %i (in %i)\n", _FL, Sem, r, GetCurrentThreadId());
+			LError Err(ErrCode);
+			printf("%s:%i - sem_timedwait(%i) = %i (in %i, errno=%s)\n", _FL, Sem, r, GetCurrentThreadId(), Err.GetMsg().Get());
 			#endif
-			if (r == ETIMEDOUT)
+			if (ErrCode == ETIMEDOUT)
 				return WaitTimeout;
 			if (r)
 			{

@@ -10,7 +10,12 @@ GColour &GCssTools::GetFore(GColour *Default)
 			Fore = *Default;
 		else
 			Fore.Set(LC_TEXT, 24);
-		if (Css)
+
+		if (View)
+		{
+			Fore = View->StyleColour(GCss::PropColor, Fore);
+		}
+		else if (Css)
 		{
 			GCss::ColorDef Fill = Css->Color();
 			if (Fill.Type == GCss::ColorRgb)
@@ -28,11 +33,17 @@ GColour &GCssTools::GetBack(GColour *Default)
 	if (!BackInit)
 	{
 		BackInit = 1;
+
 		if (Default)
 			Back = *Default;
 		else
 			Back.Set(LC_MED, 24);
-		if (Css)
+
+		if (View)
+		{
+			Back = View->StyleColour(GCss::PropBackgroundColor, Back);
+		}
+		else if (Css)
 		{
 			GCss::ColorDef Fill = Css->BackgroundColor();
 			if (Fill.Type == GCss::ColorRgb)

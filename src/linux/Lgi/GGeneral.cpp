@@ -87,6 +87,26 @@ void LgiSleep(uint32 i)
 	}
 }
 
+int GtkAssertDlg(const char *File, int Line, const char *Msg)
+{
+	Gtk::GtkWidget *dialog = 
+		Gtk::gtk_message_dialog_new 
+		(
+			NULL,
+			Gtk::GTK_DIALOG_DESTROY_WITH_PARENT,
+			Gtk::GTK_MESSAGE_ERROR,
+			Gtk::GTK_BUTTONS_NONE,
+			"%s:%i - Assert failed:\n%s",
+			File, Line,
+			Msg
+		);
+	Gtk::GtkDialog *dlg = GtkCast(dialog, gtk_dialog, GtkDialog);		
+	Gtk::gtk_dialog_add_buttons(dlg, "Break", 1, "Quit", 2, "Ignore", 3, NULL);
+	int Result = Gtk::gtk_dialog_run(dlg);
+	Gtk::gtk_widget_destroy(dialog);
+	return Result;
+}
+
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
@@ -101,22 +121,12 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		exit(-1);
 		#else
 		Gtk::gint Result = Gtk::GTK_RESPONSE_NO;
+		
 		#if 1
-		Gtk::GtkWidget *dialog = 
-			Gtk::gtk_message_dialog_new 
-			(
-				NULL,
-				Gtk::GTK_DIALOG_DESTROY_WITH_PARENT,
-				Gtk::GTK_MESSAGE_ERROR,
-				Gtk::GTK_BUTTONS_NONE,
-				"%s:%i - Assert failed:\n%s",
-				file, line,
-				test
-			);
-		Gtk::GtkDialog *dlg = GtkCast(dialog, gtk_dialog, GtkDialog);		
-		Gtk::gtk_dialog_add_buttons(dlg, "Break", 1, "Quit", 2, "Ignore", 3, NULL);
-		Result = Gtk::gtk_dialog_run(dlg);
-		Gtk::gtk_widget_destroy(dialog);
+		if (LgiApp->InThread())
+			Result = GtkAssertDlg(file, line, test);
+		else
+			Result = 1;
 		#endif
 
 		switch (Result)

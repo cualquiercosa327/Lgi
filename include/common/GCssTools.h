@@ -5,6 +5,7 @@
 
 class LgiClass GCssTools
 {
+	GView *View;
 	GCss *Css;
 	GFont *Font;
 	
@@ -16,12 +17,22 @@ class LgiClass GCssTools
 public:
 	GCssTools(GCss *css, GFont *font)
 	{
+		View = NULL;
 		Css = css;
 		Font = font;
 		ForeInit = 0;
 		BackInit = 0;
 	}
 	
+	GCssTools(GView *view)
+	{
+		View = view;
+		Css = view->GetCss(true);
+		Font = view->GetFont();
+		ForeInit = 0;
+		BackInit = 0;
+	}
+		
 	/// \returns the padding in Px
 	GRect GetPadding(GRect &box);
 	
