@@ -95,7 +95,7 @@ ssize_t ConvertBase64ToBinary(uchar *Binary, ssize_t OutBuf, char *Base64, ssize
 	{
 		int Temp[4];
 
-		while (InBuf > 3 && OutBuf > 2)
+		while (InBuf > 3 && OutBuf > 0)
 		{
 			Temp[0] = Base64ToBinLut[Base64[0] & 0x7f];
 			Temp[1] = Base64ToBinLut[Base64[1] & 0x7f];
@@ -106,10 +106,12 @@ ssize_t ConvertBase64ToBinary(uchar *Binary, ssize_t OutBuf, char *Base64, ssize
 			OutBuf--;
 			if (Base64[2] != '=')
 			{
+				LgiAssert(OutBuf > 0);
 				*Binary++ = (Temp[1] << 4) | (Temp[2] >> 2);
 				OutBuf--;
 				if (Base64[3] != '=')
 				{
+					LgiAssert(OutBuf > 0);
 					*Binary++ = (Temp[2] << 6) | (Temp[3]);
 					OutBuf--;
 				}

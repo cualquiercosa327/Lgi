@@ -412,7 +412,7 @@ public:
 			{
 				Iter a(It->j);
 
-				auto Arr = *It->a;
+				auto &Arr = *It->a;
 				if (Pos < Arr.Length())
 				{
 					Key *k = Arr[Pos].Deref(Addr, false);
