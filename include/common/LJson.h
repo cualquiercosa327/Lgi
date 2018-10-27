@@ -195,10 +195,6 @@ class LJson
 		{
 			// Objects
 			c++;
-			if (*c == '}')
-			{
-				int asd=0;
-			}
 
 			if (!Parse(k.Obj, c))
 				return false;

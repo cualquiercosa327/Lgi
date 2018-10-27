@@ -271,6 +271,11 @@ public:
 		uint32 Ip4; // Host order...
 		uint32 Netmask4;
 
+		bool IsLoopBack()
+		{
+			return Ip4 == 0x7f000001;
+		}
+
 		GString ToString(uint32 ip = 0)
 		{
 			GString s;

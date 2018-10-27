@@ -2250,6 +2250,19 @@ GString::Array LGetPath()
 				p[1].Equals("PATH"))
 			{
 				Paths = p[2].Strip("\"").SplitDelimit(LGI_PATH_SEPARATOR);
+				Paths.SetFixedLength(false);
+				for (auto &p : Paths)
+				{
+					if (p.Equals("$PATH"))
+					{
+						auto SysPath = LGetEnv("PATH").SplitDelimit(LGI_PATH_SEPARATOR);
+						for (unsigned i=0; i<SysPath.Length(); i++)
+						{
+							if (i) Paths.New() = SysPath[i];
+							else p = SysPath[i];
+						}
+					}
+				}
 				break;
 			}
 		}
