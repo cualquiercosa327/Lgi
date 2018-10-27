@@ -195,10 +195,6 @@ class LJson
 		{
 			// Objects
 			c++;
-			if (*c == '}')
-			{
-				int asd=0;
-			}
 
 			if (!Parse(k.Obj, c))
 				return false;
@@ -412,7 +408,7 @@ public:
 			{
 				Iter a(It->j);
 
-				auto Arr = *It->a;
+				auto &Arr = *It->a;
 				if (Pos < Arr.Length())
 				{
 					Key *k = Arr[Pos].Deref(Addr, false);
