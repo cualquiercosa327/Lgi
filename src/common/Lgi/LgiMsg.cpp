@@ -87,7 +87,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 	va_list Arg;
 	va_start(Arg, Type);
 	GString Msg;
-	Msg.Printf(Str, Arg);
+	Msg.Printf(Arg, Str);
 	va_end(Arg);
 
 	#if defined BEOS
