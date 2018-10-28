@@ -188,9 +188,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 			}
 			case 2:
 			{
-				// Crash here to bring up the debugger...
-				int *p = 0;
-				*p = 0;
+				__builtin_trap();
 				break;
 			}
 			case 3:

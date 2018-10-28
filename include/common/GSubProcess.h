@@ -138,6 +138,7 @@ public:
 	int Peek();
 	GString Read();
 	ssize_t Read(void *Buf, ssize_t Size, int Flags = 0) override;
+	bool Write(GString s);
 	ssize_t Write(const void *Buf, ssize_t Size, int Flags = 0) override;
 };
 

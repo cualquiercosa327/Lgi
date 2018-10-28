@@ -655,6 +655,8 @@ void GView::Quit(bool DontDelete)
 	}
 }
 
+#include "lldb_callback.h"
+
 bool GView::SetPos(GRect &p, bool Repaint)
 {
 	Pos = p;
@@ -679,7 +681,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			if (_Debug)
 				printf("%s:%i - in paint setpos -> msg\n", _FL);
 			#endif
-			PostEvent(M_SETPOS, (GMessage::Param)new GRect(r));
+			
+			GRect *rc = new GRect(r);
+			bool Status = LBreakOnWrite(rc, true);
+			PostEvent(M_SETPOS, (GMessage::Param)rc, Status);
 		}
 		else
 		{
@@ -766,6 +771,8 @@ void GView::SetPulse(int Length)
 	}
 }
 
+#include "lldb_callback.h"
+
 int GView::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
@@ -775,9 +782,13 @@ int GView::OnEvent(GMessage *Msg)
 			GAutoPtr<GRect> r((GRect*)Msg->A());
 			if (_View && r)
 			{
+				if (Msg->B())
+					LBreakOnWrite(r.Get(), false);
+				
 				HIRect rc = *r;
 				HIViewSetFrame(_View, &rc);
 			}
+			else LgiAssert(0);
 			break;
 		}
 		case M_INVALIDATE:

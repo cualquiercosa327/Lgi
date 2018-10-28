@@ -912,6 +912,12 @@ int GSubProcess::Peek()
 	#endif	
 }
 
+bool GSubProcess::Write(GString s)
+{
+	auto Wr = Write(s.Get(), s.Length());
+	return Wr = s.Length();
+}
+
 ssize_t GSubProcess::Write(const void *Buf, ssize_t Size, int Flags)
 {
 	#if defined(POSIX)
