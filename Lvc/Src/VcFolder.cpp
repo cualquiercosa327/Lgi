@@ -1353,6 +1353,12 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 
 				Args = GString(" ").Join(a);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
+
+				if (d->Tabs && IsCommit)
+				{
+					d->Tabs->Value(1);
+					GetTree()->SendNotify(LvcCommandStart);
+				}
 				break;
 			}
 			default:
