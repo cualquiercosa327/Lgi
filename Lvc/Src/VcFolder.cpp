@@ -766,7 +766,6 @@ bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 
 bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 {
-	d->ClearFiles();
 	ParseDiffs(s, NULL, true);
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
@@ -1287,6 +1286,7 @@ void VcFolder::ListWorkingFolder()
 				Arg = "-q diff --brief";
 				break;
 			case VcGit:
+				StartCmd("diff --staged", &VcFolder::ParseWorking);
 				Arg = "diff --diff-filter=ACDMRTU";
 				// return FolderStatus();
 				break;
