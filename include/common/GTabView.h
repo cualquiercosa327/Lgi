@@ -83,6 +83,7 @@ public:
 	void OnFocus(bool f);
 	void OnCreate();
 	void OnAttach();
+	void OnStyleChange();
 };
 
 class LgiClass GTabPage :
@@ -91,6 +92,7 @@ class LgiClass GTabPage :
 	public ResObject
 {
 	friend class GTabView;
+	struct GTabPagePriv *d;
 	bool Attach(GViewI *parent);
 
 	// Vars
@@ -137,6 +139,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	bool OnKey(GKey &k);
 	void OnFocus(bool b);
+	void OnStyleChange();
 
 	void Append(GViewI *Wnd);
 	bool Remove(GViewI *Wnd);

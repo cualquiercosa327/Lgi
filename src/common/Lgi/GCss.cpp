@@ -1222,6 +1222,32 @@ void GCss::Empty()
 	Props.Empty();
 }
 
+/// This returns true if there is a non default font style. Useful for checking if you
+/// need to create a font...
+bool GCss::HasFontStyle()
+{
+	auto Fam = FontFamily();
+	if (Fam.Length() > 0)
+		return true;
+	auto Sz = FontSize();
+	if (Sz.IsValid())
+		return true;
+	auto Style = FontStyle();
+	if (Style != FontStyleInherit)
+		return true;
+	auto Var = FontVariant();
+	if (Var != FontVariantInherit)
+		return true;
+	auto Wt = FontWeight();
+	if (Wt != FontWeightInherit)
+		return true;
+	auto Dec = TextDecoration();
+	if (Dec != TextDecorInherit)
+		return true;
+
+	return false;
+}
+
 void GCss::OnChange(PropType Prop)
 {
 }

@@ -1192,6 +1192,7 @@ public:
 	void *PropAddress(PropType p) { return Props.Find(p); }
 	GAutoString ToString();
 	const char *ToString(DisplayType dt);
+	bool HasFontStyle();
 
 	// Parsing
 	virtual bool Parse(const char *&Defs, ParsingStyle Type = ParseStrict);
@@ -1201,7 +1202,6 @@ public:
 	bool ParseFontVariant(PropType p, const char *&s);
 	bool ParseFontWeight(PropType p, const char *&s);
 	bool ParseBackgroundRepeat(const char *&s);
-
 
 	template<typename T>
 	T *GetOrCreate(T *&ptr, PropType PropId)

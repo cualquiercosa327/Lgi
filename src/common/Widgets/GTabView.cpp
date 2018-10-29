@@ -26,6 +26,7 @@ enum TabViewStyle
 
 #define MAC_STYLE_RADIUS		7
 #define MAC_DBL_BUF				1
+#define TAB_TXT_PAD				3
 
 #if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 #define MAC_PAINT	1
@@ -75,6 +76,8 @@ public:
 
 	// Painting
 	GRect Inset, Tabs;
+	int TabsHeight;
+	double TabsBaseline;
 	int Depth;
 	TabViewStyle Style;
 	enum ResType
@@ -95,6 +98,8 @@ public:
 	GTabViewPrivate()
 	{
 		Depth = 0;
+		TabsHeight = 0;
+		TabsBaseline = 0.0;
 		PourChildren = true;
 		Current = 0;
 		TabClient.ZOff(-1, -1);
@@ -154,14 +159,51 @@ public:
 	}
 };
 
+struct GTabPagePriv
+{
+	GTabPage *Tab;
+	bool NonDefaultFont;
+	GAutoPtr<GFont> Fnt;
+	GAutoPtr<GDisplayString> Ds;
+
+	GTabPagePriv(GTabPage *t) : Tab(t)
+	{
+		NonDefaultFont = false;
+	}
+
+	GDisplayString *GetDs()
+	{
+		char *Text = Tab->Name();
+		if (Text && !Ds)
+		{
+			auto s = Tab->GetCss();
+			NonDefaultFont = s ? s->HasFontStyle() : false;
+			if (NonDefaultFont)
+			{
+				if (Fnt.Reset(new GFont))
+					Fnt->CreateFromCss(s);
+			}
+			else
+			{
+				Fnt.Reset();
+			}
+		
+			auto f = Fnt ? Fnt : Tab->GetFont();
+			Ds.Reset(new GDisplayString(f, Text));
+		}
+
+		return Ds;
+	}
+};
+
 class TabIterator : public GArray<GTabPage*>
 {
 public:
 	TabIterator(List<GViewI> &l)
 	{
-		for (GViewI *c = l.First(); c; c = l.Next())
+		for (auto c : l)
 		{
-			GTabPage *p = dynamic_cast<GTabPage*>(c);
+			auto p = dynamic_cast<GTabPage*>(c);
 			if (p) Add(p);
 		}
 
@@ -228,7 +270,7 @@ GTabPage *GTabView::GetCurrent()
 
 int GTabView::TabY()
 {
-	return GetFont()->GetHeight() + 6;
+	return d->TabsHeight + (TAB_TXT_PAD << 1);
 }
 
 void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
@@ -643,13 +685,30 @@ GRect &GTabView::CalcInset()
 	if (GetCss())
 	{
 		GCss::Len l;
-		if ((l = GetCss()->PaddingLeft()).IsValid()) Padding.x1 = l.ToPx(d->Inset.X(), f);
-		if ((l = GetCss()->PaddingTop()).IsValid()) Padding.y1 = l.ToPx(d->Inset.Y(), f);
-		if ((l = GetCss()->PaddingRight()).IsValid()) Padding.x2 = l.ToPx(d->Inset.X(), f);
+		if ((l = GetCss()->PaddingLeft()).IsValid())   Padding.x1 = l.ToPx(d->Inset.X(), f);
+		if ((l = GetCss()->PaddingTop()).IsValid())    Padding.y1 = l.ToPx(d->Inset.Y(), f);
+		if ((l = GetCss()->PaddingRight()).IsValid())  Padding.x2 = l.ToPx(d->Inset.X(), f);
 		if ((l = GetCss()->PaddingBottom()).IsValid()) Padding.y2 = l.ToPx(d->Inset.Y(), f);
 	}
 
-	int FnHalf = (f->GetHeight() + 3) / 2;
+	int TabTextY = 0;
+	d->TabsBaseline = 0;
+	TabIterator Tabs(Children);
+	for (auto t : Tabs)
+	{
+		auto Ds = t->d->GetDs();
+		if (Ds)
+		{
+			TabTextY = MAX(TabTextY, Ds->Y());
+			auto Fnt = Ds->GetFont();
+			d->TabsBaseline = MAX(d->TabsBaseline, Fnt->Ascent());
+			LgiTrace("ascent: %f of %i\n", Fnt->Ascent(), Fnt->GetHeight());
+		}
+	}
+	if (!TabTextY)
+		TabTextY = f->GetHeight();
+
+	d->TabsHeight = TabTextY;
 	d->Inset.x1 += Padding.x1;
 	d->Inset.x2 -= Padding.x2;
 	d->Inset.y1 += Padding.y1;
@@ -658,9 +717,18 @@ GRect &GTabView::CalcInset()
 	d->Tabs.ZOff(d->Inset.X() - 20, TabY() - 1);
 	d->Tabs.Offset(d->Inset.x1 + 10, d->Inset.y1);
 
-	d->Inset.y1 += FnHalf;
+	d->Inset.y1 += d->TabsHeight / 2;
 
 	return d->Inset;
+}
+
+void GTabView::OnStyleChange()
+{
+	TabIterator Tabs(Children);
+	for (auto t : Tabs)
+	{
+		t->OnStyleChange();
+	}
 }
 
 void GTabView::OnPaint(GSurface *pDC)
@@ -716,16 +784,15 @@ void GTabView::OnPaint(GSurface *pDC)
 		auto f = GetFont();
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
+			auto Tab = it[i];
 			auto Foc = Focus();
-			GFont *tf = it[i]->GetFont();
-			if (!tf) tf = f;
-			auto TabTxt = it[i]->Name();
-			GDisplayString ds(tf, TabTxt);
+			auto TabTxt = Tab->Name();
+			GDisplayString *ds = Tab->d->GetDs();
 			bool First = i == 0;
 			bool Last = i == it.Length() - 1;
 			bool IsCurrent = d->Current == i;
 
-			GRect r(0, 0, ds.X() + 23, ds.Y() + 5);
+			GRect r(0, 0, ds->X() + 23, d->Tabs.Y() - 1);
 			r.Offset(x, y);
 
 			#ifdef LGI_CARBON
@@ -855,9 +922,17 @@ void GTabView::OnPaint(GSurface *pDC)
 
 			#endif
 			
+			GFont *tf = ds->GetFont();
+			double TfAscent = tf->Ascent();
+			int BaselineOff = (int) (d->TabsBaseline - tf->Ascent());
 			tf->Transparent(true);
-			tf->Fore(IsCurrent && Foc ? cFocusFore : GColour(LC_TEXT, 24));
-			ds.Draw(pDC, r.x1 + (r.X() - ds.X()) / 2, r.y1 + (r.Y() - ds.Y()) / 2, &r);
+
+			GCss::ColorDef Fore;
+			if (Tab->GetCss())
+				Fore = Tab->GetCss()->Color();
+			tf->Fore(Fore.IsValid() ? (GColour)Fore : 
+					IsCurrent && Foc ? cFocusFore : GColour(LC_TEXT, 24));
+			ds->Draw(pDC, r.x1 + (r.X() - ds->X()) / 2, r.y1 + TAB_TXT_PAD + BaselineOff, &r);
 			
 			it[i]->TabPos = r;
 			x += r.X()
@@ -1044,9 +1119,10 @@ char *_lgi_gview_cmp(GView *a, GView *b)
 	return Str;
 }
 
-
 GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 {
+	d = new GTabPagePriv(this);
+
 	GRect r(0, 0, 1000, 1000);
 	SetPos(r);
 	Name(name);
@@ -1073,15 +1149,21 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 
 GTabPage::~GTabPage()
 {
+	delete d;
 }
 
 int GTabPage::GetTabPx()
 {
-	char *Text = Name();
-	GDisplayString ds(GetFont(), Text);
-	int Px = ds.X() + (TAB_MARGIN_X << 1);
-	if (Button)
-		Px += CLOSE_BTN_GAP + CLOSE_BTN_SIZE;
+	GDisplayString *Ds = d->GetDs();
+
+	int Px = TAB_MARGIN_X << 1;
+	if (Ds)
+	{
+		Px += Ds->X();
+		if (Button)
+			Px += CLOSE_BTN_GAP + CLOSE_BTN_SIZE;
+	}
+	
 	return Px;
 }
 
@@ -1141,6 +1223,7 @@ char *GTabPage::Name()
 bool GTabPage::Name(const char *name)
 {
 	bool Status = GView::Name(name);
+	d->Ds.Reset();
 	if (GetParent())
 		GetParent()->Invalidate();
 	return Status;
@@ -1301,6 +1384,11 @@ GColour GTabPage::GetBackground()
 		return GColour(226, 226, 226); // 207?
 	else
 		return GColour(LC_MED, 24);
+}
+
+void GTabPage::OnStyleChange()
+{
+	d->Ds.Reset();
 }
 
 void GTabPage::OnPaint(GSurface *pDC)

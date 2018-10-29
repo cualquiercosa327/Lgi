@@ -185,9 +185,14 @@ public:
 
 			GTabView *t = new GTabView(100);
 			t->Attach(this);
-			t->Append("First");
-			t->Append("Second");
-			t->Append("Third");
+			t->GetCss(true)->Padding("6px");
+			auto *tab = t->Append("First");
+			tab->GetCss(true)->FontStyle(GCss::FontStyleItalic);
+			tab = t->Append("Second");
+			tab->GetCss(true)->FontSize("14pt");
+			tab = t->Append("Third");
+			tab->GetCss(true)->Color("red");
+			t->OnStyleChange();
 
 			#elif 0
 
