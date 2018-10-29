@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3400DB7E2186570D00516FA4 /* lldb_callback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3400DB7D2186570D00516FA4 /* lldb_callback.cpp */; };
 		340BFC15096A0E0100A11AE6 /* LgiCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC14096A0E0100A11AE6 /* LgiCommon.h */; };
 		340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC49096A9D4600A11AE6 /* GArray.h */; };
 		340FEA9E096E375600E534D5 /* GToolBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9C096E375600E534D5 /* GToolBar.h */; };
@@ -195,7 +194,6 @@
 /* Begin PBXFileReference section */
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		3400DB7D2186570D00516FA4 /* lldb_callback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lldb_callback.cpp; path = /Users/matthew/Code/Scribe/trunk/MacCarbon/../../../Lgi/trunk/src/mac/lldb_callback/lldb_callback.cpp; sourceTree = "<absolute>"; };
 		340BFC14096A0E0100A11AE6 /* LgiCommon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiCommon.h; path = ../../../include/common/LgiCommon.h; sourceTree = "<group>"; };
 		340BFC49096A9D4600A11AE6 /* GArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GArray.h; path = ../../../include/common/GArray.h; sourceTree = "<group>"; };
 		340FEA9C096E375600E534D5 /* GToolBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolBar.h; path = ../../../include/common/GToolBar.h; sourceTree = "<group>"; };
@@ -409,7 +407,6 @@
 		0867D691FE84028FC02AAC07 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
-				3400DB7D2186570D00516FA4 /* lldb_callback.cpp */,
 				08FB77AEFE84172EC02AAC07 /* Classes */,
 				089C1665FE841158C02AAC07 /* Resources */,
 				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
@@ -1089,7 +1086,6 @@
 				344D1B3308F4A36300228075 /* GTextLabel.cpp in Sources */,
 				344D1B3508F4A36300228075 /* GTree.cpp in Sources */,
 				34983BE308F4A54C0054868C /* GDragAndDrop.cpp in Sources */,
-				3400DB7E2186570D00516FA4 /* lldb_callback.cpp in Sources */,
 				34983BE608F4A5790054868C /* GMenu.cpp in Sources */,
 				34983C1408F5482D0054868C /* GDocView.cpp in Sources */,
 				34983C1508F5482D0054868C /* GTextView3.cpp in Sources */,

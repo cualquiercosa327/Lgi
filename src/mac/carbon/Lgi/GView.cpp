@@ -655,8 +655,6 @@ void GView::Quit(bool DontDelete)
 	}
 }
 
-#include "lldb_callback.h"
-
 bool GView::SetPos(GRect &p, bool Repaint)
 {
 	Pos = p;
@@ -683,8 +681,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			#endif
 			
 			GRect *rc = new GRect(r);
-			bool Status = LBreakOnWrite(rc, true);
-			PostEvent(M_SETPOS, (GMessage::Param)rc, Status);
+			PostEvent(M_SETPOS, (GMessage::Param)rc, (GMessage::Param)(GView*)this);
 		}
 		else
 		{
@@ -720,7 +717,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	if (_View)
 	{
 		if (LgiThreadInPaint == LgiGetCurrentThread())
-			PostEvent(M_INVALIDATE, (GMessage::Param)(r ? new GRect(r) : NULL));
+			PostEvent(M_INVALIDATE, (GMessage::Param)(r ? new GRect(r) : NULL), (GMessage::Param)(GView*)this);
 		else
 			HIViewSetNeedsDisplay(_View, true);
 		return true;
@@ -771,31 +768,32 @@ void GView::SetPulse(int Length)
 	}
 }
 
-#include "lldb_callback.h"
-
 int GView::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
 	{
 		case M_SETPOS:
 		{
-			GAutoPtr<GRect> r((GRect*)Msg->A());
-			if (_View && r)
+			if ((GView*)Msg->B() == (GView*)this)
 			{
-				if (Msg->B())
-					LBreakOnWrite(r.Get(), false);
-				
-				HIRect rc = *r;
-				HIViewSetFrame(_View, &rc);
+				GAutoPtr<GRect> r((GRect*)Msg->A());
+				if (_View && r)
+				{
+					HIRect rc = *r;
+					HIViewSetFrame(_View, &rc);
+				}
+				else LgiAssert(0);
 			}
-			else LgiAssert(0);
 			break;
 		}
 		case M_INVALIDATE:
 		{
-			GAutoPtr<GRect> r((GRect*)Msg->A());
-            if (_View)
-				HIViewSetNeedsDisplay(_View, true);
+			if ((GView*)Msg->B() == (GView*)this)
+			{
+				GAutoPtr<GRect> r((GRect*)Msg->A());
+				if (_View)
+					HIViewSetNeedsDisplay(_View, true);
+			}
 			break;
 		}
 		case M_PULSE:
