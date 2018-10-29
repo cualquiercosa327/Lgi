@@ -723,7 +723,7 @@ GRect &GTabView::CalcInset()
 	d->Tabs.ZOff(d->Inset.X() - 20, TabY() - 1);
 	d->Tabs.Offset(d->Inset.x1 + 10, d->Inset.y1);
 
-	d->Inset.y1 += d->TabsHeight / 2;
+	d->Inset.y1 = d->Tabs.y1 + (d->Tabs.Y() / 2);
 
 	return d->Inset;
 }
@@ -786,12 +786,10 @@ void GTabView::OnPaint(GSurface *pDC)
 		#ifndef LGI_CARBON
 		GSurface *pScreen = pDC;
 		#endif
-		auto f = GetFont();
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
 			auto Tab = it[i];
 			auto Foc = Focus();
-			auto TabTxt = Tab->Name();
 			GDisplayString *ds = Tab->d->GetDs();
 			bool First = i == 0;
 			bool Last = i == it.Length() - 1;
@@ -928,7 +926,6 @@ void GTabView::OnPaint(GSurface *pDC)
 			#endif
 			
 			GFont *tf = ds->GetFont();
-			double TfAscent = tf->Ascent();
 			int BaselineOff = (int) (d->TabsBaseline - tf->Ascent());
 			tf->Transparent(true);
 

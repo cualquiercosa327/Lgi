@@ -20,6 +20,7 @@
 */ 
 
 #if defined(MAC) || defined(POSIX)
+#define _GNU_SOURCE
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -127,12 +128,16 @@ GSubProcess::~GSubProcess()
 	}
 }
 
+#ifndef WINDOWS
+extern char **environ;
+#endif
+
 GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 {
 	if (Environment.Length() == 0)
 	{
 		// Read all variables in
-		#if defined(WIN32)
+		#ifdef WINDOWS
 		LPWCH e = GetEnvironmentStringsW();
 		if (e)
 		{
@@ -147,9 +152,9 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 				if (NameChars > 0)
 				{					
 					Variable &v = Environment.New();
-					v.Var.Reset(WideToUtf8(s, eq - s));
+					v.Var.Set(s, eq - s);
 					eq++;
-					v.Val.Reset(WideToUtf8(eq));
+					v.Val.Set(eq);
 				}
 				
 				eq += StrlenW(eq);
@@ -159,13 +164,22 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 			FreeEnvironmentStringsW(e);
 		}
 		#else
-		LgiAssert(0);
+		for (int i=0; environ[i]; i++)
+		{
+			auto p = GString(environ[i]).Split("=", 1);
+			if (p.Length() == 2)
+			{
+				Variable &v = Environment.New();
+				v.Var = p[0];
+				v.Val = p[1];
+			}
+		}
 		#endif
 	}
 	
 	for (unsigned i=0; i<Environment.Length(); i++)
 	{
-		if (!_stricmp(Environment[i].Var, Var))
+		if (Environment[i].Var.Equals(Var))
 		{
 			return &Environment[i];
 		}
@@ -174,7 +188,7 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 	if (Create)
 	{
 		Variable &v = Environment.New();
-		v.Var.Reset(NewStr(Var));
+		v.Var = Var;
 		return &v;
 	}
 	
@@ -296,7 +310,7 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 		}
 	}
 	
-	v->Val.Reset(a.NewStr());
+	v->Val = a.NewGStr();
 	if (IsPath)
 	{
 		// Remove missing paths from the list
@@ -310,7 +324,7 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 			else
 				LgiTrace("%s:%i - Removing missing path '%s'\n", _FL, Dir);
 		}
-		v->Val.Reset(p.NewStr());
+		v->Val = p.NewGStr();
 	}
 	
 	EnvironmentChanged = true;
@@ -430,7 +444,26 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 
 			// Execute the child
 			Args.Add(NULL);
-			execvp(Exe, &Args[0]);
+			
+			if (Environment.Length())
+			{
+				GString::Array Vars;
+				GArray<char*> Env;
+				Vars.SetFixedLength(false);
+				for (auto v : Environment)
+				{
+					GString &s = Vars.New();
+					s.Printf("%s=%s", v.Var.Get(), v.Val.Get());
+					Env.Add(s.Get());
+				}
+				Env.Add(NULL);
+				
+				execve(Exe, &Args[0], Env.AddressOf());
+			}
+			else
+			{
+				execvp(Exe, &Args[0]);
+			}
 
 			// Execution will pass to here if the 'Exe' can't run or doesn't exist
 			// So by exiting with an error the parent process can handle it.

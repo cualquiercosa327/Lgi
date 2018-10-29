@@ -82,7 +82,7 @@ protected:
 	
 	struct Variable
 	{
-		GAutoString Var, Val;
+		GString Var, Val;
 	};
 	bool EnvironmentChanged;
 	GArray<Variable> Environment;
