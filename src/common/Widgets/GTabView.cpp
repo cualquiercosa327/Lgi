@@ -163,7 +163,6 @@ struct GTabPagePriv
 {
 	GTabPage *Tab;
 	bool NonDefaultFont;
-	GAutoPtr<GFont> Fnt;
 	GAutoPtr<GDisplayString> Ds;
 
 	GTabPagePriv(GTabPage *t) : Tab(t)
@@ -176,20 +175,28 @@ struct GTabPagePriv
 		char *Text = Tab->Name();
 		if (Text && !Ds)
 		{
+			GFont *f = NULL;
 			auto s = Tab->GetCss();
 			NonDefaultFont = s ? s->HasFontStyle() : false;
 			if (NonDefaultFont)
 			{
-				if (Fnt.Reset(new GFont))
-					Fnt->CreateFromCss(s);
+				if ((f = new GFont))
+				{
+					if (f->CreateFromCss(s))
+						Tab->SetFont(f, true);
+					else
+						DeleteObj(f);
+				}
 			}
 			else
 			{
-				Fnt.Reset();
+				Tab->SetFont(f = SysFont);
 			}
 		
-			auto f = Fnt ? Fnt : Tab->GetFont();
-			Ds.Reset(new GDisplayString(f, Text));
+			if (f)
+				Ds.Reset(new GDisplayString(f, Text));
+			else
+				LgiAssert(!"no font.");
 		}
 
 		return Ds;
@@ -702,7 +709,6 @@ GRect &GTabView::CalcInset()
 			TabTextY = MAX(TabTextY, Ds->Y());
 			auto Fnt = Ds->GetFont();
 			d->TabsBaseline = MAX(d->TabsBaseline, Fnt->Ascent());
-			LgiTrace("ascent: %f of %i\n", Fnt->Ascent(), Fnt->GetHeight());
 		}
 	}
 	if (!TabTextY)
@@ -726,9 +732,8 @@ void GTabView::OnStyleChange()
 {
 	TabIterator Tabs(Children);
 	for (auto t : Tabs)
-	{
 		t->OnStyleChange();
-	}
+	Invalidate();
 }
 
 void GTabView::OnPaint(GSurface *pDC)
