@@ -152,9 +152,9 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 				if (NameChars > 0)
 				{					
 					Variable &v = Environment.New();
-					v.Var.Set(s, eq - s);
+					v.Var.SetW(s, eq - s);
 					eq++;
-					v.Val.Set(eq);
+					v.Val.SetW(eq);
 				}
 				
 				eq += StrlenW(eq);
@@ -948,7 +948,7 @@ int GSubProcess::Peek()
 bool GSubProcess::Write(GString s)
 {
 	auto Wr = Write(s.Get(), s.Length());
-	return Wr = s.Length();
+	return Wr == s.Length();
 }
 
 ssize_t GSubProcess::Write(const void *Buf, ssize_t Size, int Flags)
