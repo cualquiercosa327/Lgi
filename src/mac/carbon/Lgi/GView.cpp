@@ -472,6 +472,11 @@ void _Dump2(GViewI *root, HIViewRef v, int depth)
 	}
 }
 
+const char *GView::GetClass()
+{
+	return "GView";
+}
+
 LgiCursor GView::GetCursor(int x, int y)
 {
 	return LCUR_Normal;
