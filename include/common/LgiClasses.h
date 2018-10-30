@@ -860,7 +860,7 @@ public:
 	/// GView::CreateClass().
 	///
 	/// \returns the Class' name for debugging
-	const char *GetClass() { return "GView"; }
+	const char *GetClass();
 
 	/// The array of CSS class names.
 	GString::Array *CssClasses();

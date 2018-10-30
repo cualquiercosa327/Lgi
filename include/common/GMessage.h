@@ -6,16 +6,11 @@ enum LgiMessages
 	#if defined(__GTK_H__)
 
 		/// Base point for system messages.
-		M_SYSTEM						= 0x03f0,
+		M_SYSTEM						= 900,
 		/// Message that indicates the user is trying to close a top level window.
 		M_CLOSE,
-		/// Implemented to handle invalid requests in the GUI thread.
-		M_X11_INVALIDATE,
 		/// Implemented to handle paint requests in the GUI thread.
 		M_X11_REPARENT,
-
-		/// Minimum value for application defined message ID's
-		M_USER							= 0x0400,
 
 		/// \brief Mouse enter event
 		///
@@ -53,7 +48,6 @@ enum LgiMessages
 
 		// [WM_APP:WM_APP+200] is reserved for LGI itself.
 		// [WM_APP+200:0xBFFF] is reserved for LGI applications.
-		M_USER						= WM_APP + 200,
 		M_CUT						= WM_CUT,
 		M_COPY						= WM_COPY,
 		M_PASTE						= WM_PASTE,
@@ -103,9 +97,7 @@ enum LgiMessages
 	#elif defined(LGI_SDL)
 
 		/// Minimum value for application defined message ID's
-		M_USER			= 0x0400,
-	
-		M_MOUSEENTER	= (M_USER+100),
+		M_MOUSEENTER	= 900,
 		M_MOUSEEXIT,
 		M_COMMAND,
 		M_CUT,
@@ -115,7 +107,6 @@ enum LgiMessages
 		M_SET_VISIBLE,
 		M_MOUSE_CAPTURE_POLL,
 		M_TEXT_UPDATE_NAME,
-		M_INVALIDATE,
 		M_ASSERT_DLG,
 	
 	#elif defined(MAC)
@@ -154,16 +145,11 @@ enum LgiMessages
 		M_GTHREADWORK_COMPELTE,
 		M_TEXT_UPDATE_NAME,
 		M_SET_VISIBLE,
-		M_SETPOS, // A=(GRect*)Rectangle
-		M_INVALIDATE, // A=(GRect*)Rectangle
+		M_SETPOS, // A=(GRect*)Rectangle, B=(GView*)this
 		M_ASSERT_DLG,
 
-		/// Minimum value for application defined message ID's
-		M_USER							= (M_SYSTEM+1000),
-	
 	#else
 	
-		M_USER = 1000,
 	
 	#endif
 	
@@ -174,6 +160,13 @@ enum LgiMessages
 	M_URL,
 	M_LOG_TEXT,
 	M_ASSERT_UI,
+	M_INVALIDATE, // A=(GRect*)Rectangle, B=(GView*)this
+
+	#ifdef WINDOWS
+	M_USER = WM_APP + 200
+	#else
+	M_USER = 1000
+	#endif
 };
 
 class LgiClass GMessage

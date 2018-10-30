@@ -240,21 +240,6 @@ CursorMetrics[] =
 };
 
 
-/*
-class GViewPrivate
-{
-public:
-	GViewI			*Notify;
-	GViewI			*ParentI;
-	GView			*ParentV;
-	GView			*Popup;
-	GViewFill		*Background;
-	int				CtrlId;
-	GDragDropTarget	*DropTarget;
-	GFont			*Fnt;
-	bool			FntOwn;
-*/
-	
 GViewPrivate::GViewPrivate()
 {
 	CtrlId = -1;

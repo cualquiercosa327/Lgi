@@ -28,12 +28,14 @@ using namespace Gtk;
 #define ADJ_UP						3
 #define ADJ_DOWN					4
 
+/*
 struct X11_INVALIDATE_PARAMS
 {
 	GView *View;
 	GRect Rgn;
 	bool Repaint;
 };
+*/
 
 #if GtkVer(2, 14)
 #else
@@ -172,7 +174,10 @@ void GView::_Focus(bool f)
 	if (f)
 	{
 		if (_View)
+		{
+			printf("%s:%i - grabbing focus on %s.%p\n", _FL, GetClass(), _View);
 			gtk_widget_grab_focus(_View);
+		}
 		else
 			d->WantsFocus = f;
 	}
@@ -601,22 +606,9 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		}
 		else
 		{
-			X11_INVALIDATE_PARAMS *p = new X11_INVALIDATE_PARAMS;
-			if (p)
-			{
-				if (r)
-				{
-					p->Rgn = *r;
-				}
-				else
-				{
-					p->Rgn.ZOff(-1, -1);
-				}
-				p->Repaint = Repaint;
-				p->View = this;
-				
-				PostEvent(M_X11_INVALIDATE, (GMessage::Param)p, 0);
-			}
+			PostEvent(	M_INVALIDATE,
+						(GMessage::Param)(r ? new GRect(r) : NULL),
+						(GMessage::Param)(GView*)this);
 		}
 		
 		return true;
@@ -674,13 +666,12 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 	int Id;
 	switch (Id = Msg->Msg())
 	{
-		case M_X11_INVALIDATE:
+		case M_INVALIDATE:
 		{
-			X11_INVALIDATE_PARAMS *p = (X11_INVALIDATE_PARAMS*)MsgA(Msg);
-			if (p && p->View == this)
+			if ((GView*)this == (GView*)Msg->B())
 			{
-				Invalidate(p->Rgn.Valid() ? &p->Rgn : 0, p->Repaint);
-				DeleteObj(p);
+				GAutoPtr<GRect> r((GRect*)Msg->A());
+				Invalidate(r);
 			}
 			break;
 		}
@@ -842,6 +833,11 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 	return false;
 }
 
+const char *GView::GetClass()
+{
+	return d->ActualClass ? d->ActualClass : "GView";
+}
+
 bool GView::IsAttached()
 {
 	return	_View && _View->parent;
@@ -859,7 +855,9 @@ bool GView::Attach(GViewI *parent)
 	
 	if (!_View)
 	{
+		d->ActualClass = GetClass();
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
+		printf("%s:%i - lgi_widget_new on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 	}
 	
 	if (_View)
@@ -968,6 +966,7 @@ bool GView::Detach()
 	if (_View)
 	{
 		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
+		printf("%s:%i - gtk_widget_destroy on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}
