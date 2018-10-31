@@ -451,6 +451,11 @@ GViewI *GWindowFromHandle(HWND hWnd)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+const char *GView::GetClass()
+{
+	return "GView";
+}
+
 void GView::_Delete()
 {
 	if (_View && d->DropTarget)

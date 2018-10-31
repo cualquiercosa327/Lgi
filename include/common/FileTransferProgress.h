@@ -28,7 +28,9 @@ class FileTransferProgress : public GStatusPane, public Progress
 	int64 StartPos;
 	GProgressStatusPane *ProgressPane;
 	GArray<GStatusPane*> StatusInfo;
-	DoEvery Timer;
+	
+	int64 DspVal;
+	void UpdateUi();
 
 public:
 	FileTransferProgress(GDom *App, GStatusBar *Status, bool Limit = false);
@@ -40,6 +42,8 @@ public:
 
 	// Impl
 	GMessage::Result OnEvent(GMessage *m);
+	void OnCreate();
+	void OnPulse();
 };
 
 #endif

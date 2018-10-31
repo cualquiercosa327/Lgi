@@ -28,8 +28,7 @@
 
 enum ProgressMessages
 {
-    IDM_SET_VALUE   = M_USER + 100,
-    IDM_SET_LIMITS,
+    IDM_SET_LIMITS   = M_USER + 100,
     IDM_SET_PARAM,
 };
 
@@ -397,11 +396,11 @@ void GPaneHistory::Value(int64 i)
 //////////////////////////////////////////////////////////////////////////////////////
 FileTransferProgress::FileTransferProgress(	GDom *App,
 											GStatusBar *Status,
-											bool Limit) :
-	Timer(300)
+											bool Limit)
 {
 	StartTime = StartPos = 0;
 	ProgressPane = 0;
+	DspVal = 0;
 	SetWidth(70);
 
 	// Download throttle
@@ -432,15 +431,21 @@ FileTransferProgress::FileTransferProgress(	GDom *App,
 	Status->AttachChildren();
 }
 
+void FileTransferProgress::OnCreate()
+{
+	SetPulse(500);
+}
+
+void FileTransferProgress::OnPulse()
+{
+	if (DspVal != Val)
+		UpdateUi();
+}
+
 GMessage::Result FileTransferProgress::OnEvent(GMessage *m)
 {
     switch (m->Msg())
     {
-        case IDM_SET_VALUE:
-        {
-            Value((int64)m->A());
-            break;
-        }
         case IDM_SET_LIMITS:
         {
             SetLimits((int64)m->A(), (int64)m->B());
@@ -474,75 +479,77 @@ void FileTransferProgress::SetLimits(int64 l, int64 h)
 
 void FileTransferProgress::Value(int64 v)
 {
-    if (!InThread())
-    {
-        bool Status = PostEvent(IDM_SET_VALUE, (GMessage::Param)v);
-        LgiAssert(Status);
-        return;
-    }
+	if (High <= 0)
+		return;
 
-	bool Reset = v < Val;
-	bool Start = Val == 0;
-	int64 Now = LgiCurrentTime();
-	if (Start)
-	{
-		StartTime = Now;
-	}
+	if (Val == 0)
+		StartTime = LgiCurrentTime();
 
 	Progress::Value(v);
+}
+
+void FileTransferProgress::UpdateUi()
+{
+	if (DspVal == Val)
+		return;
+
+	uint64 Now = LgiCurrentTime();
+	LgiTrace("Update UI %i, %i  InThread()=%i\n", (int)Val, (int)DspVal, InThread());
+	bool Start = Val == 0;
 	
-	if (Timer.DoNow() || Reset)
-	{
-		// Tell everyone about the new value
-		if (ProgressPane) ProgressPane->Value(v);
-		if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value((Start) ? -v : v);
+	// Tell everyone about the new value
+	if (ProgressPane) ProgressPane->Value(Val);
+	if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value((Start) ? -Val : Val);
 		
-		if (Reset)
+	if (Val == 0)
+	{
+		StatusInfo[_STATUS_POSITION]->Name("");
+		StatusInfo[_STATUS_TIME_LEFT]->Name("");
+		StatusInfo[_STATUS_RATE]->Name("");
+	}
+	else if (High > 0)
+	{
+		if (StatusInfo[_STATUS_POSITION])
 		{
-			StatusInfo[_STATUS_POSITION]->Name("");
-			StatusInfo[_STATUS_TIME_LEFT]->Name("");
-			StatusInfo[_STATUS_RATE]->Name("");
+			char a[64], b[64], Str[128];
+			LgiFormatSize(a, sizeof(a), Val);
+			LgiFormatSize(b, sizeof(b), High);
+			sprintf_s(Str, sizeof(Str), "%s of %s", a, b);
+			StatusInfo[_STATUS_POSITION]->Name(Str);
 		}
-		else if (High > 0)
+
+		StatusInfo[_STATUS_PROGRESS]->Value(Val);
+
+		double Rate = 0.0;
+		double Seconds = ((double)Now-(double)StartTime)/1000;
+		if (StatusInfo[_STATUS_RATE] && Seconds > 0.0)
 		{
-			if (StatusInfo[_STATUS_POSITION])
-			{
-				char a[64], b[64], Str[128];
-				LgiFormatSize(a, sizeof(a), Val);
-				LgiFormatSize(b, sizeof(b), High);
-				sprintf_s(Str, sizeof(Str), "%s of %s", a, b);
-				StatusInfo[_STATUS_POSITION]->Name(Str);
-			}
+			char Str[256];
+			Rate = ((double)(Val-StartPos))/Seconds;
 
-			double Rate = 0.0;
-			double Seconds = ((double)Now-(double)StartTime)/1000;
-			if (StatusInfo[_STATUS_RATE] && Seconds > 0.0)
-			{
-				char Str[256];
-				Rate = ((double)(Val-StartPos))/Seconds;
-
-				sprintf_s(Str, sizeof(Str), "%.2f K/s", Rate/1024.0);
-				StatusInfo[_STATUS_RATE]->Name(Str);
-			}
-
-			if (StatusInfo[_STATUS_TIME_LEFT] && Rate > 0.0)
-			{
-				char Str[256];
-				double Time = ((double) (High-StartPos) / Rate) - Seconds + 0.5;
-				sprintf_s(Str, sizeof(Str), "%i:%2.2i:%2.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
-				StatusInfo[_STATUS_TIME_LEFT]->Name(Str);
-			}
+			sprintf_s(Str, sizeof(Str), "%.2f K/s", Rate/1024.0);
+			StatusInfo[_STATUS_RATE]->Name(Str);
 		}
-		else
+
+		if (StatusInfo[_STATUS_TIME_LEFT] && Rate > 0.0)
 		{
-			if (StatusInfo[_STATUS_POSITION])
-			{
-				char Str[256];
-				sprintf_s(Str, sizeof(Str), LPrintfInt64 " K", Val>>10);
-				StatusInfo[_STATUS_POSITION]->Name(Str);
-			}
+			char Str[256];
+			double Time = ((double) (High-StartPos) / Rate) - Seconds + 0.5;
+			sprintf_s(Str, sizeof(Str), "%i:%2.2i:%2.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
+			StatusInfo[_STATUS_TIME_LEFT]->Name(Str);
 		}
 	}
+	else
+	{
+		if (StatusInfo[_STATUS_POSITION])
+		{
+			char Str[256];
+			sprintf_s(Str, sizeof(Str), LPrintfInt64 " K", Val>>10);
+			StatusInfo[_STATUS_POSITION]->Name(Str);
+		}
+	}
+
+	DspVal = Val;
 }
 
 void FileTransferProgress::SetParameter(int Which, int What)

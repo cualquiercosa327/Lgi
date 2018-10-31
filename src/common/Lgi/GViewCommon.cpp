@@ -1970,7 +1970,13 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	if (_View)
 	{
 		#if WINNATIVE
-		return PostMessage(_View, Cmd, a, b) != 0;
+		BOOL Res = ::PostMessage(_View, Cmd, a, b);
+		if (!Res)
+		{
+			auto Err = GetLastError();
+			int asd=0;
+		}
+		return Res != 0;
 		#else
 		return LgiPostEvent(_View, Cmd, a, b);
 		#endif
