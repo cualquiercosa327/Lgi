@@ -169,6 +169,11 @@ GViewPrivate::~GViewPrivate()
 	LgiAssert(Pulse == 0);
 }
 
+const char *GView::GetClass()
+{
+	return "GView";
+}
+
 void GView::_Delete()
 {
 	if (_Over == this) _Over = 0;
