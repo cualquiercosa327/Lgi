@@ -1610,9 +1610,6 @@ class LgiClass GStatusBar : public GLayout
 {
 	friend class GStatusPane;
 
-protected:
-	void RePour();
-
 public:
 	GStatusBar();
 	~GStatusBar();
@@ -1620,6 +1617,7 @@ public:
 	const char *GetClass() { return "GStatusBar"; }
 	bool Pour(GRegion &r);
 	void OnPaint(GSurface *pDC);
+	void OnPosChange();
 
 	GStatusPane *AppendPane(const char *Text, int Width);
 	bool AppendPane(GStatusPane *Pane);

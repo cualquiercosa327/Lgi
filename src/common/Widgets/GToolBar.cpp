@@ -1067,6 +1067,7 @@ void GToolBar::ContextMenu(GMouse &m)
 				{
 					d->Text = !d->Text;
 					Save = true;
+					SendNotify(GNotifyTableLayout_Refresh);
 					break;
 				}
 				default:

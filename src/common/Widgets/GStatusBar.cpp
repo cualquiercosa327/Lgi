@@ -25,7 +25,6 @@ bool GStatusBar::Pour(GRegion &r)
 		{
 			Take.y1 = MAX((Take.y2 - 21), Take.y1);
 			SetPos(Take);
-			RePour();
 			return true;
 		}
 	}
@@ -38,10 +37,12 @@ void GStatusBar::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 }
 
-void GStatusBar::RePour()
+void GStatusBar::OnPosChange()
 {
 	int x = X() - 5;
-	auto i = Children.Length()-1;
+	auto i = Children.Length() - 1;
+	auto c = GetClient();
+	c.y2 -= 6;
 
 	for (	GViewI *w = Children.Last();
 			w;
@@ -52,9 +53,7 @@ void GStatusBar::RePour()
 		{
 			#ifndef WIN32
 			if (!Pane->IsAttached())
-			{
 				Pane->Attach(this);
-			}
 			#endif
 			
 			if (i)
@@ -63,7 +62,7 @@ void GStatusBar::RePour()
 				x -= Pane->Width; 
 
 				GRect r;
-				r.ZOff(Pane->Width, Y()-7);
+				r.ZOff(Pane->Width, c.Y()-1);
 				r.Offset(x, 2);
 				Pane->SetPos(r);
 				x -= STATUSBAR_SEPARATOR;
@@ -72,7 +71,7 @@ void GStatusBar::RePour()
 			{
 				// first
 				GRect r;
-				r.ZOff(x-2, Y()-4);
+				r.ZOff(x-2, c.Y()-1);
 				r.Offset(2, 2);
 				Pane->SetPos(r);
 				x = 0;
@@ -185,7 +184,8 @@ void GStatusPane::SetWidth(int x)
 	if (GetParent())
 	{
 		GStatusBar *Bar = dynamic_cast<GStatusBar*>(GetParent());
-		if (Bar) Bar->RePour();
+		if (Bar)
+			Bar->OnPosChange();
 	}
 }
 
