@@ -587,6 +587,16 @@ public:
 				}
 				break;
 			}
+			case IDC_STATUS:
+			{
+				GArray<VcFolder*> Folders;
+				Tree->GetAll(Folders);
+				for (auto f : Folders)
+				{
+					f->FolderStatus();
+				}
+				break;
+			}
 		}
 
 		return 0;

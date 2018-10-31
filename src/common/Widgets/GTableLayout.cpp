@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		102
+// #define DEBUG_LAYOUT		500
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 

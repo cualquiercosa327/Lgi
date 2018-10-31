@@ -1159,6 +1159,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 {
 	bool ShowUntracked = d->Files->GetWindow()->GetCtrlValue(IDC_UNTRACKED) != 0;
 	bool IsWorking = Params ? Params->IsWorking : false;
+	List<LListItem> Ins;
 
 	switch (GetType())
 	{
@@ -1189,7 +1190,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					VcFile *f = new VcFile(d, this, WorkingRev, IsWorking);
 					f->SetText(Status, COL_STATE);
 					f->SetText(File, COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 				else if (f(0) == '?' &&
 						ShowUntracked)
@@ -1198,7 +1199,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					VcFile *f = new VcFile(d, this, NULL, IsWorking);
 					f->SetText("?", COL_STATE);
 					f->SetText(File, COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 			}
 			break;
@@ -1219,14 +1220,47 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					VcFile *f = new VcFile(d, this, p[6], IsWorking);
 					f->SetText(p[1].Strip("."), COL_STATE);
 					f->SetText(p.Last(), COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 				else if (ShowUntracked)
 				{
 					VcFile *f = new VcFile(d, this, NULL, IsWorking);
 					f->SetText("?", COL_STATE);
 					f->SetText(Ln(2,-1), COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
+				}
+			}
+			break;
+		}
+		case VcHg:
+		case VcSvn:
+		{
+			GString::Array Lines = s.SplitDelimit("\r\n");
+			for (auto Ln : Lines)
+			{
+				char Type = Ln(0);
+				if (Ln.Lower().Find("error:") >= 0)
+				{
+				}
+				else if (Type != '?')
+				{
+					GString::Array p = Ln.SplitDelimit(" ", 1);
+					if (p.Length() == 2)
+					{
+						VcFile *f = new VcFile(d, this, p[1], IsWorking);
+						f->SetText(p[0], COL_STATE);
+						f->SetText(p.Last(), COL_FILENAME);
+						f->GetStatus();
+						Ins.Insert(f);
+					}
+					else LgiAssert(!"What happen?");
+				}
+				else if (ShowUntracked)
+				{
+					VcFile *f = new VcFile(d, this, NULL, IsWorking);
+					f->SetText("?", COL_STATE);
+					f->SetText(Ln(2,-1), COL_FILENAME);
+					Ins.Insert(f);
 				}
 			}
 			break;
@@ -1238,17 +1272,33 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 		}
 	}
 
-	d->Files->ResizeColumnsToContent();
+	Unpushed = Ins.Length() > 0;
+	Update();
+	if (GTreeItem::Select())
+	{
+		d->Files->Insert(Ins);
+		d->Files->ResizeColumnsToContent();
+	}
+	else
+	{
+		Ins.DeleteObjects();
+	}
+
 	return false; // Don't refresh list
 }
 
 void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 {
-	d->ClearFiles();
+	if (GTreeItem::Select())
+		d->ClearFiles();
 
 	GString Arg;
 	switch (GetType())
 	{
+		case VcSvn:
+		case VcHg:
+			Arg = "status";
+			break;
 		case VcCvs:
 			Arg = "status -l";
 			break;
@@ -1256,8 +1306,7 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 			Arg = "status --porcelain=2";
 			break;
 		default:
-			Arg = "status";
-			break;
+			return;
 	}
 
 	ParseParams *p = new ParseParams;
