@@ -803,6 +803,7 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 					f = new VcFile(d, this, Rev, IsWorking);
 					f->SetText("M", COL_STATE);
 					f->SetText(Fn, COL_FILENAME);
+					f->GetStatus();
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "new file", 8))
@@ -897,6 +898,8 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 					GString Fn = a[i].Split(":", 1).Last().Strip();
 					f = new VcFile(d, this, Rev, IsWorking);
 					f->SetText(Fn, COL_FILENAME);
+					f->SetText("M", COL_STATE);
+					f->GetStatus();
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "------", 6))
