@@ -363,7 +363,7 @@ bool LWebSocket::SendMessage(char *Data, uint64 Len)
 	{
 		// 126 + 2 bytes
 		*p.u8++ = Masked | 126;
-		*p.u16++ = htons(Len);
+		*p.u16++ = htons((u_short)Len);
 	}
 	else
 	{

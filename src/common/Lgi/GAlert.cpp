@@ -30,11 +30,12 @@ GAlert::GAlert(	GViewI *parent,
 	Name((char*)Title);
 
 	GTableLayout *Tbl = new GTableLayout(100);
+	Tbl->GetCss(true)->Padding("10px");
 	AddView(Tbl);
 
 	GLayoutCell *c = Tbl->GetCell(0, 0, true, (int)Names.Length());
 	c->Add(new GTextLabel(-1, 8, 8, -1, -1, Text));
-	c->PaddingBottom(GCss::Len("6px"));
+	c->PaddingBottom(GCss::Len("10px"));
 
 	for (unsigned i=0; i<Names.Length(); i++)
 	{
@@ -47,14 +48,12 @@ GAlert::GAlert(	GViewI *parent,
 		
 	GRect r(0, 0, 1000, 1000);
 	Tbl->SetPos(r);
-	Tbl->GetCss(true)->Padding(GCss::Len("6px"));
 	r = Tbl->GetUsedArea();
-	int x = LgiApp->GetMetric(LGI_MET_DECOR_X) + 12;
+	r.Size(-10, -10);
+	int x = LgiApp->GetMetric(LGI_MET_DECOR_X);
 	int y = LgiApp->GetMetric(LGI_MET_DECOR_Y) +
-			LgiApp->GetMetric(LGI_MET_DECOR_CAPTION) +
-			12;
-
-	r.x2 += x;
+			LgiApp->GetMetric(LGI_MET_DECOR_CAPTION);
+	r.x2 += x + 20;
 	r.y2 += y;
 
 	SetPos(r);
