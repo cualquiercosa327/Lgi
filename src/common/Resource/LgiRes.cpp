@@ -29,7 +29,7 @@
 
 // #include "GXml.h"
 
-#define DEBUG_RES_FILE						1
+#define DEBUG_RES_FILE						0
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
 class TagHash : public LHashTbl<StrKey<char>,bool>, public ResReadCtx

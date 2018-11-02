@@ -1359,7 +1359,25 @@ int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port
 		OnRead((char*)Buffer, (int)b);
 
 		if (Ip)
-			*Ip = a.sin_addr.OsAddr;
+		{
+			*Ip = ntohl(a.sin_addr.OsAddr);
+			
+			/*
+			printf("ip=%i.%i.%i.%i osaddr=%i.%i.%i.%i\n",
+			
+				((*Ip) >> 24) & 0xff,
+				((*Ip) >> 16) & 0xff,
+				((*Ip) >> 8) & 0xff,
+				((*Ip)) & 0xff,
+				
+				((a.sin_addr.OsAddr) >> 24) & 0xff,
+				((a.sin_addr.OsAddr) >> 16) & 0xff,
+				((a.sin_addr.OsAddr) >> 8) & 0xff,
+				((a.sin_addr.OsAddr)) & 0xff
+
+				);
+			*/
+		}
 		if (Port)
 			*Port = ntohs(a.sin_port);
 	}
