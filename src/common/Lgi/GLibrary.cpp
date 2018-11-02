@@ -82,6 +82,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 				LgiTrace("%s:%i - dlopen('%s') = %p\n", _FL, FileName, hLib);
 				#endif
 				
+				#ifdef LINUX
 				if (!hLib)
 				{
 					// Try with an extra ".0"... just for fun.
@@ -92,7 +93,8 @@ bool GLibrary::Load(const char *File, bool Quiet)
 					LgiTrace("%s:%i - dlopen('%s') = %p\n", _FL, FileName, hLib);
 					#endif
 					*e = 0;
-				}				
+				}
+				#endif	
 				
 				if (hLib)
 				{

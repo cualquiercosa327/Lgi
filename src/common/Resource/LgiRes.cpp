@@ -29,7 +29,7 @@
 
 // #include "GXml.h"
 
-#define DEBUG_RES_FILE						0
+#define DEBUG_RES_FILE						1
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
 class TagHash : public LHashTbl<StrKey<char>,bool>, public ResReadCtx
@@ -276,7 +276,7 @@ LgiResources::LgiResources(const char *FileName, bool Warn)
 	_ResourceOwner.Add(this);
 
 	GString File;
-	char *FullPath = 0;
+	char *FullPath = NULL;
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
@@ -284,20 +284,50 @@ LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
 	
 	if (FileExists(FileName))
 	{
-		FullPath = NewStr(FileName);
+		if (Load(FileName))
+			return;
 	}
-	else
+
+	if (FileName)
 	{
-		if (FileName)
-		{
-			// We're given the file name, and we should find the path.
-			const char *f = strrchr(FileName, DIR_CHAR);
+		// We're given the file name, and we should find the path.
+		const char *f = strrchr(FileName, DIR_CHAR);
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - f='%s'\n", _FL, f);
 #endif
 
-			File = f ? f + 1 : FileName;
+		File = f ? f + 1 : FileName;
+
+#if DEBUG_RES_FILE
+LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
+#endif
+	}
+	else
+	{
+		// Need to look up the file associated by name with the current exe
+		char Str[MAX_PATH];
+		if (LgiGetExeFile(Str, sizeof(Str)))
+		{
+#if DEBUG_RES_FILE
+LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
+#endif
+
+			char *f = strrchr(Str, DIR_CHAR);
+			if (f)
+			{
+				f++;
+				
+				#ifdef WINDOWS
+				char *Period = strrchr(f, '.');
+				if (Period)
+				{
+					*Period = 0;
+				}
+				#endif
+
+				File = f;
+			}
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
@@ -305,72 +335,41 @@ LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
 		}
 		else
 		{
-			// Need to look up the file associated by name with the current exe
-			char Str[MAX_PATH];
-			if (LgiGetExeFile(Str, sizeof(Str)))
-			{
-#if DEBUG_RES_FILE
-LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
-#endif
-
-				char *f = strrchr(Str, DIR_CHAR);
-				if (f)
-				{
-					f++;
-					
-					#ifdef WINDOWS
-					char *Period = strrchr(f, '.');
-					if (Period)
-					{
-						*Period = 0;
-					}
-					#endif
-
-					File = f;
-				}
-
-#if DEBUG_RES_FILE
-LgiTrace("%s:%i - File='%s'\n", _FL, File);
-#endif
-			}
-			else
-			{
-				LgiMsg(0, LgiLoadString(L_ERROR_RES_NO_EXE_PATH,
-										"Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file."),
-										"LgiResources::LgiResources");
-				LgiTrace("%s:%i - Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file.", _FL);
-				LgiExitApp();
-			}
+			LgiMsg(0, LgiLoadString(L_ERROR_RES_NO_EXE_PATH,
+									"Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file."),
+									"LgiResources::LgiResources");
+			LgiTrace("%s:%i - Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file.", _FL);
+			LgiExitApp();
 		}
+	}
 
-		// Find the file..
-		#ifdef MAC
-		ssize_t DotApp = File.RFind(".app");
-		if (DotApp >= 0)
-			File.Length((int)DotApp);
-		#endif
+	// Find the file..
+	#ifdef MAC
+	ssize_t DotApp = File.RFind(".app");
+	if (DotApp >= 0)
+		File.Length((int)DotApp);
+	#endif
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
 #endif
 
-		GString BaseFile = File;
-		GString AltFile = File.Replace(".");
-		BaseFile += ".lr8";
-		AltFile += ".lr8";
+	GString BaseFile = File;
+	GString AltFile = File.Replace(".");
+	BaseFile += ".lr8";
+	AltFile += ".lr8";
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - File='%s'\n", _FL, BaseFile.Get());
 #endif
 
-		FullPath = LgiFindFile(BaseFile);
-		if (!FullPath)
-			FullPath = LgiFindFile(AltFile);
+	FullPath = LgiFindFile(BaseFile);
+	if (!FullPath)
+		FullPath = LgiFindFile(AltFile);
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 #endif
-	}
 
 	if (FullPath)
 	{
@@ -470,7 +469,7 @@ char *LgiResources::GetFileName()
 	return d->File;
 }
 
-bool LgiResources::Load(char *FileName)
+bool LgiResources::Load(const char *FileName)
 {
 	if (!FileName)
 	{
