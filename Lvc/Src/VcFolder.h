@@ -23,6 +23,9 @@ public:
 	int Main();
 };
 
+extern int Ver2Int(GString v);
+extern int ToolVersion[VcMax];
+
 class VcFolder : public GTreeItem
 {
 	struct ParseParams
@@ -119,6 +122,7 @@ class VcFolder : public GTreeItem
 	bool ParseBranches(int Result, GString s, ParseParams *Params);
 	bool ParseStatus(int Result, GString s, ParseParams *Params);
 	bool ParseAddFile(int Result, GString s, ParseParams *Params);
+	bool ParseVersion(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -143,6 +147,7 @@ public:
 	bool SaveFileAs(const char *Path, const char *Revision);
 	void ReadDir(GTreeItem *Parent, const char *Path);
 	void SetEol(const char *Path, int Type);
+	void GetVersion();
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

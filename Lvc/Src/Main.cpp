@@ -91,7 +91,6 @@ public:
 				GRect r = v->GetPos();
 				r.Offset(-r.x1, -r.y1);
 				r.x2++;
-				printf("pos=%s\n", r.GetStr());
 				v->SetPos(r);
 				
 				v->OnPosChange();
@@ -394,9 +393,23 @@ public:
 		}
 		if (f)
 		{
+			bool Req[VcMax] = {0};
+			
 			for (GXmlTag *c = f->Children.First(); c; c = f->Children.Next())
+			{
 				if (c->IsTag(OPT_Folder))
-					Tree->Insert(new VcFolder(this, c));
+				{
+					auto f = new VcFolder(this, c);
+				
+					Tree->Insert(f);
+					
+					if (!Req[f->GetType()])
+					{
+						Req[f->GetType()] = true;
+						f->GetVersion();
+					}
+				}
+			}
 			Opts.Unlock();
 		}
 

@@ -75,10 +75,13 @@ enum AppIds
 enum VersionCtrl
 {
 	VcNone,
+	
 	VcCvs,
 	VcSvn,
 	VcGit,
 	VcHg,
+	
+	VcMax,
 };
 
 class VcFolder;

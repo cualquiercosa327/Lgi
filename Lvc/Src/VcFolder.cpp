@@ -5,6 +5,29 @@
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 #endif
 
+int Ver2Int(GString v)
+{
+	auto p = v.Split(".");
+	int i = 0;
+	for (auto s : p)
+	{
+		auto Int = s.Int();
+		if (Int < 256)
+		{
+			i <<= 8;
+			i |= (uint8)Int;
+		}
+		else
+		{
+			LgiAssert(0);
+			return 0;
+		}
+	}
+	return i;
+}
+
+int ToolVersion[VcMax] = {0};
+
 ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
 {
 	Process = p;
@@ -1210,20 +1233,39 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 		case VcGit:
 		{
 			GString::Array Lines = s.SplitDelimit("\r\n");
+			int Fmt = ToolVersion[VcGit] >= Ver2Int("2.6.0") ? 2 : 1;
 			for (auto Ln : Lines)
 			{
 				char Type = Ln(0);
 				if (Ln.Lower().Find("error:") >= 0)
 				{
 				}
+				else if (Ln.Find("usage: git") >= 0)
+				{
+					// It's probably complaining about the --porcelain=2 parameter
+					LgiAssert(!"Git argument error.");
+				}
 				else if (Type != '?')
 				{
-					GString::Array p = Ln.SplitDelimit(" ", 8);
-
-					VcFile *f = new VcFile(d, this, p[6], IsWorking);
-					f->SetText(p[1].Strip("."), COL_STATE);
-					f->SetText(p.Last(), COL_FILENAME);
-					Ins.Insert(f);
+					VcFile *f = NULL;
+					
+					if (Fmt == 2)
+					{
+						GString::Array p = Ln.SplitDelimit(" ", 8);
+						f = new VcFile(d, this, p[6], IsWorking);
+						f->SetText(p[1].Strip("."), COL_STATE);
+						f->SetText(p.Last(), COL_FILENAME);
+					}
+					else if (Fmt == 1)
+					{
+						GString::Array p = Ln.SplitDelimit(" ");
+						f = new VcFile(d, this, NULL, IsWorking);
+						f->SetText(p[0], COL_STATE);
+						f->SetText(p.Last(), COL_FILENAME);
+					}
+					
+					if (f)
+						Ins.Insert(f);
 				}
 				else if (ShowUntracked)
 				{
@@ -1244,6 +1286,10 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 				char Type = Ln(0);
 				if (Ln.Lower().Find("error:") >= 0)
 				{
+				}
+				else if (strchr(" /t", Type))
+				{
+					// Ignore
 				}
 				else if (Type != '?')
 				{
@@ -1306,7 +1352,12 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 			Arg = "status -l";
 			break;
 		case VcGit:
-			Arg = "status --porcelain=2";
+			if (!ToolVersion[VcGit])
+				LgiAssert(!"Where is the version?");
+			if (ToolVersion[VcGit] >= Ver2Int("2.6.0")) // What version did =2 become available?
+				Arg = "status --porcelain=2";
+			else
+				Arg = "status --porcelain";
 			break;
 		default:
 			return;
@@ -1526,6 +1577,67 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	GetTree()->SendNotify(LvcCommandEnd);
 	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+void VcFolder::GetVersion()
+{
+	switch (GetType())
+	{
+		case VcGit:
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
+			StartCmd("--version", &VcFolder::ParseVersion, NULL, true);
+			break;
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+}
+
+bool VcFolder::ParseVersion(int Result, GString s, ParseParams *Params)
+{
+	auto p = s.SplitDelimit();
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			if (p.Length() > 2)
+			{
+				ToolVersion[GetType()] = Ver2Int(p[2]);
+				printf("Git version: %s\n", p[2].Get());
+			}
+			else
+				LgiAssert(0);
+			break;
+		}
+		case VcSvn:
+		{
+			if (p.Length() > 2)
+			{
+				ToolVersion[GetType()] = Ver2Int(p[2]);
+				printf("Svn version: %s\n", p[2].Get());
+			}
+			else
+				LgiAssert(0);
+			break;
+		}
+		case VcHg:
+		case VcCvs:
+		{
+			#ifdef _DEBUG
+			for (auto i : p)
+				printf("i='%s'\n", i.Get());
+			#endif
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		default:
+			break;
+	}
+
+	return false;
 }
 
 bool VcFolder::ParseAddFile(int Result, GString s, ParseParams *Params)
