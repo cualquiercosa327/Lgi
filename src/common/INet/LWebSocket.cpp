@@ -76,7 +76,7 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	int v = select(	(int)Max+1,
 					Flags == O_READ ? &r : NULL,
 					Flags == O_WRITE ? &r : NULL,
-					NULL, &t);
+					NULL, TimeoutMs >= 0 ? &t : NULL);
 	if (v > 0)
 	{
 		for (auto Sock : s)

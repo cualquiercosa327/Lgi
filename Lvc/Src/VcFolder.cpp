@@ -1354,7 +1354,9 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 		case VcGit:
 			if (!ToolVersion[VcGit])
 				LgiAssert(!"Where is the version?");
-			if (ToolVersion[VcGit] >= Ver2Int("2.6.0")) // What version did =2 become available?
+			
+			// What version did =2 become available? It's definately not in v2.5.4
+			if (ToolVersion[VcGit] >= Ver2Int("2.6.0"))
 				Arg = "status --porcelain=2";
 			else
 				Arg = "status --porcelain";

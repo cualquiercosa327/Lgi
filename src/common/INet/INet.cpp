@@ -1326,8 +1326,7 @@ bool GSocket::CreateUdpSocket()
 				option_t enabled = d->Broadcast != 0;
 				auto r = setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 				if (r)
-					Error();
-			}
+					Error();			}
 		}
 	}
 

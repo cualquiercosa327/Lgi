@@ -275,6 +275,39 @@ public:
 		{
 			return Ip4 == 0x7f000001;
 		}
+		
+		bool IsPrivate()
+		{
+			uint8 h1 = (Ip4 >> 24) & 0xff;
+			if (h1 == 192)
+			{
+				uint8 h2 = ((Ip4 >> 16) & 0xff);
+				return h2 == 168;
+			}
+			else if (h1 == 10)
+			{
+				return true;
+			}
+			else if (h1 == 172)
+			{
+				uint8 h2 = ((Ip4 >> 16) & 0xff);
+				return h2 >= 16 && h2 <= 31;
+			}
+			
+			return false;
+		}
+		
+		bool IsLinkLocal()
+		{
+			uint8 h1 = (Ip4 >> 24) & 0xff;
+			if (h1 == 169)
+			{
+				uint8 h2 = ((Ip4 >> 16) & 0xff);
+				return h2 == 254;
+			}
+			
+			return false;
+		}
 
 		GString ToString(uint32 ip = 0)
 		{
@@ -452,9 +485,10 @@ public:
 class LUdpBroadcast : public GSocket
 {
 	GArray<Interface> Intf;
+	uint32 SelectIf;
 
 public:
-	LUdpBroadcast()
+	LUdpBroadcast(uint32 selectIf) : SelectIf(selectIf)
 	{
         SetBroadcast();
 		SetUdp(true);
@@ -471,18 +505,30 @@ public:
 		if (Size > MAX_UDP_SIZE)
 			return false;
 		
+		if (SelectIf)
+		{
+			struct in_addr addr;
+			addr.s_addr = htonl(SelectIf);
+			auto r = setsockopt(Handle(), IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr));
+			if (r)
+				printf("%s:%i - set IP_MULTICAST_IF failed.\n", _FL);
+			SelectIf = 0;
+		}
+		
 		uint32 Netmask = 0xffffff00;
+		Interface *Cur = NULL;
 		for (auto &i : Intf)
 		{
 			if (i.Ip4 == Ip)
 			{
 				Netmask = i.Netmask4;
+				Cur = &i;
 				break;
 			}
 		}
-
-		uint32 BroadcastIp = Ip | ~Netmask;
-		#if 0
+		
+		uint32 BroadcastIp = Ip /*| ~Netmask*/;
+		#if 1
 		printf("Broadcast %i.%i.%i.%i\n", 
 			(BroadcastIp >> 24) & 0xff,
 			(BroadcastIp >> 16) & 0xff,
