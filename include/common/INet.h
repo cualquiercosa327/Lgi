@@ -64,6 +64,8 @@ typedef int SOCKET;
 // Functions
 LgiNetFunc bool HaveNetConnection();
 LgiNetFunc bool WhatsMyIp(GAutoString &Ip);
+LgiExtern GString LIpStr(uint32 ip);
+LgiExtern uint32 LIpHostInt(GString str);
 
 /// Make md5 hash
 LgiNetFunc void MDStringToDigest
@@ -309,19 +311,6 @@ public:
 			
 			return false;
 		}
-
-		GString ToString(uint32 ip = 0)
-		{
-			GString s;
-			if (!ip)
-				ip = Ip4;
-			s.Printf("%i.%i.%i.%i",
-					(ip>>24)&0xff,
-					(ip>>16)&0xff,
-					(ip>>8)&0xff,
-					(ip)&0xff);
-			return s;
-		}
 	};
 
 	static bool EnumInterfaces(GArray<Interface> &Out);
@@ -418,16 +407,14 @@ public:
 
 class LUdpListener : public GSocket
 {
-	GArray<Interface> Intf;
 	GStream *Log;
 	GString Context;
 
 public:
-	LUdpListener(uint32 mc_ip, uint16 port, GStream *log = NULL) : Log(log)
+	LUdpListener(GArray<uint32> interface_ips, uint32 mc_ip, uint16 port, GStream *log = NULL) : Log(log)
 	{
-		SetBroadcast();
+		//SetBroadcast();
 		SetUdp(true);
-		EnumInterfaces(Intf);
 
 		struct sockaddr_in addr;
 		ZeroObj(addr);
@@ -435,23 +422,21 @@ public:
 		addr.sin_port = htons(port);
 		#ifdef WINDOWS
 		addr.sin_addr.S_un.S_addr = INADDR_ANY;
+		#elif defined(MAC)
+		addr.sin_addr.s_addr = htonl(mc_ip);
 		#else
 		addr.sin_addr.s_addr = INADDR_ANY;
 		#endif
 
-		#if 1
-
 		if (mc_ip)
 		{
-			for (auto &i : Intf)
+			for (auto ip : interface_ips)
 			{
-				Context.Printf("AddMulticastMember(%x,%x)", mc_ip, i.Ip4);
-				AddMulticastMember(mc_ip, i.Ip4);
+				printf("AddMulticastMember(%s, %s)\n", LIpStr(mc_ip).Get(), LIpStr(ip).Get());
+				AddMulticastMember(mc_ip, ip);
 			}
 		}
-
-		#endif
-
+		
 		int r = bind(Handle(), (struct sockaddr*)&addr, sizeof(addr));
 		if (r)
 		{
@@ -459,7 +444,14 @@ public:
 			int err = WSAGetLastError();
 			OnError(err, NULL);
 			#endif
+
+			printf("Error: Bind on %s:%i\n", LIpStr(ntohl(addr.sin_addr.s_addr)).Get(), port);
 		}
+		else
+		{
+			printf("Ok: Bind on %s:%i\n", LIpStr(ntohl(addr.sin_addr.s_addr)).Get(), port);
+		}
+
 	}
 
 	bool ReadPacket(GString &d, uint32 &Ip, uint16 &Port)
@@ -529,7 +521,7 @@ public:
 		}
 		
 		uint32 BroadcastIp = Ip /*| ~Netmask*/;
-		#if 1
+		#if 0
 		printf("Broadcast %i.%i.%i.%i\n", 
 			(BroadcastIp >> 24) & 0xff,
 			(BroadcastIp >> 16) & 0xff,

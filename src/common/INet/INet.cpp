@@ -1502,6 +1502,38 @@ bool HaveNetConnection()
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+GString LIpStr(uint32 ip)
+{
+	GString s;
+	s.Printf("%i.%i.%i.%i",
+			(ip>>24)&0xff,
+			(ip>>16)&0xff,
+			(ip>>8)&0xff,
+			(ip)&0xff);
+	return s;
+}
+
+uint32 LIpHostInt(GString str)
+{
+	auto p = str.Split(".");
+	if (p.Length() != 4)
+		return 0;
+	
+	uint32 ip = 0;
+	for (auto &s : p)
+	{
+		ip <<= 8;
+		auto n = s.Int();
+		if (n > 255)
+		{
+			LgiAssert(0);
+			return 0;
+		}
+		ip |= (uint8)s.Int();
+	}
+	return ip;
+}
+
 bool WhatsMyIp(GAutoString &Ip)
 {
 	bool Status = false;
