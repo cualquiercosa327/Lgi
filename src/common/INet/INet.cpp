@@ -504,7 +504,7 @@ bool GSocket::GetLocalIp(char *IpAddr)
 	return false;
 }
 
-bool GSocket::GetRemoteIp(char *IpAddr)
+bool GSocket::GetRemoteIp(uint32 *IpAddr)
 {
 	if (IpAddr)
 	{
@@ -512,17 +512,30 @@ bool GSocket::GetRemoteIp(char *IpAddr)
 		socklen_t addrlen = sizeof(a);
 		if (!getpeername(Handle(), (sockaddr*)&a, &addrlen))
 		{
-			uchar *addr = (uchar*)&a.sin_addr.s_addr;
-			sprintf_s(	IpAddr,
-						16,
-						"%u.%u.%u.%u",
-						addr[0],
-						addr[1],
-						addr[2],
-						addr[3]);
+			*IpAddr = ntohl(a.sin_addr.s_addr);
 			return true;
 		}
 	}
+
+	return false;
+}
+
+bool GSocket::GetRemoteIp(char *IpAddr)
+{
+	if (!IpAddr)
+		return false;
+
+	uint32 Ip = 0;
+	if (!GetRemoteIp(&Ip))
+		return false;
+
+	sprintf_s(	IpAddr,
+				16,
+				"%u.%u.%u.%u",
+				(Ip >> 24) & 0xff,
+				(Ip >> 16) & 0xff,
+				(Ip >> 8) & 0xff,
+				(Ip) & 0xff);
 
 	return false;
 }

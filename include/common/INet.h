@@ -118,6 +118,7 @@ public:
 	int GetLocalPort();
 	
 	/// Gets the IP address at the remote end of the socket.
+	bool GetRemoteIp(uint32 *IpAddr);
 	bool GetRemoteIp(char *IpAddr);
 
 	/// Gets the IP address at the remote end of the socket.
