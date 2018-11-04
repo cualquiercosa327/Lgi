@@ -502,7 +502,7 @@ public:
 		{
 			struct in_addr addr;
 			addr.s_addr = htonl(SelectIf);
-			auto r = setsockopt(Handle(), IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr));
+			auto r = setsockopt(Handle(), IPPROTO_IP, IP_MULTICAST_IF, (char*)&addr, sizeof(addr));
 			if (r)
 				printf("%s:%i - set IP_MULTICAST_IF failed.\n", _FL);
 			SelectIf = 0;

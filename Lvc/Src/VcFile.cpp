@@ -31,6 +31,7 @@ VcFile::FileStatus VcFile::GetStatus()
 		else STATE("Modified", SModified);
 		else STATE("A", SAdded);
 		else STATE("M", SModified);
+		else STATE("C", SConflicted);
 		else STATE("!", SMissing);
 		else
 		{

@@ -1287,7 +1287,8 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 				if (Ln.Lower().Find("error:") >= 0)
 				{
 				}
-				else if (strchr(" /t", Type))
+				else if (strchr(" /t", Type) ||
+						Ln.Find("Summary of conflicts") >= 0)
 				{
 					// Ignore
 				}
