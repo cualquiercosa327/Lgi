@@ -74,6 +74,11 @@ GViewI *GWindowFromHandle(OsView Wnd)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+const char *GView::GetClass()
+{
+	return "GView";
+}
+
 void GView::_Delete()
 {
 	SetPulse();

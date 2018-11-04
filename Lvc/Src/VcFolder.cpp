@@ -728,54 +728,6 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
-bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
-{
-	if (GTreeItem::Select())
-		Select(true);
-	
-	CommitListDirty = Result == 0;
-	CurrentCommit.Empty();
-	IsCommit = false;
-
-	if (Result)
-		return false;
-
-	if (Result == 0)
-	{
-		d->ClearFiles();
-
-		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
-		if (w)
-			w->SetCtrlName(IDC_MSG, NULL);
-	}
-
-	switch (GetType())
-	{
-		case VcGit:
-		{
-			Unpushed++;
-			Update();
-
-			if (Params && Params->Str.Find("Push") >= 0)
-				Push();
-			break;
-		}
-		case VcSvn:
-		{
-			CurrentCommit.Empty();
-			CommitListDirty = true;
-			break;
-		}
-		default:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-	}
-
-	return true;
-}
-
 bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 {
 	if (Result == 0)
@@ -1422,6 +1374,55 @@ void VcFolder::ListWorkingFolder()
 
 		IsWorkingFld = StartCmd(Arg, &VcFolder::ParseWorking);
 	}
+}
+
+bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
+{
+	if (GTreeItem::Select())
+		Select(true);
+	
+	CommitListDirty = Result == 0;
+	CurrentCommit.Empty();
+	IsCommit = false;
+
+	if (Result)
+		return false;
+
+	if (Result == 0)
+	{
+		d->ClearFiles();
+
+		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
+		if (w)
+			w->SetCtrlName(IDC_MSG, NULL);
+	}
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			Unpushed++;
+			Update();
+
+			if (Params && Params->Str.Find("Push") >= 0)
+				Push();
+			break;
+		}
+		case VcSvn:
+		{
+			CurrentCommit.Empty();
+			CommitListDirty = true;
+			GetTree()->SendNotify(LvcCommandEnd);
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return true;
 }
 
 void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)

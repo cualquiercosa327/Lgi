@@ -171,11 +171,11 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTbl<char*,AppArray*> MimeToApp;
+	LHashTbl<StrKey<char,false>,AppArray*> MimeToApp;
 	#if HAS_SHARED_MIME
 	GSharedMime *Sm;
 	#endif
-	GHashTbl<int, GView*> Handles;
+	LHashTbl<IntKey<int>, GView*> Handles;
 	OsThread GuiThread;
 	OsThreadId GuiThreadId;
 	int MessageLoopDepth;
@@ -200,7 +200,7 @@ public:
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
 	GVariant ClipData;
-	GHashTbl<int, GVariant*> ClipNotify;
+	LHashTbl<IntKey<int>, GVariant*> ClipNotify;
 
 	// Mouse click info
 	uint64 LastClickTime;
