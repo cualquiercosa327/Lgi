@@ -2038,6 +2038,7 @@ bool LDateTime_Test()
 	LgiTrace("Get='%s'\n", t.Get().Get());
 	uint64 i2 = i + (24ULL * 60 * 60 * LDateTime::Second64Bit);
 	LDateTime t2;
+	t2.SetFormat(GDTF_DAY_MONTH_YEAR);
 	t2.Set(i2);
 	GString s = t2.Get();
 	LgiTrace("Set='%s'\n", s.Get());
