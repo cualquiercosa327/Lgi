@@ -70,6 +70,8 @@ enum AppIds
 	IDM_EOL_AUTO,
 	IDM_ADD_FILE,
 	IDM_ADD_BINARY_FILE,
+	IDM_BROWSE_FOLDER,
+	IDM_TERMINAL,
 };
 
 enum VersionCtrl

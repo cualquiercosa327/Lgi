@@ -1037,10 +1037,29 @@ void VcFolder::OnMouseClick(GMouse &m)
 	if (m.IsContextMenu())
 	{
 		GSubMenu s;
+		s.AppendItem("Browse To", IDM_BROWSE_FOLDER);
+		s.AppendItem("Terminal At", IDM_TERMINAL);
+		s.AppendSeparator();
 		s.AppendItem("Remove", IDM_REMOVE);
 		int Cmd = s.Float(GetTree(), m);
 		switch (Cmd)
 		{
+			case IDM_BROWSE_FOLDER:
+			{
+				LgiBrowseToFile(Path);
+				break;
+			}
+			case IDM_TERMINAL:
+			{
+				#if defined(MAC)
+					LgiExecute("/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal", Path);
+				#elif defined(WINDOWS)
+					#error "Impl me."
+				#elif defined(LINUX)
+					#error "Impl me."
+				#endif
+				break;
+			}
 			case IDM_REMOVE:
 			{
 				OnRemove();
