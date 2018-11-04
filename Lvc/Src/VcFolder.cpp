@@ -1475,7 +1475,13 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 				GString::Array a;
 				a.New().Printf("commit -m \"%s\"", Msg);
 				for (VcFile **pf = NULL; Add.Iterate(pf); )
-					a.New() = (*pf)->GetFileName();
+				{
+					GString s = (*pf)->GetFileName();
+					if (s.Find(" ") >= 0)
+						a.New().Printf("\"%s\"", s.Get());
+					else
+						a.New() = s;
+				}
 
 				Args = GString(" ").Join(a);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
