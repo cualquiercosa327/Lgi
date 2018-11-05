@@ -124,6 +124,12 @@ GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case WM_DESTROY:
+		{
+			// Copy state back into a local var
+			d->InitState = SendMessage(Handle(), BM_GETCHECK, 0, 0);
+			break;
+		}
 		case WM_ERASEBKGND:
 		{
 			GScreenDC Dc((HDC)Msg->A(), _View);

@@ -26,7 +26,7 @@ enum ProjSetting
 	ProjCommentFunction,
 	ProjMakefileRules,
 	ProjApplicationIcon,
-	ProjPostBuildCommands
+	ProjPostBuildCommands,
 };
 
 class IdeProjectSettings

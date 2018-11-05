@@ -1696,21 +1696,63 @@ public:
 		Run();
 	}
 
-	int Main()
+	bool DumpBin(GString Args, GStream *Str)
 	{
-		GString Args;
-		Args.Printf("/exports \"%s\"", InFile.Get());
-		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
-		if (!s.Start(true, false))
-			return -1;
-
 		char Buf[256];
 		ssize_t Rd;
+
+		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
+		if (!s.Start(true, false))
+			return false;
+
 		while ((Rd = s.Read(Buf, sizeof(Buf))) > 0)
+			Str->Write(Buf, Rd);
+
+		return true;
+	}
+
+	GString::Array Dependencies(GString Lib)
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/dependents \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+
+		auto Parts = p.NewGStr().Replace("\r", "").Split("\n\n");
+		auto Files = Parts[4].Strip().Split("\n");
+		auto Path = LGetPath();
+		for (auto &f : Files)
 		{
-			Out->Write(Buf, Rd);
+			f = f.Strip();
+
+			bool Found = false;
+			for (auto s : Path)
+			{
+				GFile::Path c(s);
+				c += f.Get();
+				if (c.IsFile())
+				{
+					f = c.GetFull();
+					Found = true;
+					break;
+				}
+			}
+
+			if (!Found)
+				f += " (not found in path)";
 		}
 
+		return Files;
+	}
+
+	int Main()
+	{
+		auto Deps = Dependencies(InFile);
+		Out->Print("Dependencies:\n\t%s\n\n\n", GString("\n\t").Join(Deps).Get());
+
+		GString Args;
+		Args.Printf("/exports \"%s\"", InFile.Get());
+		DumpBin(Args, Out);
 		return 0;
 	}
 };

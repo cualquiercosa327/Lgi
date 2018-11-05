@@ -119,9 +119,11 @@ class LJson
 					Key &k = Array[i];
 					if (i)
 						r += ", ";
+					/*
 					if (k.Obj.Length())
 						s = GString("{") + k.Print() + "}";
 					else
+					*/
 						s = k.Print();
 					r += s;
 				}
