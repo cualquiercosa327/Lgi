@@ -1568,6 +1568,7 @@ void VcFolder::Pull()
 	bool Status = false;
 	switch (GetType())
 	{
+		case VcHg:
 		case VcGit:
 			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, true);
 			break;
@@ -1591,6 +1592,7 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	switch (GetType())
 	{
 		case VcGit:
+		case VcHg:
 		{
 			// Git does a merge by default, so the current commit changes...
 			CurrentCommit.Empty();
