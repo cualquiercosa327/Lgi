@@ -132,7 +132,7 @@ SettingInfo AllSettings[] =
 	{ProjCommentFile,			GV_STRING,		"CommentFile",		sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjCommentFunction,		GV_STRING,		"CommentFunction",	sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjMakefileRules,			GV_STRING,		"OtherMakefileRules", sAdvanced, SF_MULTILINE},
-	{ProjPostBuildCommands,		GV_STRING,		"PostBuildCommands", sAdvanced, SF_MULTILINE},
+	{ProjPostBuildCommands,		GV_STRING,		"PostBuildCommands", sAdvanced, SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC|SF_MULTILINE},
 	{ProjNone,					GV_NULL,		NULL,				NULL,		0},
 };
 

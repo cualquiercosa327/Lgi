@@ -120,6 +120,7 @@ public:
 class IdeProject : public GXmlFactory, public IdeCommon
 {
 	friend class ProjectNode;
+	friend class BuildThread;
 	class IdeProjectPrivate *d;
 
 	bool OnNode(const char *Path, class ProjectNode *Node, bool Add);
