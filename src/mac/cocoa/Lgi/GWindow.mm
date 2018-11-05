@@ -183,14 +183,18 @@ public:
 
 - (id)init:(GWindowPrivate*)priv Frame:(NSRect)rc
 {
-	self.d = priv;
-	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask |
+								 NSClosableWindowMask | NSMiniaturizableWindowMask;
 	if ((self = [super initWithContentRect:rc
 					styleMask:windowStyleMask
 					backing:NSBackingStoreBuffered
 					defer:NO ]) != nil)
 	{
+		self.d = priv;
+		
+		#if 0
 		auto old = self.contentView.frame;
+		
 		self.content = new GWindowContent(priv->Wnd);
 		GRect r = old;
 		self.content->SetPos(r);
@@ -201,6 +205,7 @@ public:
 		*self.content = ctrl.view;
 		self.contentViewController = ctrl;
 		//[ctrl release];
+		#endif
 	}
 	return self;
 }
@@ -208,6 +213,7 @@ public:
 - (void)dealloc
 {
 	[super dealloc];
+	printf("LNsWindow dealloc...\n");
 }
 
 @end
@@ -233,7 +239,8 @@ public:
 	if (w && w.d)
 	{
 		w.d->OnResize();
-		[w.content->Handle().p layout];
+		if (w.content)
+			[w.content->Handle().p layout];
 	}
 }
 
@@ -271,6 +278,10 @@ public:
 
 ///////////////////////////////////////////////////////////////////////
 #define GWND_CREATE		0x0010000
+
+#if __has_feature(objc_arc)
+#error "NO ARC!"
+#endif
 
 GWindow::GWindow() : GView(NULL)
 {
@@ -1499,7 +1510,6 @@ GRect &GWindow::GetClient(bool ClientSpace)
 		r = Wnd.p.contentView.frame;
 		if (ClientSpace)
 			r.Offset(-r.x1, -r.y1);
-		//printf("GWindow client %s\n", r.GetStr());
 	}
 	else
 	{
@@ -1589,8 +1599,10 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 		r.x2 = r.x1 + x - 1;
 	
 	Pos = r;
+	/*
 	if (Wnd)
 		[Wnd.p setFrame:Pos display:YES];
+		*/
 	
 	return true;
 }
@@ -1629,9 +1641,9 @@ void GWindow::OnPosChange()
 
 #define IsTool(v) \
 ( \
-dynamic_cast<GView*>(v) \
-&& \
-dynamic_cast<GView*>(v)->_IsToolBar \
+	dynamic_cast<GView*>(v) \
+	&& \
+	dynamic_cast<GView*>(v)->_IsToolBar \
 )
 
 void GWindow::PourAll()
@@ -1871,7 +1883,7 @@ bool GWindow::Obscured()
 {
 	if (!Wnd)
 		return false;
-	
+
 	auto s = [Wnd.p occlusionState];
 	return !(s & NSWindowOcclusionStateVisible);
 }

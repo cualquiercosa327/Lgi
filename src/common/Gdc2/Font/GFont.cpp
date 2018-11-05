@@ -1346,8 +1346,11 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 					if (descriptor)
 					{
 						d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
+						CFRelease(descriptor);
 					}
 					else LgiAssert(0);
+					
+					CFRelease(FontAttrD);
 				}
 				else LgiAssert(0);
 				

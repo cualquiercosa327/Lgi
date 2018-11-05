@@ -181,7 +181,7 @@ public:
 		
 		if (Attach(0))
 		{
-			#if 1
+			#if 0
 
 			GTabView *t = new GTabView(100);
 			t->Attach(this);
