@@ -990,7 +990,13 @@ void VcFolder::OnMouseClick(GMouse &m)
 	{
 		GSubMenu s;
 		s.AppendItem("Browse To", IDM_BROWSE_FOLDER);
-		s.AppendItem("Terminal At", IDM_TERMINAL);
+		s.AppendItem(
+			#ifdef WINDOWS
+			"Command Prompt At",
+			#else
+			"Terminal At",
+			#endif
+			IDM_TERMINAL);
 		s.AppendSeparator();
 		s.AppendItem("Remove", IDM_REMOVE);
 		int Cmd = s.Float(GetTree(), m);
@@ -1006,7 +1012,15 @@ void VcFolder::OnMouseClick(GMouse &m)
 				#if defined(MAC)
 					LgiExecute("/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal", Path);
 				#elif defined(WINDOWS)
-					#error "Impl me."
+					TCHAR w[MAX_PATH];
+					auto r = GetWindowsDirectory(w, CountOf(w));
+					if (r > 0)
+					{
+						GFile::Path p = GString(w);
+						p += "system32\\cmd.exe";
+						FileDev->SetCurrentFolder(Path);
+						LgiExecute(p);
+					}
 				#elif defined(LINUX)
 					#error "Impl me."
 				#endif
@@ -1653,6 +1667,15 @@ bool VcFolder::ParseVersion(int Result, GString s, ParseParams *Params)
 			break;
 		}
 		case VcHg:
+		{
+			if (p.Length() >= 5)
+			{
+				auto Ver = p[4].Strip("()");
+				ToolVersion[GetType()] = Ver2Int(Ver);
+				printf("Hg version: %s\n", Ver.Get());
+			}
+			break;
+		}
 		case VcCvs:
 		{
 			#ifdef _DEBUG
