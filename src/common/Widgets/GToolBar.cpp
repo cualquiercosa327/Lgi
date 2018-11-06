@@ -610,11 +610,15 @@ void GToolButton::OnPaint(GSurface *pDC)
 		pDC->Rectangle();
 		#endif
 
+		GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+		if (e && Over)
+			cBack = cBack.Mix(GColour::White);
+
 		// Draw Background
 		if (GetId() >= 0)
 		{
 			// Draw border
-			GColour Background(e && Over ? ToolBarHilightColour : LC_MED, 24);
+			GColour Background(cBack);
 			if (Down)
 			{
 				// Sunken if the button is pressed
@@ -712,23 +716,26 @@ void GToolButton::OnPaint(GSurface *pDC)
 			// Separator
 			int Px = X()-1;
 			int Py = Y()-1;
-			pDC->Colour(LC_MED, 24);
+			pDC->Colour(cBack);
 			pDC->Rectangle();
+
+			GColour cLow = cBack.Mix(GColour::Black);
+			GColour cHigh = cBack.Mix(GColour::White, 0.8f);
 
 			if (X() > Y())
 			{
 				int c = Y()/2-1;
-				pDC->Colour(Map(pDC, LC_LOW), 24);
+				pDC->Colour(cLow);
 				pDC->Line(2, c, Px-2, c);
-				pDC->Colour(Map(pDC, LC_LIGHT), 24);
+				pDC->Colour(cHigh);
 				pDC->Line(2, c+1, Px-2, c+1);
 			}
 			else
 			{
 				int c = X()/2-1;
-				pDC->Colour(Map(pDC, LC_LOW), 24);
+				pDC->Colour(cLow);
 				pDC->Line(c, 2, c, Py-2);
-				pDC->Colour(Map(pDC, LC_LIGHT), 24);
+				pDC->Colour(cHigh);
 				pDC->Line(c+1, 2, c+1, Py-2);
 			}
 		}
@@ -999,6 +1006,7 @@ GToolBar::GToolBar()
 	#if defined BEOS
 	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
 	#endif
+	GetCss(true)->BackgroundColor(GColour(LC_MED,24).Mix(GColour::Black, 0.05f));
 	LgiResources::StyleElement(this);
 }
 
@@ -1385,7 +1393,8 @@ GMessage::Result GToolBar::OnEvent(GMessage *Msg)
 
 void GToolBar::OnPaint(GSurface *pDC)
 {
-	pDC->Colour(LC_MED, 24);
+	GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+	pDC->Colour(cBack);
 	pDC->Rectangle();
 }
 
