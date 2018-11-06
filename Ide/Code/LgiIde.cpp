@@ -1711,7 +1711,7 @@ public:
 		return true;
 	}
 
-	GString::Array Dependencies(GString Lib)
+	GString::Array Dependencies()
 	{
 		GString Args;
 		GStringPipe p;
@@ -1745,14 +1745,77 @@ public:
 		return Files;
 	}
 
+	GString GetArch()
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/headers \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+	
+		const char *Key = " machine ";
+		GString Arch;
+		auto Lines = p.NewGStr().SplitDelimit("\r\n");
+		int64 Machine = 0;
+		for (auto &Ln : Lines)
+		{
+			if (Ln.Find(Key) >= 0)
+			{
+				auto p = Ln.Strip().Split(Key);
+				if (p.Length() == 2)
+				{
+					Arch = p[1].Strip("()");
+					Machine = p[0].Int(16);
+				}
+			}
+		}
+
+		if (Machine == 0x14c)
+			Arch += " 32bit";
+		else if (Machine == 0x200)
+			Arch += " 64bit Itanium";
+		else if (Machine == 0x8664)
+			Arch += " 64bit";
+
+		return Arch;
+	}
+
+	GString GetExports()
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/exports \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+	
+		GString Exp;
+		auto Sect = p.NewGStr().Replace("\r", "").Split("\n\n");
+		bool Ord = false;
+		for (auto &s : Sect)
+		{
+			if (s.Strip().Find("ordinal") == 0)
+				Ord = true;
+			else if (Ord)
+			{
+				Exp = s;
+				break;
+			}
+			else Ord = false;
+		}
+
+		return Exp;
+	}
+
 	int Main()
 	{
-		auto Deps = Dependencies(InFile);
-		Out->Print("Dependencies:\n\t%s\n\n\n", GString("\n\t").Join(Deps).Get());
+		auto Deps = Dependencies();
+		Out->Print("Dependencies:\n\t%s\n\n", GString("\n\t").Join(Deps).Get());
 
-		GString Args;
-		Args.Printf("/exports \"%s\"", InFile.Get());
-		DumpBin(Args, Out);
+		auto Arch = GetArch();
+		if (Arch)
+			Out->Print("Arch: %s\n\n", Arch.Get());
+
+		auto Exp = GetExports();
+		if (Arch)
+			Out->Print("Exports:\n%s\n\n", Exp.Get());
 		return 0;
 	}
 };
