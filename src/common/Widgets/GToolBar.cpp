@@ -983,7 +983,6 @@ GToolBar::GToolBar()
 	Name("LGI_Toolbar");
 	_BorderSize = 1;
 	_IsToolBar = 1;
-	Raised(true);
 
 	// Setup tool button font
 	GFontType SysFontType;

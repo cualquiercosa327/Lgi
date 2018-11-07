@@ -1586,8 +1586,6 @@ public:
 	/// Set the bar size
 	void BarSize(int i);
 
-	bool Border();
-	void Border(bool i);
 	GViewI *FindControl(OsView hCtrl);
 
 	bool Attach(GViewI *p);

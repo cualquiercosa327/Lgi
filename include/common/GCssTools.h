@@ -33,9 +33,6 @@ public:
 		BackInit = 0;
 	}
 		
-	/// \returns the padding in Px
-	GRect GetPadding(GRect &box);
-	
 	/// Gets the foreground colour for text
 	GColour &GetFore(GColour *Default = NULL);
 	
@@ -45,6 +42,15 @@ public:
 	/// Applies the margin to a rectangle
 	GRect ApplyMargin(GRect &in);
 
+	/// \returns the border in Px
+	GRect GetBorder(GRect &box);
+	
+	/// Applies the border to a rectangle
+	GRect ApplyBorder(GRect &in);
+
+	/// \returns the padding in Px
+	GRect GetPadding(GRect &box);
+	
 	/// Applies the padding to a rectangle
 	GRect ApplyPadding(GRect &in);
 

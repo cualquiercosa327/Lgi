@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "LgiRes.h"
+#include "GCssTools.h"
 
 //////////////////////////////////////////////////////////////////////////////
 #define SPLITER_BORDER			4
@@ -55,8 +56,7 @@ GSplitter::GSplitter()
 	d->SplitSet = d->SplitPos = -1;
 	d->Moving = false;
 
-	Border(true);
-	Raised(true);
+	GetCss(true)->Padding("4px");
 
 	SetPourLargest(true);
 	_BorderSize = 1;
@@ -84,8 +84,6 @@ GSplitter::~GSplitter()
 
 int GSplitter::BarSize() { return d->BarSize; }
 void GSplitter::BarSize(int i) { d->BarSize = i; CalcRegions(); }
-bool GSplitter::Border() { return TestFlag(WndFlags, GWF_BORDER); }
-void GSplitter::Border(bool i) { (i) ? SetFlag(WndFlags, GWF_BORDER) : ClearFlag(WndFlags, GWF_BORDER); }
 bool GSplitter::IsVertical() { return d->Vertical; }
 bool GSplitter::DoesSplitFollow() { return d->SplitFollow; }
 void GSplitter::DoesSplitFollow(bool i) { d->SplitFollow = i; }
@@ -222,11 +220,11 @@ void GSplitter::CalcRegions(bool Follow)
 	GRect Rect = GetClient();
 	
 	d->PosA = Rect;
-	if (Border())
-	{
-		d->PosA.Size(SPLITER_BORDER, SPLITER_BORDER);
-	}
 
+	GRect r = GetClient();
+	GCssTools Tools(this);
+	d->PosA = Tools.ApplyBorder(d->PosA);
+	d->PosA = Tools.ApplyPadding(d->PosA);
 	d->PosB = d->PosA;
 
 	if (d->SplitFollow && Follow)
@@ -254,7 +252,7 @@ void GSplitter::CalcRegions(bool Follow)
 		d->PosB.y1 = d->PosA.y2 + d->BarSize;
 	}
 
-	GRect r = d->PosA;
+	r = d->PosA;
 	if (d->BorderA)
 	{
 		r.Size(SPLITER_INSET, SPLITER_INSET);
@@ -338,15 +336,13 @@ void ClipDC(HDC hDC, RECT rc)
 void GSplitter::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
-
-	pDC->Colour(LC_MED, 24);
-	if (Border())
-	{
-		LgiFlatBorder(pDC, r, SPLITER_BORDER);
-	}
+	GCssTools Tools(this);
+	
+	r = Tools.PaintBorder(pDC, r);
+	r = Tools.PaintPadding(pDC, r);
+	pDC->Colour(Tools.GetBack());
 
 	// bar
-	pDC->Colour(LC_MED, 24);
 	if (d->Vertical)
 	{
 		/* Old Win32
