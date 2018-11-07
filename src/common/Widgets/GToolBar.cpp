@@ -17,6 +17,7 @@
 #include "GPalette.h"
 #include "GNotifications.h"
 #include "LgiRes.h"
+#include "GCssTools.h"
 
 #define ToolBarHilightColour LC_HIGH
 
@@ -1195,11 +1196,14 @@ bool GToolBar::OnLayout(GViewLayoutInfo &Inf)
 bool GToolBar::Pour(GRegion &r)
 {
 	int BorderSpacing = GetBorderSpacing();
-	int PosX = BorderSpacing;
-	int PosY = BorderSpacing;
 	int EndX = 0;
 	int EndY = 0;
 	int MaxDim = 0;
+	GCssTools Tools(this);
+	GRect Border = Tools.GetBorder(r);
+	GRect Padding = Tools.GetPadding(r);
+	int PosX = BorderSpacing + Border.x1 + Padding.x1;
+	int PosY = BorderSpacing + Border.y1 + Padding.y1;
 
 	GRect ButPos;
 	GViewI *But = Children.First();
@@ -1247,7 +1251,10 @@ bool GToolBar::Pour(GRegion &r)
 					else
 					{
 						// Otherwise default to text size
-						ButPos.ZOff(7, 0);
+						if (d->Vertical)
+							ButPos.ZOff(0, 7);
+						else
+							ButPos.ZOff(7, 0);
 					}
 					
 					Tx += 4;
@@ -1262,13 +1269,9 @@ bool GToolBar::Pour(GRegion &r)
 			}
 			
 			if (d->Vertical)
-			{
 				MaxDim = MAX(MaxDim, ButPos.X());
-			}
 			else
-			{
 				MaxDim = MAX(MaxDim, ButPos.Y());
-			}
 
 			ButPos.Offset(PosX - ButPos.x1, PosY - ButPos.y1);
 
@@ -1289,13 +1292,9 @@ bool GToolBar::Pour(GRegion &r)
 			else
 			{
 				if (d->Vertical)
-				{
 					PosY = ButPos.y2 + BorderSpacing;
-				}
 				else
-				{
 					PosX = ButPos.x2 + BorderSpacing;
-				}
 			}
 
 			But->SetPos(ButPos);
@@ -1337,10 +1336,11 @@ bool GToolBar::Pour(GRegion &r)
 	d->Sx = EndX + BorderSpacing;
 	d->Sy = EndY + BorderSpacing;
 
-	int BorderPx = Raised() || Sunken() ? _BorderSize<<1 : 0;
+	d->Sx += Border.x2 + Padding.x2;
+	d->Sy += Border.y2 + Padding.y2;
 
 	GRect n;
-	n.ZOff(MAX(7, d->Sx)+BorderPx, MAX(7, d->Sy)+BorderPx);
+	n.ZOff(MAX(7, d->Sx), MAX(7, d->Sy));
 
 	GRect *Best = FindLargestEdge(r, GV_EDGE_TOP);
 	if (Best)
@@ -1392,9 +1392,12 @@ GMessage::Result GToolBar::OnEvent(GMessage *Msg)
 
 void GToolBar::OnPaint(GSurface *pDC)
 {
-	GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
-	pDC->Colour(cBack);
-	pDC->Rectangle();
+	GRect c = GetClient();
+	GCssTools Tools(this);
+	Tools.PaintBorder(pDC, c);
+	Tools.PaintPadding(pDC, c);
+	pDC->Colour(Tools.GetBack());
+	pDC->Rectangle(&c);
 }
 
 void GToolBar::OnMouseClick(GMouse &m)

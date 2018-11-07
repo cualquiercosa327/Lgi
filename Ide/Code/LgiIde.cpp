@@ -1579,6 +1579,7 @@ Chk;
 			Tools->AppendSeparator();
 			Tools->AppendButton("Find In Files", IDM_FIND_IN_FILES, TBT_PUSH, true, CMD_FIND_IN_FILES);
 			
+			Tools->GetCss(true)->Padding("4px");
 			Tools->Attach(this);
 		}
 		else LgiTrace("%s:%i - No tools obj?", _FL);
