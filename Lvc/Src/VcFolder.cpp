@@ -211,7 +211,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 	if (CmdErrors > 2)
 		return false;
 
-	if (d->Log && LogCmd)
+	if (d->Log)
 		d->Log->Print("%s %s\n", Exe, Args);
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
@@ -220,7 +220,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 
 	Process->SetInitFolder(Params && Params->AltInitPath ? Params->AltInitPath : Path);
 
-	GAutoPtr<Cmd> c(new Cmd(/*LogCmd ? d->Log :*/ NULL));
+	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
 	if (!c)
 		return false;
 
@@ -328,8 +328,12 @@ void VcFolder::Select(bool b)
 
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
+			if (GetType() == VcSvn && CommitListDirty)
+				IsLogging = StartCmd("up", &VcFolder::ParsePull, new ParseParams("log"));
+			else
+				IsLogging = StartCmd("log", &VcFolder::ParseLog);
+
 			CommitListDirty = false;
-			IsLogging = StartCmd("log", &VcFolder::ParseLog, NULL, true);
 		}
 
 		if (Branches.Length() == 0)
@@ -950,7 +954,8 @@ void VcFolder::OnPulse()
 				CmdErrors++;
 			}
 
-			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
+			if (c->PostOp)
+				Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
 			Cmds.DeleteAt(i--, true);
 			delete c;
 			CmdsChanged = true;
@@ -1614,6 +1619,12 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 					CurrentCommit = p.Last();
 					break;
 				}
+			}
+
+			if (Params && Params->Str.Equals("log"))
+			{
+				IsLogging = StartCmd("log", &VcFolder::ParseLog);
+				return false;
 			}
 			break;
 		}
