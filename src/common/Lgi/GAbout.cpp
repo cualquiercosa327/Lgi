@@ -62,7 +62,6 @@ GAbout::GAbout(	GView *parent,
 
 			DeleteArray(FileName);
 			x += 10 + Img->X();
-			// Img->Sunken(true);
 			Img->SetNotify(this);
 		}
 	}

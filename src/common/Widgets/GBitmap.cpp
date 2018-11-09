@@ -166,25 +166,16 @@ GMessage::Result GBitmap::OnEvent(GMessage *Msg)
 
 void GBitmap::OnPaint(GSurface *pScreen)
 {
+	GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+
 	GRect a = GetClient();
+	pScreen->Colour(cBack);
+	pScreen->Rectangle(&a);
+
 	if (pDC)
 	{
+		pScreen->Op(GDC_ALPHA);
 		pScreen->Blt(0, 0, pDC);
-
-		pScreen->Colour(LC_MED, 24);
-		if (pDC->X() < a.X())
-		{
-			pScreen->Rectangle(pDC->X(), 0, a.x2, pDC->Y());
-		}
-		if (pDC->Y() < a.Y())
-		{
-			pScreen->Rectangle(0, pDC->Y(), a.x2, a.y2);
-		}
-	}
-	else
-	{
-		pScreen->Colour(LC_MED, 24);
-		pScreen->Rectangle(&a);
 	}
 }
 
