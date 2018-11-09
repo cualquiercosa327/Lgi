@@ -747,7 +747,11 @@ bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 
 bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 {
-	ParseDiffs(s, NULL, true);
+	if (GetType() == VcSvn)
+		ParseStatus(Result, s, Params);
+	else
+		ParseDiffs(s, NULL, true);
+	
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
 
@@ -1173,6 +1177,36 @@ void VcFolder::ListCommit(VcCommit *c)
 	}
 }
 
+GString ConvertUPlus(GString s)
+{
+	GArray<uint32> c;
+	GUtf8Ptr p(s);
+	int32 ch;
+	while ((ch = p))
+	{
+		if (ch == '{')
+		{
+			auto n = p.GetPtr();
+			if (n[1] == 'U' &&
+				n[2] == '+')
+			{
+				// Convert unicode code point
+				p += 3;
+				ch = (int32)htoi(p.GetPtr());
+				c.Add(ch);
+				while ((ch = p) != '}')
+					p++;
+			}
+			else c.Add(ch);
+		}
+		else c.Add(ch);
+		p++;
+	}
+	
+	c.Add(0);
+	return GString(c.AddressOf());
+}
+
 bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 {
 	bool ShowUntracked = d->Files->GetWindow()->GetCtrlValue(IDC_UNTRACKED) != 0;
@@ -1289,9 +1323,15 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					GString::Array p = Ln.SplitDelimit(" ", 1);
 					if (p.Length() == 2)
 					{
+						GString File;
+						if (GetType() == VcSvn)
+							File = ConvertUPlus(p.Last());
+						else
+							File = p.Last();
+							
 						VcFile *f = new VcFile(d, this, p[1], IsWorking);
 						f->SetText(p[0], COL_STATE);
-						f->SetText(p.Last(), COL_FILENAME);
+						f->SetText(File, COL_FILENAME);
 						f->GetStatus();
 						Ins.Insert(f);
 					}
@@ -1382,6 +1422,9 @@ void VcFolder::ListWorkingFolder()
 		{
 			case VcCvs:
 				Arg = "-q diff --brief";
+				break;
+			case VcSvn:
+				Arg = "status";
 				break;
 			case VcGit:
 				StartCmd("diff --staged", &VcFolder::ParseWorking);
