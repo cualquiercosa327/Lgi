@@ -1154,7 +1154,6 @@ void AppWnd::SetupUi()
 			SubSplit->Raised(false);
 			
 			MainSplit->SetViewA(SubSplit, false);
-			SubSplit->Border(false);
 			SubSplit->IsVertical(false);
 			SubSplit->Value(200);
 

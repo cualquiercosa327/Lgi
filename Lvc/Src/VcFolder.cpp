@@ -220,7 +220,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 
 	Process->SetInitFolder(Params && Params->AltInitPath ? Params->AltInitPath : Path);
 
-	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
+	GAutoPtr<Cmd> c(new Cmd(/*LogCmd ? d->Log :*/ NULL));
 	if (!c)
 		return false;
 
@@ -329,7 +329,7 @@ void VcFolder::Select(bool b)
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
 			CommitListDirty = false;
-			IsLogging = StartCmd("log", &VcFolder::ParseLog);
+			IsLogging = StartCmd("log", &VcFolder::ParseLog, NULL, true);
 		}
 
 		if (Branches.Length() == 0)
@@ -561,6 +561,8 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 				{
 					if (!Map.Find(Rev->GetRev()))
 						Log.Add(Rev.Release());
+					else
+						Skipped++;
 				}
 				else if (Raw)
 				{
