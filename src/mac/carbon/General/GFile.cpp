@@ -1159,7 +1159,8 @@ int GDirectory::First(const char *Name, const char *Pattern)
 			{
 				char s[512];
 				LgiMakePath(s, sizeof(s), d->BasePath, GetName());
-				lstat(s, &d->Stat);
+				ZeroObj(d->Stat);
+				auto r = lstat(s, &d->Stat);
 
 				if (d->Ignore())
 				{
@@ -1183,9 +1184,14 @@ int GDirectory::Next()
 	{
 		if ((d->De = readdir(d->Dir)))
 		{
-			char s[512];
-			LgiMakePath(s, sizeof(s), d->BasePath, GetName());			
-			lstat(s, &d->Stat);
+			ZeroObj(d->Stat);
+			auto r = lstat(FullPath(), &d->Stat);
+			if (r)
+			{
+				auto e = errno;
+				printf("%s:%i - lstat failed: %i\n", _FL, (int)e);
+			}
+			
 			if (!d->Ignore())
 			{
 				Status = true;
@@ -1281,7 +1287,9 @@ bool GDirectory::IsHidden() const
 bool GDirectory::IsDir() const
 {
 	int a = GetAttributes();
-	return !S_ISLNK(a) && S_ISDIR(a);
+	bool lnk = S_ISLNK(a);
+	bool dir = S_ISDIR(a);
+	return !lnk && dir;
 }
 
 long GDirectory::GetAttributes() const
