@@ -748,7 +748,12 @@ bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 {
 	if (GetType() == VcSvn)
+	{
+		ParseParams Local;
+		if (!Params) Params = &Local;
+		Params->IsWorking = true;
 		ParseStatus(Result, s, Params);
+	}
 	else
 		ParseDiffs(s, NULL, true);
 	
