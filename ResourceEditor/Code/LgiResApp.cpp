@@ -1414,9 +1414,9 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 			GAbout Dlg(	this,
 						AppName,
 						APP_VER,
-						"\nLgi Resource Editor.",
+						"\nLgi Resource Editor (lr8 files).",
 						"icon64.png",
-						"http://www.memecode.com/lgires.php",
+						"http://www.memecode.com/lgi/res",
 						"fret@memecode.com");
 			break;
 		}

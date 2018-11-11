@@ -7,11 +7,16 @@
 #include "GBitmap.h"
 #include "GButton.h"
 #include "GCss.h"
+#include "GTableLayout.h"
 
 //////////////////////////////////////////////////////////////////////////////
-#define IDM_WEB				100
-#define IDM_BMP				101
-#define IDM_MESSAGE			102
+enum Ctrls
+{
+	IDC_WEB = 100,
+	IDC_TABLE,
+	IDC_BMP,
+	IDC_MESSAGE,
+};
 
 GAbout::GAbout(	GView *parent,
 				const char *AppName,
@@ -24,8 +29,8 @@ GAbout::GAbout(	GView *parent,
 	SetParent(parent);
 	if (!AppName) AppName = "Application";
 
-	char n[256];
-	sprintf_s(n, sizeof(n), "About %s", AppName);
+	GString n;
+	n.Printf("About %s", AppName);
 	Name(n);
 
 	#ifdef _DEBUG
@@ -48,66 +53,43 @@ GAbout::GAbout(	GView *parent,
 	if (Email) p.Print("Email:\n\t%s\n", Email);
 	if (Text) p.Write((char*)Text, strlen(Text));
 
-	GCss::ColorDef Bk(GCss::ColorRgb, Rgb24To32(LC_MED));
+	GColour cBack(LC_MED, 24);
+	GTableLayout *Tbl = new GTableLayout(IDC_TABLE);
+	AddView(Tbl);
+	Tbl->GetCss(true)->Padding("0.5em");
+	int x = 0;
 
-	GView *Img = 0;
-	int x = 10;
 	if (AboutGraphic)
 	{
-		char *FileName = LgiFindFile(AboutGraphic);
+		GAutoString FileName(LgiFindFile(AboutGraphic));
 		if (FileName)
 		{
-			Children.Insert(Img = new GBitmap(IDM_BMP, 4, 4, FileName, true));
-			Img->GetCss(true)->BackgroundColor(Bk);
-
-			DeleteArray(FileName);
-			x += 10 + Img->X();
-			Img->SetNotify(this);
+			auto c = Tbl->GetCell(x++, 0, true);
+			auto Img = new GBitmap(IDC_BMP, 0, 0, FileName, true);
+			c->Add(Img);
+			Img->GetCss(true)->BackgroundColor(cBack);
 		}
 	}
 
-	GRect rc(x, 10, x+190, 145);
 	GView *Ctrl = GViewFactory::Create("GTextView3");
 	if (Ctrl)
 	{
-		AddView(Ctrl);
+		auto c = Tbl->GetCell(x++, 0, true);
+		c->Add(Ctrl);
 
-		GRect r(rc.x1, rc.y1, 1000, 500);
-
-		Ctrl->SetId(IDM_MESSAGE);
-		Ctrl->SetPos(r);
-		Ctrl->SetNotify(this);
-		GAutoString Str(p.NewStr());
-		Ctrl->Name(Str);
+		Ctrl->SetId(IDC_MESSAGE);
+		Ctrl->Name(p.NewGStr());
+		Ctrl->GetCss(true)->BackgroundColor(cBack);
 		Ctrl->SetFont(SysFont);
-
-		GDocView *View = dynamic_cast<GDocView*>(Ctrl);
-		if (View)
-		{
-			View->SetEnv(this);
-			View->GetCss(true)->BackgroundColor(Bk);
-			View->SetReadOnly(true);
-			View->SetCaret(Str ? strlen(Str) : 0, false);
-
-			int x = 0, y = 0;
-			View->GetTextExtent(x, y);
-			x += 4;
-			y += 4;
-			x = MAX(x, 100);
-			if (Img) y = MAX(y, Img->Y() - 30);
-			
-			rc.Dimension(x-1, y-1);
-			Ctrl->SetPos(rc);
-		}
-		else LgiAssert(!"You need to fix RTTI for your build of Lgi");
 	}
 
-	GRect BtnPos(rc.x2 - 60, rc.y2 + 10, rc.x2, rc.y2 + 30);
-	Children.Insert(new GButton(IDOK, BtnPos.x1, BtnPos.y1, BtnPos.X(), BtnPos.Y(), "Ok"));
+	auto c = Tbl->GetCell(0, 1, true, x);
+	c->TextAlign(GCss::AlignRight);
+	c->Add(new GButton(IDOK, 0, 0, -1, -1, "Ok"));
 
-	rc.ZOff(BtnPos.x2 + 20, BtnPos.y2 + 40);
-	SetPos(rc);
-	MoveToCenter();
+	GRect r(0, 0, 400, 260);
+	SetPos(r);
+	MoveSameScreen(parent);
 
 	DoModal();
 }
@@ -118,26 +100,8 @@ int GAbout::OnNotify(GViewI *Ctrl, int Flags)
 	
 	switch (Ctrl->GetId())
 	{
-		case IDM_BMP:
+		case IDC_BMP:
 		{
-			GViewI *Bmp, *Text, *Btn;
-			if (GetViewById(IDM_BMP, Bmp) &&
-				GetViewById(IDM_MESSAGE, Text) &&
-				GetViewById(IDOK, Btn))
-			{
-				GRect b = Bmp->GetPos();
-				GRect t = Text->GetPos();
-				GRect c = Btn->GetPos();
-				
-				t.Offset(b.x2 + 10 - t.x1, 0);
-				GRect p = GetPos();
-				p.Dimension(t.x2 + 20, MAX(b.y2, t.y2+30) + 40);
-				c.Offset(t.x2 - c.X() - c.x1, p.Y() - 60 - c.y1);
-
-				Text->SetPos(t, true);
-				Btn->SetPos(c, true);
-				SetPos(p, true);
-			}
 			break;
 		}
 		case IDOK:
