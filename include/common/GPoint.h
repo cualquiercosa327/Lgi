@@ -70,6 +70,11 @@ public:
 		return x == p.x && y == p.y;
 	}
 
+	bool operator !=(const GdcPt2 &p)
+	{
+		return !(*this == p);
+	}
+
 	void Set(int X, int Y)
 	{
 		x = X;
