@@ -6,10 +6,10 @@ SetCompressor lzma
 Name "Memecode LgiRes"
 
 ; The file to write
-OutFile "lgires-win32-v#.#.exe"
+OutFile "lgires-win64-v#.#.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Memecode\LgiRes
+InstallDir $PROGRAMFILES64\Memecode\LgiRes
 
 ;--------------------------------
 

@@ -239,6 +239,9 @@
     <ClCompile Include="Code\PythonParser.cpp">
       <Filter>Source Files\Search\Python Parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\GAbout.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">

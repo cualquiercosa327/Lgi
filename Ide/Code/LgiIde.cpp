@@ -26,6 +26,7 @@
 #include "ProjectNode.h"
 #include "GBox.h"
 #include "GSubProcess.h"
+#include "GAbout.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -2861,9 +2862,19 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			Options Dlg(this);
 			break;
 		}
+		case IDM_HELP:
+		{
+			LgiExecute(APP_URL);
+			break;
+		}
 		case IDM_ABOUT:
 		{
-			LgiMsg(this, "LGI Integrated Development Environment", AppName);
+			GAbout a(this,
+					AppName, APP_VER,
+					"\nLGI Integrated Development Environment",
+					"icon128.png",
+					APP_URL,
+					"fret@memecode.com");
 			break;
 		}
 		case IDM_NEW:
@@ -3788,7 +3799,7 @@ void Test()
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	printf("LgiIde v%s\n", LgiIdeVer);
+	printf("LgiIde v%s\n", APP_VER);
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{

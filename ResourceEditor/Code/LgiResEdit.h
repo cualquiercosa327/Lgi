@@ -16,6 +16,7 @@
 
 #include "resource.h"
 #include "GTree.h"
+#include "GBox.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Defines
@@ -687,8 +688,9 @@ class AppWnd : public GDocApp<GOptionsFile>
 {
 protected:
 	// UI
-	GSplitter		*MainSplit;
-	GSplitter		*SubSplit;
+	GBox			*HBox;
+	GBox			*VBox;
+	GView			*ContentView;
 
 	GSubMenu		*Edit;
 	GSubMenu		*Help;
@@ -709,7 +711,6 @@ protected:
 	GArray<GLanguage*> Languages;
 	LHashTbl<ConstStrKey<char,false>, bool> ShowLanguages;
 
-	void SetupUi();
 	void SortDialogs();
 	void GetFileTypes(GFileSelect *Dlg, bool Write);
 
