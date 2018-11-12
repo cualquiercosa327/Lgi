@@ -808,7 +808,7 @@ public:
 			return false;
 		for (char *s = Str->Str; *s; s++)
 		{
-			if (!IsDigit(*s) || strchr("e-+.", *s))
+			if (!IsDigit(*s) && !strchr("e-+.", *s))
 				return false;
 		}
 		return true;
