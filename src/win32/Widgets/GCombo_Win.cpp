@@ -387,6 +387,11 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case WM_CREATE:
+		{
+			SetFont(SysFont);
+			break;
+		}
 		case WM_DESTROY:
 		{
 			Value();
@@ -425,8 +430,6 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM) (s ? s.Get() : L"(NULL)"));
 				}
 
-				SetFont(SysFont);
-				
 				if (d->Name)
 					Name(d->Name);
 				else
