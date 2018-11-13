@@ -677,13 +677,21 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
-void VcFolder::OnCmdError()
+void VcFolder::OnCmdError(GString Output, const char *Msg)
 {
-	GString::Array a = GetProgramsInPath(GetVcName());
-	d->Log->Print("'%s' executables in the path:\n", GetVcName());
-	for (auto Bin : a)
-		d->Log->Print("    %s\n", Bin.Get());
-	d->Log->Print("\n");
+	if (!CmdErrors)
+	{
+		d->Log->Write(Output, Output.Length());
+
+		GString::Array a = GetProgramsInPath(GetVcName());
+		d->Log->Print("'%s' executables in the path:\n", GetVcName());
+		for (auto Bin : a)
+			d->Log->Print("    %s\n", Bin.Get());
+	}
+				
+	CmdErrors++;
+	d->Tabs->Value(1);
+	Color(GColour::Red);
 }
 
 bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
@@ -700,16 +708,7 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 		{
 			if (s.Find("client is too old") >= 0)
 			{
-				if (!CmdErrors)
-				{
-					d->Log->Write(s, s.Length());
-					d->Tabs->Value(1);
-
-					OnCmdError();
-				}
-				
-				CmdErrors++;
-				Update();
+				OnCmdError(s, "Client too old");
 				break;
 			}
 			
@@ -1665,6 +1664,11 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 				{
 					GString::Array p = Ln->SplitDelimit(" .");
 					CurrentCommit = p.Last();
+					break;
+				}
+				else if (Ln->Find("svn cleanup") >= 0)
+				{
+					OnCmdError(s, "Needs cleanup");
 					break;
 				}
 			}

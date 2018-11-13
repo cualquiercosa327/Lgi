@@ -26,7 +26,7 @@ public:
 extern int Ver2Int(GString v);
 extern int ToolVersion[VcMax];
 
-class VcFolder : public GTreeItem
+class VcFolder : public GTreeItem, public GCss
 {
 	struct ParseParams
 	{
@@ -104,7 +104,8 @@ class VcFolder : public GTreeItem
 	const char *GetVcName();
 	bool StartCmd(const char *Args, ParseFn Parser, ParseParams *Params = NULL, bool LogCmd = false);
 	void OnBranchesChange();
-	void OnCmdError();
+	void OnCmdError(GString Output, const char *Msg);
+	void OnChange(PropType Prop) { Update(); }
 
 	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
 	bool ParseLog(int Result, GString s, ParseParams *Params);
