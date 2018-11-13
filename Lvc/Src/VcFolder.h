@@ -124,6 +124,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool ParseStatus(int Result, GString s, ParseParams *Params);
 	bool ParseAddFile(int Result, GString s, ParseParams *Params);
 	bool ParseVersion(int Result, GString s, ParseParams *Params);
+	bool ParseClean(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -142,6 +143,7 @@ public:
 	void Commit(const char *Msg, const char *Branch, bool AndPush);
 	void Push();
 	void Pull();
+	void Clean();
 	bool Revert(const char *Path, const char *Revision = NULL);
 	bool AddFile(const char *Path, bool AsBinary = true);
 	bool Blame(const char *Path);

@@ -1012,6 +1012,7 @@ void VcFolder::OnMouseClick(GMouse &m)
 			"Terminal At",
 			#endif
 			IDM_TERMINAL);
+		s.AppendItem("Clean", IDM_CLEAN);
 		s.AppendSeparator();
 		s.AppendItem("Remove", IDM_REMOVE);
 		int Cmd = s.Float(GetTree(), m);
@@ -1039,6 +1040,11 @@ void VcFolder::OnMouseClick(GMouse &m)
 				#elif defined(LINUX)
 					#error "Impl me."
 				#endif
+				break;
+			}
+			case IDM_CLEAN:
+			{
+				Clean();
 				break;
 			}
 			case IDM_REMOVE:
@@ -1133,10 +1139,13 @@ void VcFolder::OnExpand(bool b)
 
 void VcFolder::OnPaint(ItemPaintCtx &Ctx)
 {
-	if (CmdErrors)
-	{
-		Ctx.Fore = GColour::Red;
-	}
+	auto c = Color();
+	if (c.IsValid())
+		Ctx.Fore = c;
+	c = BackgroundColor();
+	if (c.IsValid() && !GTreeItem::Select())
+		Ctx.Back = c;
+
 	GTreeItem::OnPaint(Ctx);
 }
 
@@ -1687,6 +1696,35 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	GetTree()->SendNotify(LvcCommandEnd);
 	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+void VcFolder::Clean()
+{
+	switch (GetType())
+	{
+		case VcSvn:
+			StartCmd("cleanup", &VcFolder::ParseClean, NULL, true);
+			break;
+		default:
+			LgiMsg(GetTree(), "Not implemented.", AppName);
+			break;
+	}
+}
+
+bool VcFolder::ParseClean(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcSvn:
+			if (Result == 0)
+				Color(ColorInherit);
+			break;
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+
+	return false;
 }
 
 void VcFolder::GetVersion()
