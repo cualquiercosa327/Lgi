@@ -3,6 +3,7 @@
 VcFile::VcFile(AppPriv *priv, VcFolder *owner, GString revision, bool working)
 {
 	d = priv;
+	LoadDiff = false;
 	Owner = owner;
 	Revision = revision;
 	Status = SUnknown;
@@ -66,7 +67,18 @@ void VcFile::Select(bool b)
 	GetStatus();
 	LListItem::Select(b);
 	if (b)
-		d->Diff->Name(Diff);
+	{
+		if (!Diff)
+		{
+			if (!LoadDiff)
+			{
+				LoadDiff = true;
+				Owner->Diff(this);
+			}
+		}
+		else
+			d->Diff->Name(Diff);
+	}
 }
 
 void VcFile::OnMouseClick(GMouse &m)

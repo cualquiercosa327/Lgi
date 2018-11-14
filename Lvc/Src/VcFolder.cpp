@@ -677,6 +677,29 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
+VcFile *VcFolder::FindFile(const char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	GArray<VcFile*> Files;
+	if (d->Files->GetAll(Files))
+	{
+		GString p = Path;
+		p = p.Replace("/", DIR_STR);
+		for (auto f : Files)
+		{
+			auto Fn = f->GetFileName();
+			if (p.Equals(Fn))
+			{
+				return f;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 void VcFolder::OnCmdError(GString Output, const char *Msg)
 {
 	if (!CmdErrors)
@@ -766,6 +789,26 @@ bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 	}
 
 	return false;
+}
+
+bool VcFolder::ParseDiff(int Result, GString s, ParseParams *Params)
+{
+	ParseDiffs(s, NULL, true);
+	return false;
+}
+
+void VcFolder::Diff(VcFile *file)
+{
+	switch (GetType())
+	{
+		case VcSvn:
+		{
+			GString a;
+			a.Printf("diff \"%s\"", file->GetFileName());
+			StartCmd(a, &VcFolder::ParseDiff);
+			break;
+		}
+	}
 }
 
 bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
@@ -885,7 +928,11 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 					InPreamble = false;
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
-					f = new VcFile(d, this, Rev, IsWorking);
+
+					f = FindFile(Fn);
+					if (!f)
+						f = new VcFile(d, this, Rev, IsWorking);
+
 					f->SetText(Fn, COL_FILENAME);
 					f->SetText("M", COL_STATE);
 					f->GetStatus();

@@ -106,8 +106,10 @@ class VcFolder : public GTreeItem, public GCss
 	void OnBranchesChange();
 	void OnCmdError(GString Output, const char *Msg);
 	void OnChange(PropType Prop) { Update(); }
+	VcFile *FindFile(const char *Path);
 
 	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
+	
 	bool ParseLog(int Result, GString s, ParseParams *Params);
 	bool ParseInfo(int Result, GString s, ParseParams *Params);
 	bool ParseFiles(int Result, GString s, ParseParams *Params);
@@ -124,6 +126,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool ParseStatus(int Result, GString s, ParseParams *Params);
 	bool ParseAddFile(int Result, GString s, ParseParams *Params);
 	bool ParseVersion(int Result, GString s, ParseParams *Params);
+	bool ParseDiff(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -149,6 +152,7 @@ public:
 	void ReadDir(GTreeItem *Parent, const char *Path);
 	void SetEol(const char *Path, int Type);
 	void GetVersion();
+	void Diff(VcFile *file);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);
