@@ -14,7 +14,7 @@
 #define OPT_Folders		"Folders"
 #define OPT_Folder		"Folder"
 
-#define APP_VERSION		"0.3"
+#define APP_VERSION		"0.4"
 extern const char *AppName;
 
 enum LvcIcon
@@ -73,6 +73,7 @@ enum AppIds
 	IDM_ADD_BINARY_FILE,
 	IDM_BROWSE_FOLDER,
 	IDM_TERMINAL,
+	IDM_RESOLVE,
 };
 
 enum VersionCtrl

@@ -106,8 +106,10 @@ class VcFolder : public GTreeItem, public GCss
 	void OnBranchesChange();
 	void OnCmdError(GString Output, const char *Msg);
 	void OnChange(PropType Prop) { Update(); }
+	VcFile *FindFile(const char *Path);
 
 	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
+	
 	bool ParseLog(int Result, GString s, ParseParams *Params);
 	bool ParseInfo(int Result, GString s, ParseParams *Params);
 	bool ParseFiles(int Result, GString s, ParseParams *Params);
@@ -118,6 +120,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool ParsePull(int Result, GString s, ParseParams *Params);
 	bool ParseCounts(int Result, GString s, ParseParams *Params);
 	bool ParseRevert(int Result, GString s, ParseParams *Params);
+	bool ParseResolve(int Result, GString s, ParseParams *Params);
 	bool ParseBlame(int Result, GString s, ParseParams *Params);
 	bool ParseSaveAs(int Result, GString s, ParseParams *Params);
 	bool ParseBranches(int Result, GString s, ParseParams *Params);
@@ -125,6 +128,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool ParseAddFile(int Result, GString s, ParseParams *Params);
 	bool ParseVersion(int Result, GString s, ParseParams *Params);
 	bool ParseClean(int Result, GString s, ParseParams *Params);
+	bool ParseDiff(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -145,12 +149,14 @@ public:
 	void Pull();
 	void Clean();
 	bool Revert(const char *Path, const char *Revision = NULL);
+	bool Resolve(const char *Path);
 	bool AddFile(const char *Path, bool AsBinary = true);
 	bool Blame(const char *Path);
 	bool SaveFileAs(const char *Path, const char *Revision);
 	void ReadDir(GTreeItem *Parent, const char *Path);
 	void SetEol(const char *Path, int Type);
 	void GetVersion();
+	void Diff(VcFile *file);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

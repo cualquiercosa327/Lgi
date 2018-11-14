@@ -677,6 +677,29 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
+VcFile *VcFolder::FindFile(const char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	GArray<VcFile*> Files;
+	if (d->Files->GetAll(Files))
+	{
+		GString p = Path;
+		p = p.Replace(DIR_STR, "/");
+		for (auto f : Files)
+		{
+			auto Fn = f->GetFileName();
+			if (p.Equals(Fn))
+			{
+				return f;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 void VcFolder::OnCmdError(GString Output, const char *Msg)
 {
 	if (!CmdErrors)
@@ -768,6 +791,26 @@ bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 	return false;
 }
 
+bool VcFolder::ParseDiff(int Result, GString s, ParseParams *Params)
+{
+	ParseDiffs(s, NULL, true);
+	return false;
+}
+
+void VcFolder::Diff(VcFile *file)
+{
+	switch (GetType())
+	{
+		case VcSvn:
+		{
+			GString a;
+			a.Printf("diff \"%s\"", file->GetFileName());
+			StartCmd(a, &VcFolder::ParseDiff);
+			break;
+		}
+	}
+}
+
 bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 {
 	LgiAssert(IsWorking || Rev.Get() != NULL);
@@ -788,10 +831,24 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 						f->SetDiff(Diff);
 					Diff.Empty();
 
-					GString Fn = a[i].Split(" ").Last()(2, -1);
-					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText("M", COL_STATE);
-					f->SetText(Fn, COL_FILENAME);
+					auto Bits = a[i].SplitDelimit();
+					GString Fn, State = "M";
+					if (Bits[1].Equals("--cc"))
+					{
+						Fn = Bits.Last();
+						State = "C";
+					}
+					else
+						Fn = Bits.Last()(2,-1);
+
+					LgiTrace("%s\n", a[i].Get());
+
+					f = FindFile(Fn);
+					if (!f)
+						f = new VcFile(d, this, Rev, IsWorking);
+
+					f->SetText(State, COL_STATE);
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
 					f->GetStatus();
 					d->Files->Insert(f);
 				}
@@ -838,7 +895,7 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 
 					GString Fn = a[i].Split(" ").Last();
 					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText(Fn, COL_FILENAME);
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "index", 5) ||
@@ -885,8 +942,12 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 					InPreamble = false;
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
-					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText(Fn, COL_FILENAME);
+
+					f = FindFile(Fn);
+					if (!f)
+						f = new VcFile(d, this, Rev, IsWorking);
+
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
 					f->SetText("M", COL_STATE);
 					f->GetStatus();
 					d->Files->Insert(f);
@@ -1863,6 +1924,54 @@ bool VcFolder::Revert(const char *Path, const char *Revision)
 			return StartCmd(a, &VcFolder::ParseRevert);
 			break;
 		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool VcFolder::ParseResolve(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			int asd=0;
+			break;
+		}
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool VcFolder::Resolve(const char *Path)
+{
+	if (!Path)
+		return false;
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString a;
+			a.Printf("add \"%s\"", Path);
+			return StartCmd(a, &VcFolder::ParseResolve, new ParseParams(Path));
+		}
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
 		default:
 		{
 			LgiAssert(!"Impl me.");
