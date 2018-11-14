@@ -59,7 +59,7 @@ typedef GAutoPtr<GStreamI> GAutoStreamI;
 void ParseIdList(char *In, List<char> &Out);
 
 /// A storage event
-///		a = (GDataStoreI*)Storage
+///		a = StoreId
 ///     b = (void*)UserParam
 /// \sa GDataEventsI::Post
 #define M_STORAGE_EVENT				(M_USER+0x500)
@@ -317,6 +317,9 @@ public:
 class GDataStoreI : virtual public GDataPropI
 {
 public:
+	static LHashTbl<IntKey<int>,GDataStoreI*> Map;
+	int Id;
+
 	class GDsTransaction
 	{
 	protected:
@@ -333,7 +336,20 @@ public:
 
 	typedef GAutoPtr<GDsTransaction> StoreTrans;
 
-	virtual ~GDataStoreI() {}
+	GDataStoreI()
+	{
+		LgiAssert(LgiApp->InThread());
+		while (Map.Find(Id = LgiRand(1000)))
+			;
+		Map.Add(Id, this);
+	}
+
+	virtual ~GDataStoreI()
+	{
+		LgiAssert(LgiApp->InThread());
+		if (!Map.Delete(Id))
+			LgiAssert(!"Delete failed.");
+	}
 
 	/// \returns size of object on disk
 	virtual uint64 Size() = 0;

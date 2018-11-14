@@ -753,7 +753,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 
 bool SslSocket::IsOpen()
 {
-	return Bio != 0;
+	return Bio != 0 && !d->Cancel->IsCancelled();
 }
 
 GString SslGetErrorAsString(OpenSSL *Library)
@@ -1095,7 +1095,7 @@ bool SslSocket::IsReadable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = Handle();
-	if (ValidSocket(s))
+	if (!d->Cancel->IsCancelled() && ValidSocket(s))
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -1125,7 +1125,7 @@ bool SslSocket::IsWritable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = Handle();
-	if (ValidSocket(s))
+	if (!d->Cancel->IsCancelled() && ValidSocket(s))
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -1188,11 +1188,8 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
 	LMutex::Auto Lck(&Lock, _FL);
 
-	if (!Library)
-	{
-		DebugTrace("%s:%i - Library is NULL\n", _FL);
+	if (!Library || d->Cancel->IsCancelled())
 		return -1;
-	}
 
 	if (!Bio)
 	{
@@ -1309,7 +1306,7 @@ ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 {
 	LMutex::Auto Lck(&Lock, _FL);
 
-	if (!Library)
+	if (!Library || d->Cancel->IsCancelled())
 		return -1;
 
 	if (Bio)
