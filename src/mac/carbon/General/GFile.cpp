@@ -1236,6 +1236,7 @@ bool GDirectory::Path(char *s, int BufLen) const
 		return false;
 	}
 
+	*d->BaseEnd = 0;
 	return LgiMakePath(s, BufLen, d->BasePath, GetName());
 }
 

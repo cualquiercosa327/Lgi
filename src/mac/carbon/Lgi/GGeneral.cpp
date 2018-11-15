@@ -514,38 +514,45 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 						snprintf(cmd, sizeof(cmd), "open -a \"%s\"", File);
 					system(cmd);
 				}
-				else if (st == 0 &&
-						 S_ISREG(s.st_mode) &&
-						 (s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
-				{
-					// This is an executable file
-					if (!fork())
-					{
-						if (Dir)
-							chdir(Dir);
-						
-						GArray<const char*> a;
-						a.Add(File);
-						
-						char *p;
-						while ((p = LgiTokStr(Args)))
-						{
-							a.Add(p);
-						}
-						a.Add(0);
-						
-						char *env[] = {0};
-						execve(File, (char*const*)&a[0], env);
-					}
-					
-					return true;
-				}
 				else
 				{
-					// Document
-					e = FinderLaunch(1, &r);
-					if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, (int)e);
-					else Status = true;
+					GString Mime = LGetFileMimeType(File);
+					auto Mp = Mime.Split("/");
+					
+					if (Mp[0].Equals("application") &&
+						st == 0 &&
+						S_ISREG(s.st_mode) &&
+						(s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
+					{
+						// This is an executable file
+						if (!fork())
+						{
+							if (Dir)
+								chdir(Dir);
+							
+							GArray<const char*> a;
+							a.Add(File);
+							
+							char *p;
+							while ((p = LgiTokStr(Args)))
+							{
+								a.Add(p);
+							}
+							a.Add(0);
+							
+							char *env[] = {0};
+							execve(File, (char*const*)&a[0], env);
+						}
+						
+						return true;
+					}
+					else
+					{
+						// Document
+						e = FinderLaunch(1, &r);
+						if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, (int)e);
+						else Status = true;
+					}
 				}
 			}
 		}
