@@ -140,6 +140,7 @@ public:
 	bool OnKey(GKey &k);
 	void OnFocus(bool b);
 	void OnStyleChange();
+	void SetFont(GFont *Font, bool OwnIt = false) override;
 
 	void Append(GViewI *Wnd);
 	bool Remove(GViewI *Wnd);

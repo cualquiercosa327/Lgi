@@ -316,7 +316,7 @@ OsSocket GSocket::Handle(OsSocket Set)
 
 bool GSocket::IsOpen()
 {
-	if (ValidSocket(d->Socket))
+	if (ValidSocket(d->Socket) && !d->Cancel->IsCancelled())
 	{
 		return true;
 	}
@@ -341,7 +341,7 @@ bool GSocket::IsReadable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = d->Socket; 
-	if (ValidSocket(s))
+	if (ValidSocket(s) && !d->Cancel->IsCancelled())
 	{
 		#ifdef LINUX
 
@@ -396,7 +396,7 @@ bool GSocket::IsWritable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = d->Socket; 
-	if (ValidSocket(s))
+	if (ValidSocket(s) && !d->Cancel->IsCancelled())
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -999,7 +999,7 @@ void GSocket::Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len)
 
 ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
-	if (!ValidSocket(d->Socket) || !Data)
+	if (!ValidSocket(d->Socket) || !Data || d->Cancel->IsCancelled())
 		return -1;
 
 	int Status = 0;
@@ -1039,7 +1039,7 @@ ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 
 ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 {
-	if (!ValidSocket(d->Socket) || !Data)
+	if (!ValidSocket(d->Socket) || !Data || d->Cancel->IsCancelled())
 		return -1;
 
 	ssize_t Status = -1;

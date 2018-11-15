@@ -1239,7 +1239,7 @@ bool GCss::HasFontStyle()
 	if (Var != FontVariantInherit)
 		return true;
 	auto Wt = FontWeight();
-	if (Wt != FontWeightInherit)
+	if (Wt != FontWeightInherit && Wt != FontWeightNormal)
 		return true;
 	auto Dec = TextDecoration();
 	if (Dec != TextDecorInherit)

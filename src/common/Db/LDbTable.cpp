@@ -503,7 +503,7 @@ bool LDbRow::Compact()
 		for (unsigned i=0; i<v.Length(); i++)
 		{
 			VarBlock &b = v[i];
-			if (b.Start > Pos)
+			if (b.Start > (ssize_t)Pos)
 			{
 				// Move block down
 				memcpy(Base.c + Pos, Base.c + b.Start, b.Len);
@@ -581,7 +581,7 @@ bool LDbRow::Delete()
 
 bool LDbRow::CopyProps(GDataPropI &p)
 {
-	for (int i=0; i<GetFields(); i++)
+	for (size_t i=0; i<GetFields(); i++)
 	{
 		LDbField &f = GetField(i);
 		Store3Status Status;

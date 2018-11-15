@@ -182,6 +182,8 @@ struct GTabPagePriv
 			{
 				if ((f = new GFont))
 				{
+					*f = *SysFont;
+
 					if (f->CreateFromCss(s))
 						Tab->SetFont(f, true);
 					else
@@ -1391,6 +1393,14 @@ GColour GTabPage::GetBackground()
 void GTabPage::OnStyleChange()
 {
 	d->Ds.Reset();
+	Invalidate();
+}
+
+void GTabPage::SetFont(GFont *Font, bool OwnIt)
+{
+	d->Ds.Reset();
+	Invalidate();
+	return GView::SetFont(Font, OwnIt);
 }
 
 void GTabPage::OnPaint(GSurface *pDC)
