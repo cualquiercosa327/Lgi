@@ -203,7 +203,7 @@ const char *VcFolder::GetVcName()
 	return VcCmd;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, bool LogCmd)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, LoggingType Logging)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
@@ -211,7 +211,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 	if (CmdErrors > 2)
 		return false;
 
-	if (d->Log)
+	if (d->Log && Logging != LogSilo)
 		d->Log->Print("%s %s\n", Exe, Args);
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
@@ -220,7 +220,12 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 
 	Process->SetInitFolder(Params && Params->AltInitPath ? Params->AltInitPath : Path);
 
-	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
+	GString::Array Ctx;
+	Ctx.SetFixedLength(false);
+	Ctx.Add(Path);
+	Ctx.Add(Exe);
+	Ctx.Add(Args);
+	GAutoPtr<Cmd> c(new Cmd(Ctx, Logging, d->Log));
 	if (!c)
 		return false;
 
@@ -1014,7 +1019,7 @@ void VcFolder::OnPulse()
 		Cmd *c = Cmds[i];
 		if (c && c->Rd->IsExited())
 		{
-			GString s = c->Buf.NewGStr();
+			GString s = c->GetBuf();
 			int Result = c->Rd->ExitCode();
 			if (Result == ErrSubProcessFailed)
 			{
@@ -1134,11 +1139,11 @@ void VcFolder::OnUpdate(const char *Rev)
 		{
 			case VcGit:
 				Args.Printf("checkout %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, LogNormal);
 				break;
 			case VcSvn:
 				Args.Printf("up -r %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, LogNormal);
 				break;
 			default:
 			{
@@ -1605,7 +1610,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 					m = m.Replace("\"", "\\\"");
 					Args.Printf("commit -am \"%s\"", m.Get());
 				}
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, true);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, LogNormal);
 				break;
 			}
 			case VcSvn:
@@ -1622,7 +1627,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 				}
 
 				Args = GString(" ").Join(a);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, LogNormal);
 
 				if (d->Tabs && IsCommit)
 				{
@@ -1647,7 +1652,7 @@ void VcFolder::Push()
 	switch (GetType())
 	{
 		case VcGit:
-			Working = StartCmd("push", &VcFolder::ParsePush, NULL, true);
+			Working = StartCmd("push", &VcFolder::ParsePush, NULL, LogNormal);
 			break;
 		case VcSvn:
 			// Nothing to do here.. the commit pushed the data already
@@ -1686,7 +1691,7 @@ bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 	return false; // no reselect
 }
 
-void VcFolder::Pull()
+void VcFolder::Pull(LoggingType Logging)
 {
 	GString Args;
 	bool Status = false;
@@ -1694,10 +1699,10 @@ void VcFolder::Pull()
 	{
 		case VcHg:
 		case VcGit:
-			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, Logging);
 			break;
 		case VcSvn:
-			Status = StartCmd("up", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("up", &VcFolder::ParsePull, NULL, Logging);
 			break;
 		default:
 			LgiAssert(!"Impl me.");
@@ -1764,7 +1769,7 @@ void VcFolder::Clean()
 	switch (GetType())
 	{
 		case VcSvn:
-			StartCmd("cleanup", &VcFolder::ParseClean, NULL, true);
+			StartCmd("cleanup", &VcFolder::ParseClean, NULL, LogNormal);
 			break;
 		default:
 			LgiMsg(GetTree(), "Not implemented.", AppName);
@@ -1796,7 +1801,7 @@ void VcFolder::GetVersion()
 		case VcSvn:
 		case VcHg:
 		case VcCvs:
-			StartCmd("--version", &VcFolder::ParseVersion, NULL, true);
+			StartCmd("--version", &VcFolder::ParseVersion, NULL, LogNormal);
 			break;
 		default:
 			LgiAssert(!"Impl me.");

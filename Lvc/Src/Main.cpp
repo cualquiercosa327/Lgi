@@ -596,7 +596,7 @@ public:
 				Tree->GetAll(Folders);
 				for (auto f : Folders)
 				{
-					f->Pull();
+					f->Pull(LogSilo);
 				}
 				break;
 			}
