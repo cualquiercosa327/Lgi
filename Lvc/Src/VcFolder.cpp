@@ -1104,7 +1104,7 @@ void VcFolder::OnMouseClick(GMouse &m)
 						LgiExecute(p);
 					}
 				#elif defined(LINUX)
-					#error "Impl me."
+					// #error "Impl me."
 				#endif
 				break;
 			}
@@ -1283,7 +1283,11 @@ GString ConvertUPlus(GString s)
 	}
 	
 	c.Add(0);
+	#ifdef LINUX
+	return GString((char16)c.AddressOf());
+	#else
 	return GString(c.AddressOf());
+	#endif
 }
 
 bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)

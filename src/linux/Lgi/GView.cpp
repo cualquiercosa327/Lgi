@@ -175,7 +175,7 @@ void GView::_Focus(bool f)
 	{
 		if (_View)
 		{
-			printf("%s:%i - grabbing focus on %s.%p\n", _FL, GetClass(), _View);
+			// printf("%s:%i - grabbing focus on %s.%p\n", _FL, GetClass(), _View);
 			gtk_widget_grab_focus(_View);
 		}
 		else
@@ -857,7 +857,7 @@ bool GView::Attach(GViewI *parent)
 	{
 		d->ActualClass = GetClass();
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
-		printf("%s:%i - lgi_widget_new on %s.%p\n", _FL, d->ActualClass.Get(), _View);
+		// printf("%s:%i - lgi_widget_new on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 	}
 	
 	if (_View)
@@ -966,7 +966,7 @@ bool GView::Detach()
 	if (_View)
 	{
 		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
-		printf("%s:%i - gtk_widget_destroy on %s.%p\n", _FL, d->ActualClass.Get(), _View);
+		// printf("%s:%i - gtk_widget_destroy on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}

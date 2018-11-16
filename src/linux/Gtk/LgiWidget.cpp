@@ -91,8 +91,10 @@ lgi_widget_remove(GtkContainer *wid, GtkWidget *child)
 				bool widget_was_visible = GTK_WIDGET_VISIBLE(child);
 				
 				LgiWidget *cw = LGI_WIDGET(c.w);
+				/*
 				if (cw)
 					printf("%s:%i - unparenting %s.%p\n", _FL, cw->target->GetClass(), c.w);
+				*/
 				gtk_widget_unparent(child);
 				
 				p->child.DeleteAt(i, true);

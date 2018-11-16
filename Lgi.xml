@@ -240,9 +240,9 @@
 					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Mac" Type="1" Platforms="15" Open="0" Id="51">
-					<Node File="./src/mac/carbon/Gdc2/GMemDC.cpp" Type="2" Platforms="4" />
-					<Node File="./src/mac/carbon/Gdc2/GPrintDC.cpp" Type="2" Platforms="4" />
-					<Node File="./src/mac/carbon/Gdc2/GScreenDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GMemDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GPrintDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GScreenDC.cpp" Type="2" Platforms="4" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="52">
 					<Node File="./src/win32/Gdc2/GScreenDC.cpp" Type="2" Platforms="1" />
@@ -571,7 +571,9 @@ textencoding</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
-			<PostBuildCommands />
+			<PostBuildCommands>
+				<Linux />
+			</PostBuildCommands>
 		</Advanced>
 	</Settings>
 </Project>

@@ -891,7 +891,8 @@ GToolBar.o : ./src/common/Widgets/GToolBar.cpp ./include/common/Lgi.h \
 	./include/common/GDisplayString.h \
 	./include/common/GPalette.h \
 	./include/common/GNotifications.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/GCssTools.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -947,7 +948,8 @@ GBox.o : ./src/common/Widgets/GBox.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GSplitter.o : ./src/common/Widgets/GSplitter.cpp ./include/common/Lgi.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/GCssTools.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

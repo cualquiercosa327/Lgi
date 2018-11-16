@@ -12,6 +12,7 @@
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="3">
 			<Node File="./Code/AddFtpFile.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/AddFtpFile.h" Type="3" Platforms="15" />
+			<Node File="../src/common/Lgi/GAbout.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/WebFldDlg.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/WebFldDlg.h" Type="3" Platforms="15" />
 		</Node>
