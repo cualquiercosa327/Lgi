@@ -226,11 +226,6 @@ bool LListItem::SetText(const char *s, int i)
 	if (i < 0)
 		return false;
 	
-	if (!stricmp(s, "c/Src/VcFolder.h"))
-	{
-		int asd=0;
-	}
-
 	// Delete any existing column
 	DeleteArray((char*&)d->Str[i]);
 	DeleteObj(d->Display[i]);

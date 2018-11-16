@@ -1161,6 +1161,10 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				LgiMakePath(s, sizeof(s), d->BasePath, GetName());
 				ZeroObj(d->Stat);
 				auto r = lstat(s, &d->Stat);
+				if (r)
+				{
+					printf("%s:%i - lstat failed.\n", _FL);
+				}
 
 				if (d->Ignore())
 				{

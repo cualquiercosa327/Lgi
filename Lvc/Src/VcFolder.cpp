@@ -807,12 +807,17 @@ void VcFolder::Diff(VcFile *file)
 	switch (GetType())
 	{
 		case VcSvn:
+		case VcGit:
+		case VcHg:
 		{
 			GString a;
 			a.Printf("diff \"%s\"", file->GetFileName());
 			StartCmd(a, &VcFolder::ParseDiff);
 			break;
 		}
+		default:
+			LgiAssert(!"Impl me.");
+			break;
 	}
 }
 
@@ -1949,7 +1954,6 @@ bool VcFolder::ParseResolve(int Result, GString s, ParseParams *Params)
 	{
 		case VcGit:
 		{
-			int asd=0;
 			break;
 		}
 		case VcSvn:
@@ -1962,7 +1966,7 @@ bool VcFolder::ParseResolve(int Result, GString s, ParseParams *Params)
 		}
 	}
 
-	return false;
+	return true;
 }
 
 bool VcFolder::Resolve(const char *Path)
