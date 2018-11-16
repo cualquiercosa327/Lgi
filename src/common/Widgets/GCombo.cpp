@@ -542,76 +542,52 @@ void GCombo::OnPaint(GSurface *pDC)
 			d->SetText(new GDisplayString(GetFont(), n), _FL);
 	}
 
+	GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+
 	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(cBack);
 		pDC->Rectangle();
 
 		GRect Cli = GetClient();
 		GRect c = Cli;
-
-		#if 1
 	
-			c.Size(1, 1);
-			c.y2 -= 1;
-			HIRect Bounds = c;
-			HIThemeButtonDrawInfo Info;
-			HIRect LabelRect;
-	
-			Info.version = 0;
-			Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
-			Info.kind = kThemePopupButton;
-			Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
-			Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
-	
-			OSStatus e = HIThemeDrawButton(	  &Bounds,
-											  &Info,
-											  pDC->Handle(),
-											  kHIThemeOrientationNormal,
-											  &LabelRect);
-	
-			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
-			else if (d->GetText(_FL))
-			{
-				GRect Txt;
-				Txt = LabelRect;
-				GDisplayString *Ds = d->GetText(_FL);
-				int y = Cli.y1 + ((Cli.Y() - Ds->Y()) / 2) + 1;
+		c.Size(1, 1);
+		c.y2 -= 1;
+		HIRect Bounds = c;
+		HIThemeButtonDrawInfo Info;
+		HIRect LabelRect;
 
-				Ds->GetFont()->Transparent(true);
-				Ds->Draw(pDC, Txt.x1, y);
-				
-				#if 0
-				pDC->Colour(GColour(255, 0, 0));
-				pDC->Box(Txt.x1, y, Txt.x1 + Ds->X()-1, y + Ds->Y() - 1);
-				#endif
-			}
+		Info.version = 0;
+		Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
+		Info.kind = kThemePopupButton;
+		Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
+		Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
 
-		#else
+		OSStatus e = HIThemeDrawButton(	  &Bounds,
+										  &Info,
+										  pDC->Handle(),
+										  kHIThemeOrientationNormal,
+										  &LabelRect);
 
-			Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
-			ThemeButtonDrawInfo Info;
-			Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
-			Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
-			Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+		if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
+		else if (d->GetText(_FL))
+		{
+			GRect Txt;
+			Txt = LabelRect;
+			GDisplayString *Ds = d->GetText(_FL);
+			int y = Cli.y1 + ((Cli.Y() - Ds->Y()) / 2) + 1;
+
+			auto f = Ds->GetFont();
+			f->Transparent(true);
+			f->Fore(LC_TEXT);
+			Ds->Draw(pDC, Txt.x1, y);
 			
-			GLabelData User;
-			User.Ctrl = this;
-			User.pDC = pDC;
-			User.r.y1 = 1;
-			User.Justification = teJustLeft;
-	
-			OSStatus e = DrawThemeButton(&Bounds,
-										kThemePopupButton,
-										&Info,
-										&d->Cur,
-										0,
-										LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
-										(UInt32)&User);
-			if (e) printf("%s:%i - DrawThemeButton failed %li\n", _FL, e);
-			d->Cur = Info;
-
-		#endif
+			#if 0
+			pDC->Colour(GColour(255, 0, 0));
+			pDC->Box(Txt.x1, y, Txt.x1 + Ds->X()-1, y + Ds->Y() - 1);
+			#endif
+		}
 	
 	#else
 	
@@ -651,7 +627,7 @@ void GCombo::OnPaint(GSurface *pDC)
 		r.y1++;
 
 		// fill the background
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(cBack);
 		pDC->Rectangle(&r);
 
 		// draw the drop down arrow
@@ -687,7 +663,7 @@ void GCombo::OnPaint(GSurface *pDC)
 				else
 				{
 					SysFont->Transparent(false);
-					SysFont->Colour(LC_LIGHT, LC_MED);
+					SysFont->Colour(GColour(LC_LIGHT,24), cBack);
 					ds->Draw(pDC, r.x1+1, r.y1+1, &r);
 
 					SysFont->Transparent(true);
