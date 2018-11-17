@@ -1419,7 +1419,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 							
 						VcFile *f = new VcFile(d, this, p[1], IsWorking);
 						f->SetText(p[0], COL_STATE);
-						f->SetText(File, COL_FILENAME);
+						f->SetText(File.Replace("\\","/"), COL_FILENAME);
 						f->GetStatus();
 						Ins.Insert(f);
 					}
