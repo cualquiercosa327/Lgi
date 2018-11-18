@@ -48,9 +48,10 @@ Obj.Height = 12;
 Obj.SetWidth(10);
 Print("Width=", Obj.GetWidth(), "\n");
 
-if (Obj.LocalAndParamTest(1000) != 1110)
+Result = Obj.LocalAndParamTest(1000);
+if (Result != 1110)
 {
-	Print("Error: LocalAndParamTest failed\n");
+	Print("Error: LocalAndParamTest failed: " + Result + "\n");
 	return false;
 }
 

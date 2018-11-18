@@ -3,7 +3,7 @@
 
 function Func()
 {
-	Id = NULL;
+	Id = Null;
 	if (!Id) // This was turning 'Id' to 'true' instead of using a register.
 		return Id;
 
