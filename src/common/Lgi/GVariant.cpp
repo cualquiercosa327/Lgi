@@ -499,6 +499,9 @@ GVariant &GVariant::operator =(GStream *s)
 
 GVariant &GVariant::operator =(GVariant const &i)
 {
+	if (&i == this)
+		return *this;
+
 	Empty();
 	Type = i.Type;
 
@@ -1937,14 +1940,14 @@ GString GVariant::ToString()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack)
+GCustomType::GCustomType(const char *name, int pack) : FldMap(0, -1)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack)
+GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, -1)
 {
 	Name = name;
 	Pack = 1;

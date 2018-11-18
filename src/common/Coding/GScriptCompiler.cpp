@@ -390,7 +390,7 @@ public:
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
 	LHashTbl<StrKey<char16>, char16*> Defines;
-	LHashTbl<ConstStrKey<char16>, GTokenType> ExpTok;
+	LHashTbl<ConstStrKey<char16,false>, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 	bool ErrShowFirstOnly;
@@ -2356,6 +2356,16 @@ public:
 					Cur++;
 					break;
 				}
+				case TDebug:
+				{
+					Asm0(Cur++, IDebug);
+					break;
+				}
+				case TBreakPoint:
+				{
+					Asm0(Cur++, IBreakPoint);
+					break;
+				}
 				case TReturn:
 				{
 					Cur++;
@@ -3101,8 +3111,8 @@ public:
 		GArray<ExpPart> p;		
 
 		// Find outer brackets
-		size_t e;
-		for (e = End; e >= Start; e--)
+		ssize_t e;
+		for (e = End; e >= (ssize_t)Start; e--)
 		{
 			if (Exp[e][0] == ')') break;
 		}
