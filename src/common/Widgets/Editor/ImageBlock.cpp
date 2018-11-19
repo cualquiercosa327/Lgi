@@ -17,7 +17,7 @@ class ImageLoader : public GEventTargetThread, public Progress
 	GAutoPtr<GFilter> Filter;
 	bool SurfaceSent;
 	int64 Ts;
-	GAutoPtr<GFile> In;
+	GAutoPtr<GStream> In;
 
 public:
 	ImageLoader(GEventSinkI *s) : GEventTargetThread("ImageLoader")
@@ -153,8 +153,9 @@ public:
 					return PostSink(M_IMAGE_ERROR);
 				}
 				
-				GMemStream Mem(Stream, 0, -1);				
-				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem.GetBasePtr())))
+				GMemStream *Mem = new GMemStream(Stream, 0, -1);
+				In.Reset(Mem);
+				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem->GetBasePtr())))
 				{
 					#if LOADER_THREAD_LOGGING
 					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): no filter\n", _FL);
@@ -173,7 +174,7 @@ public:
 				Filter->SetProgress(this);
 
 				Ts = LgiCurrentTime();
-				GFilter::IoStatus Status = Filter->ReadImage(Img, &Mem);
+				GFilter::IoStatus Status = Filter->ReadImage(Img, Mem);
 				if (Status != GFilter::IoSuccess)
 				{
 					if (Status == GFilter::IoComponentMissing)
@@ -470,6 +471,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		GDocumentEnv::LoadType Result = Env->GetContent(j);
 		if (Result == GDocumentEnv::LoadImmediate)
 		{
+			StreamMimeType = j->MimeType;
 			if (j->Stream)
 				Stream = j->Stream;
 			else if (j->Filename)
@@ -1207,7 +1209,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_SET_SURFACE:
 		{
-			GAutoPtr<GFile> File((GFile*)Msg->B());
+			GAutoPtr<GStream> File((GStream*)Msg->B());
 
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_SET_SURFACE\n", _FL);
@@ -1228,7 +1230,12 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					{
 						ResizeIdx = i;
 						si.Compressed.Reset(File.Release());
-						if (FileMimeType)
+
+						if (StreamMimeType)
+						{
+							si.MimeType = StreamMimeType;
+						}
+						else if (FileMimeType)
 						{
 							si.MimeType = FileMimeType.Get();
 							FileMimeType.Reset();

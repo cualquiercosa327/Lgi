@@ -1144,6 +1144,7 @@ public:
 		GNamedStyle *Style;
 		int Scale;
 		GRect SourceValid;
+		GString StreamMimeType;
 		GAutoString FileMimeType;
 
 		GArray<ScaleInf> Scales;
