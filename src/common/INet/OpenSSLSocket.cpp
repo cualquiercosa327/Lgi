@@ -18,6 +18,7 @@
 
 #include "Lgi.h"
 #include "OpenSSLSocket.h"
+#include <openssl/rand.h>
 #ifdef WIN32
 #include <mmsystem.h>
 #endif
@@ -208,6 +209,8 @@ public:
 	DynFunc1(X509_NAME*, X509_get_subject_name, X509*, a);
 	DynFunc2(char*, ERR_error_string, unsigned long, e, char*, buf);
 	DynFunc0(unsigned long, ERR_get_error);
+
+	DynFunc2(int, RAND_bytes, unsigned char *, buf, int, num);
 };
 
 typedef GArray<int> SslVer;
@@ -1442,4 +1445,12 @@ void SslSocket::OnInformation(const char *Str)
 		
 		Str = *nl ? nl + 1 : nl;
 	}
+}
+
+GString SslSocket::Random(int Len)
+{
+	GString s;
+	s.Length(Len);
+	auto r = Library->RAND_bytes((uint8*) s.Get(), Len);
+	return r ? s : NULL;
 }
