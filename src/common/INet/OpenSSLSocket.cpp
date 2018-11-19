@@ -1451,6 +1451,6 @@ GString SslSocket::Random(int Len)
 {
 	GString s;
 	s.Length(Len);
-	auto r = Library->RAND_bytes((uint8*) s.Get(), Len);
+	auto r = Library ? Library->RAND_bytes((uint8*) s.Get(), Len) : 0;
 	return r ? s : NULL;
 }
