@@ -395,7 +395,7 @@ public:
 
 			GString Get(GString Addr)
 			{
-				auto Arr = *It->a;
+				auto &Arr = *It->a;
 				if (Pos >= Arr.Length())
 					return GString();
 				Key &k = Arr[Pos];
