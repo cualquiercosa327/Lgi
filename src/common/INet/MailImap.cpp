@@ -2417,7 +2417,7 @@ int MailIMap::Fetch(bool ByUid,
 		while (!Done && Socket->IsOpen())
 		{
 			ssize_t r;
-			do				
+			while (Socket->IsReadable(100))
 			{
 				// Extend the buffer if getting used up
 				if (Buf.Length()-Used <= 256)
@@ -2454,7 +2454,6 @@ int MailIMap::Fetch(bool ByUid,
 				if (Debug)
 					LgiTrace("%s:%i - Recv=%i\n", _FL, r);
 			}
-			while (r > 0);
 			
 			// See if we can parse out a single response
 			GArray<StrRange> Ranges;

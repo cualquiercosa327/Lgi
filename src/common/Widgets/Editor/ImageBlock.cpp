@@ -449,7 +449,6 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		Source = Src;
 
 	GAutoPtr<GStreamI> Stream;
-	GString FileName;
 	
 	GString::Array a = Source.Strip().Split(":", 1);
 	if (a.Length() > 1 &&
@@ -472,10 +471,13 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		if (Result == GDocumentEnv::LoadImmediate)
 		{
 			StreamMimeType = j->MimeType;
+			ContentId = j->ContentId;
+			FileName = j->Filename;
+
 			if (j->Stream)
+			{
 				Stream = j->Stream;
-			else if (j->Filename)
-				FileName = j->Filename;
+			}
 			else if (j->pDC)
 			{
 				SourceImg = j->pDC;
@@ -593,7 +595,10 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		GDocView::ContentMedia &Cm = Media->New();
 		
 		int Idx = LgiRand() % 10000;
-		Cm.Id.Printf("%u@memecode.com", Idx);
+		if (ContentId)
+			Cm.Id = ContentId;
+		else
+			Cm.Id.Printf("%u@memecode.com", Idx);
 
 		GString Style;
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
@@ -603,7 +608,10 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			Si->Compressed->SetPos(0);
 			Cm.Stream.Reset(new GMemStream(Si->Compressed, 0, -1));
 			Cm.MimeType = Si->MimeType;
-			if (Cm.MimeType.Equals("image/jpeg"))
+
+			if (FileName)
+				Cm.FileName = FileName;
+			else if (Cm.MimeType.Equals("image/jpeg"))
 				Cm.FileName.Printf("img%u.jpg", Idx);
 			else if (Cm.MimeType.Equals("image/png"))
 				Cm.FileName.Printf("img%u.png", Idx);

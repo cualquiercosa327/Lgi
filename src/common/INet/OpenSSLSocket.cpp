@@ -1304,7 +1304,10 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					if (r < 0)
 					{
 						if (!Library->BIO_should_retry(Bio))
+						{
+DebugTrace("%s:%i - BIO_should_retry is false\n", _FL);
 							break;
+						}
 						LgiSleep(1);
 					}
 					else
@@ -1316,6 +1319,7 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			}
 			else
 			{
+DebugTrace("%s:%i - Ssl is NULL\n", _FL);
 				r = -1;
 			}
 		}
@@ -1326,15 +1330,17 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			while (HasntTimedOut())
 			{
 				r = Library->BIO_read(Bio, Data, (int)Len);
+DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 				if (r < 0)
 				{
-					if (!Library->BIO_should_retry(Bio))
+					auto Retry = Library->BIO_should_retry(Bio);
+DebugTrace("%s:%i - BIO_should_retry = %i\n", _FL, Retry);
+					if (!Retry)
 						break;
 					LgiSleep(1);
 				}
 				else
 				{
-DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					OnRead((char*)Data, r);
 					break;
 				}
@@ -1350,6 +1356,7 @@ DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 		else if (Ssl)
 		{
 			int Err = Library->SSL_get_error(Ssl, r);
+DebugTrace("%s:%i - SSL_get_error = %i\n", _FL, Err);
 			if (Err == SSL_ERROR_ZERO_RETURN)
 			{
 				DebugTrace("%s:%i - ::Read closing %i\n", _FL, r);
@@ -1388,8 +1395,11 @@ void SslSocket::DebugTrace(const char *fmt, ...)
 		
 		if (Ch > 0)
 		{
-			// LgiTrace("SSL:%p: %s", this, Buffer);
+			#if 1
+			LgiTrace("SSL:%p: %s", this, Buffer);
+			#else
 			OnInformation(Buffer);
+			#endif
 		}
 	}
 }

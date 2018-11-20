@@ -1144,6 +1144,8 @@ public:
 		GNamedStyle *Style;
 		int Scale;
 		GRect SourceValid;
+		GString FileName;
+		GString ContentId;
 		GString StreamMimeType;
 		GAutoString FileMimeType;
 
