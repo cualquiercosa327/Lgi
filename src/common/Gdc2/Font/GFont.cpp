@@ -1386,6 +1386,11 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 					
 					return true;
 				}
+				
+				for (int i=0; i<CountOf(values); i++)
+				{
+					CFRelease(values[i]);
+				}
 			}
 
 		#else

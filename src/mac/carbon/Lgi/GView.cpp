@@ -1717,7 +1717,7 @@ HIObjectClassRef ViewClass = 0;
 
 OsView GView::_CreateCustomView()
 {
-	OsView Hnd = 0;
+	OsView Hnd = NULL;
 	OSStatus e;
 	
 	if (!ViewClass)
@@ -1776,7 +1776,8 @@ OsView GView::_CreateCustomView()
 		if ((e = HIObjectCreate(kLgiGViewClassID, Ev, (HIObjectRef*)&Hnd)))
 		{
 			printf("%s:%i - HIObjectCreate failed with %i\n", _FL, (int)e);
-			Hnd = 0;
+			CFRelease(Hnd);
+			Hnd = NULL;
 		}
 		else
 		{

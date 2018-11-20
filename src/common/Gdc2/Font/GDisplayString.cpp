@@ -74,6 +74,12 @@ bool StringConvert(Out *&out, ssize_t *OutLen, const In *in, ssize_t InLen)
 		if (!StrCache.Get())
 			return;
 
+		if (AttrStr)
+		{
+			CFRelease(AttrStr);
+			AttrStr = NULL;
+		}
+
 		wchar_t *w = StrCache.Get();
 		CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
 		if (string)
@@ -539,6 +545,7 @@ void GDisplayString::Layout(bool Debug)
 
 			if (AttrStr)
 			{
+				LgiAssert(!Hnd);
 				Hnd = CTLineCreateWithAttributedString(AttrStr);
 				if (Hnd)
 				{
@@ -937,6 +944,7 @@ void GDisplayString::TruncateWithDots(int Width)
 					if (truncationToken)
 					{
 						CTLineRef TruncatedLine = CTLineCreateTruncatedLine(Hnd, Width, kCTLineTruncationEnd, truncationToken);
+						CFRelease(truncationToken);
 						if (TruncatedLine)
 						{
 							CFRelease(Hnd);
