@@ -471,7 +471,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		if (Result == GDocumentEnv::LoadImmediate)
 		{
 			StreamMimeType = j->MimeType;
-			ContentId = j->ContentId;
+			ContentId = j->ContentId.Strip("<>");
 			FileName = j->Filename;
 
 			if (j->Stream)
@@ -595,10 +595,9 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		GDocView::ContentMedia &Cm = Media->New();
 		
 		int Idx = LgiRand() % 10000;
-		if (ContentId)
-			Cm.Id = ContentId;
-		else
-			Cm.Id.Printf("%u@memecode.com", Idx);
+		if (!ContentId)
+			ContentId.Printf("%u@memecode.com", Idx);
+		Cm.Id = ContentId;
 
 		GString Style;
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
