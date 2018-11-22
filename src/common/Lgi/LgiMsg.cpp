@@ -146,6 +146,11 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 			char *t = LgiToNativeCp(Title ? Title : (char*)"Message");
 			char *m = LgiToNativeCp(Msg);
 			Res = MessageBoxA(Parent ? Parent->Handle() : 0, m?m:"", t?t:"", Type);
+			if (Res == 0)
+			{
+				auto Err = GetLastError();
+				LgiAssert(!"MessageBoxA failed.");
+			}
 			DeleteArray(t);
 			DeleteArray(m);
 		}
@@ -154,6 +159,11 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 			char16 *t = Utf8ToWide(Title ? Title : (char*)"Message");
 			char16 *m = Utf8ToWide(Msg);
 			Res = MessageBoxW(Parent ? Parent->Handle() : 0, m?m:L"", t?t:L"", Type);
+			if (Res == 0)
+			{
+				auto Err = GetLastError();
+				LgiAssert(!"MessageBoxW failed.");
+			}
 			DeleteArray(t);
 			DeleteArray(m);
 		}
