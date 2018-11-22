@@ -1346,7 +1346,6 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	// responsible for doing pre layout stuff for an entire control of cells.
 	int Cx, Cy, i;
 
-	bool Debug = Ctrl->GetId() == 500;
 	GString::Array Ps;
 	Ps.SetFixedLength(false);
 	GAutoPtr<GProfile> Prof(/*Debug ? new GProfile("Layout") :*/ NULL);
@@ -1872,7 +1871,6 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	int64 Start = LgiCurrentTime();
 	#endif
 
-	bool Debug = Ctrl->GetId() == 500;
 	GString s;
 	s.Printf("Layout %i x %i", Client.X(), Client.Y());
 	GAutoPtr<GProfile> Prof(/*Debug ? new GProfile(s) :*/ NULL);
