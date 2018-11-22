@@ -288,17 +288,17 @@ public:
 				if (f->Size == sizeof(float))
 					return f->f;
 				else if (f->Size == sizeof(double))
-					return f->d;
+					return (float)f->d;
 				else
 					LgiAssert(!"Invalid size.");
 				break;
 			case LString:
 				if (f->Size == 1)
-					return atof(f->s.u);
+					return (float)atof(f->s.u);
 				else if (f->Size == 2)
 				{
 					GString s(f->s.w);
-					return s.Float();
+					return (float)s.Float();
 				}
 				else
 					LgiAssert(!"Invalid string size");
