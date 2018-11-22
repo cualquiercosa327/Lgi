@@ -796,9 +796,23 @@ public:
 	/// Convert to integer
 	int64 Int(int Base = 10)
 	{
-		if (Str)
-			return Atoi(Str->Str, Base);
-		return -1;
+		if (!Str)
+			return -1;
+
+		if
+		(
+			Str->Len > 2 &&
+			Str->Str[0] == '0' &&
+			(
+				Str->Str[1] == 'x' ||
+				Str->Str[1] == 'X'
+			)
+		)
+		{
+			return Atoi(Str->Str+2, 16);
+		}
+
+		return Atoi(Str->Str, Base);
 	}
 
 	/// Checks if the string is a number
