@@ -434,6 +434,8 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 					Name(d->Name);
 				else
 					Value(d->Value);
+
+				SendNotify(GNotifyTableLayout_Refresh);
 			}
 			break;
 		}
