@@ -1528,6 +1528,35 @@ void VcFolder::ListWorkingFolder()
 	}
 }
 
+void VcFolder::GitAdd()
+{
+	if (!PostAdd)
+		return;
+
+	GString Args;
+	if (PostAdd->Files.Length() == 0)
+	{
+		GString m(PostAdd->Msg);
+		m = m.Replace("\"", "\\\"");
+		Args.Printf("commit -m \"%s\"", m.Get());
+		IsCommit = StartCmd(Args, &VcFolder::ParseCommit, PostAdd->Param, LogNormal);
+		PostAdd.Reset();
+	}
+	else
+	{
+		GString Last = PostAdd->Files.Last();
+		Args.Printf("add \"%s\"", Last.Replace("\"", "\\\"").Replace("/", DIR_STR).Get());
+		PostAdd->Files.PopLast();	
+		StartCmd(Args, &VcFolder::ParseGitAdd, NULL, LogNormal);
+	}
+}
+
+bool VcFolder::ParseGitAdd(int Result, GString s, ParseParams *Params)
+{
+	GitAdd();
+	return false;
+}
+
 bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 {
 	if (GTreeItem::Select())
@@ -1608,18 +1637,30 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 		{
 			case VcGit:
 			{
-				if (Partial)
+				if (Add.Length() == 0)
 				{
-					LgiMsg(GetTree(), "%s:%i - Not impl.", _FL, AppName, MB_OK, _FL);
 					break;
+				}
+				else if (Partial)
+				{
+					if (PostAdd.Reset(new GitCommit))
+					{
+						PostAdd->Files.SetFixedLength(false);
+						for (auto f : Add)
+							PostAdd->Files.Add(f->GetFileName());
+						PostAdd->Msg = Msg;
+						PostAdd->Branch = Branch;
+						PostAdd->Param = Param;
+						GitAdd();
+					}
 				}
 				else
 				{
 					GString m(Msg);
 					m = m.Replace("\"", "\\\"");
 					Args.Printf("commit -am \"%s\"", m.Get());
+					IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, LogNormal);
 				}
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, LogNormal);
 				break;
 			}
 			case VcSvn:

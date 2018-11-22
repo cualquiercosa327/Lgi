@@ -132,6 +132,20 @@ class VcFolder : public GTreeItem, public GCss
 	GTreeItem *Tmp;
 	int CmdErrors;
 	
+	struct GitCommit
+	{
+		GString::Array Files;
+		GString Msg, Branch;
+		ParseParams *Param;
+		
+		GitCommit()
+		{
+			Param = NULL;
+		}
+	};
+	GAutoPtr<GitCommit> PostAdd;
+	void GitAdd();
+
 	GArray<Cmd*> Cmds;
 	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit, IsUpdatingCounts;
 
@@ -151,6 +165,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool ParseWorking(int Result, GString s, ParseParams *Params);
 	bool ParseUpdate(int Result, GString s, ParseParams *Params);
 	bool ParseCommit(int Result, GString s, ParseParams *Params);
+	bool ParseGitAdd(int Result, GString s, ParseParams *Params);
 	bool ParsePush(int Result, GString s, ParseParams *Params);
 	bool ParsePull(int Result, GString s, ParseParams *Params);
 	bool ParseCounts(int Result, GString s, ParseParams *Params);
