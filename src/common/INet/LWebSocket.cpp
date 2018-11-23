@@ -42,8 +42,11 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	fds.Length(s.Length());
 	for (unsigned i=0; i<s.Length(); i++)
 	{
-		fds[i].fd = s[i];
-		fds[i].events = POLLIN | POLLRDHUP | POLLERR;
+		fds[i].fd = s[i]->Handle();
+		fds[i].events =	((Flags & O_WRITE) ? POLLOUT : 0) |
+						((Flags & O_READ) ? POLLIN : 0) |
+						POLLRDHUP |
+						POLLERR;
 		fds[i].revents = 0;
 	}
 
@@ -51,9 +54,21 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	int Signalled = 0;
 	if (r > 0)
 	{
-		for (auto &f : fds)
+		for (unsigned i=0; i<fds.Length(); i++)
+		{
+			auto &f = fds[i];
 			if (f.revents != 0)
+			{
 				Signalled++;
+								
+				if (f.fd == s[i]->Handle())
+				{
+					// printf("Poll[%i] = %x (flags=%x)\n", i, f.revents, Flags);
+					Results.Add(s[i]);
+				}
+				else LgiAssert(0);
+			}
+		}
 	}
 	
 	return Signalled;
