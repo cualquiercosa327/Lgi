@@ -15,7 +15,7 @@
 #include "LJson.h"
 
 #define DEBUG_OAUTH2				0
-#define DEBUG_FETCH					0
+#define DEBUG_FETCH					1
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
 
 
@@ -2443,13 +2443,7 @@ int MailIMap::Fetch(bool ByUid,
 					
 					LastActivity = LgiCurrentTime();
 				}
-				else if (!Debug)
-				{
-					/*
-					if (LgiCurrentTime() - LastActivity > 10000)
-						Debug = true;
-					*/
-				}
+				else break;
 				
 				if (Debug)
 					LgiTrace("%s:%i - Recv=%i\n", _FL, r);
