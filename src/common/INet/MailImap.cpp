@@ -2537,7 +2537,7 @@ int MailIMap::Fetch(bool ByUid,
 
 			// Look for the end marker
 			#if DEBUG_FETCH
-			LgiTrace("%s:%i - Fetch: End, Used=%i, Buf=%.12s\n", _FL, Used, Buf);
+			LgiTrace("%s:%i - Fetch: End, Used=%i, Buf=%.12s\n", _FL, Used, Buf.AddressOf());
 			#endif
 			if (Used > 0 && Buf[0] != '*')
 			{
