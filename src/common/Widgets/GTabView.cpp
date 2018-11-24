@@ -663,6 +663,8 @@ void GTabView::OnAttach()
 	GViewI *p = this;
 	while ((p = p->GetParent()))
 	{
+		if (p == (GViewI*)GetWindow())
+			break;
 		GTabView *tv = dynamic_cast<GTabView*>(p);
 		if (tv)
 			d->Depth++;
