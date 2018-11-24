@@ -1594,6 +1594,11 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 			CurrentCommit.Empty();
 			CommitListDirty = true;
 			GetTree()->SendNotify(LvcCommandEnd);
+			if (!Result)
+			{
+				Unpushed = 0;
+				Update();
+			}
 			break;
 		}
 		default:
