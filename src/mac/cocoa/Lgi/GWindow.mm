@@ -303,6 +303,7 @@ GWindow::GWindow() : GView(NULL)
 	Wnd.p = [[LNsWindow alloc] init:d Frame:frame];
 	if (Wnd)
 	{
+		[Wnd.p retain];
 		if (!Delegate)
 			Delegate = [[LWindowDelegate alloc] init];
 		[Wnd.p makeKeyAndOrderFront:NSApp];
