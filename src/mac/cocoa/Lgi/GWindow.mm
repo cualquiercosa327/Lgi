@@ -162,7 +162,7 @@ public:
 
 		nsw.contentView.needsLayout = YES;
 		
-		/*/
+		/*
 		GAutoPtr<GViewIterator> views(Wnd->IterateViews());
 		for (auto c = views->First(); c; c = views->Next())
 		{
@@ -296,6 +296,8 @@ GWindow::GWindow() : GView(NULL)
 	
 	_Lock = new LMutex;
 	
+	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
 	Wnd.p = [[LNsWindow alloc] init:d Frame:frame];
@@ -306,6 +308,8 @@ GWindow::GWindow() : GView(NULL)
 		[Wnd.p makeKeyAndOrderFront:NSApp];
 		Wnd.p.delegate = Delegate;
 	}
+	
+	[pool release];
 }
 
 GWindow::~GWindow()
