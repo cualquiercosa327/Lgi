@@ -2326,6 +2326,9 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 {
+	if (!Text && !Html)
+		return false;
+
 	GArray<uint32> Utf32;
 
 	bool Cf = CursorFirst();
@@ -2337,7 +2340,8 @@ bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 		if (ToHtml(NULL, Start, End))
 			*Html = UtfNameCache;
 	}
-	else if (Text)
+	
+	if (Text)
 	{
 		if (Start->Blk == End->Blk)
 		{
@@ -2376,7 +2380,6 @@ bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 		Text->Add(w, Strlen(w));
 		Text->Add(0);
 	}
-	else return false;
 
 	return true;
 }
