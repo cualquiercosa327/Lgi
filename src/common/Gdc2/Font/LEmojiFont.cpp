@@ -2,13 +2,20 @@
 #include "LEmojiFont.h"
 #include "Emoji.h"
 #include "GFontPriv.h"
+#include "GdcTools.h"
 
 #define FILE_NAME "EmojiMap.png"
 
 struct LEmojiFontPriv
 {
 	GAutoString Fn;
-	GAutoPtr<GSurface> Img;
+	GAutoPtr<GSurface> Img, Scaled;
+	int Cell;
+
+	LEmojiFontPriv()
+	{
+		Cell = EMOJI_CELL_SIZE;
+	}
 };
 
 LEmojiFont::LEmojiFont()
@@ -26,17 +33,33 @@ void LEmojiFont::_Measure(int &x, int &y, OsChar *Str, int len)
 	ssize_t Len = len;
 
 	x = 0;
-	y = EMOJI_CELL_SIZE;
+	y = priv->Cell;
 	for (auto s = (const uint16*)Str; *s && Len > 0; )
 	{
 		uint32 u32 = LgiUtf16To32(s, Len);
 		if (u32)
-			x += EMOJI_CELL_SIZE;
+			x += priv->Cell;
 	}
 }
 
-int LEmojiFont::_CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type)
+int LEmojiFont::_CharAt(int xPos, OsChar *Str, int len, LgiPxToIndexType Type)
 {
+	ssize_t Len = len;
+
+	int x = 0;
+	int Char = 0;
+	for (auto s = (const uint16*)Str; *s && Len > 0; )
+	{
+		uint32 u32 = LgiUtf16To32(s, Len);
+		if (u32)
+		{
+			if (xPos >= x && xPos < x + priv->Cell)
+				return Char;
+			x += priv->Cell;
+			Char++;
+		}
+	}
+
 	return -1;
 }
 
@@ -48,6 +71,7 @@ void LEmojiFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int len, GRect 
 	ssize_t Bytes = len * sizeof(*Str);
 
 	pDC->Op(GDC_ALPHA);
+	pDC->Colour(Back());
 
 	for (auto s = (const uint16*)Str; *s && Bytes > 0; )
 	{
@@ -55,18 +79,23 @@ void LEmojiFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int len, GRect 
 		if (!u32)
 			break;
 
+		GSurface *Src = priv->Scaled ? priv->Scaled : priv->Img;
+
 		auto Idx = EmojiToIconIndex(&u32, 1);
 		if (Idx >= 0)
 		{
 			int Cx = Idx % EMOJI_GROUP_X;
 			int Cy = Idx / EMOJI_GROUP_X;
 
-			GRect r(0, 0, EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
-			r.Offset(Cx * EMOJI_CELL_SIZE, Cy * EMOJI_CELL_SIZE);
+			GRect r(0, 0, priv->Cell-1, priv->Cell-1);
+			r.Offset(Cx * priv->Cell, Cy * priv->Cell);
 
-			pDC->Blt(x, y, priv->Img, &r);
+			if (!Transparent())
+				pDC->Rectangle(x, y, x + priv->Cell - 1, y + priv->Cell - 1);
 
-			x += EMOJI_CELL_SIZE;
+			pDC->Blt(x, y, Src, &r);
+
+			x += priv->Cell;
 		}
 		else LgiAssert(!"Invalid char");
 	}
@@ -74,11 +103,14 @@ void LEmojiFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int len, GRect 
 
 int LEmojiFont::GetHeight()
 {
-	return EMOJI_CELL_SIZE;
+	return priv->Cell;
 }
 
 bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
 {
+	if (PtSize > 0)
+		PointSize(PtSize);
+
 	if (!priv->Fn)
 	{
 		priv->Fn.Reset(LgiFindFile(FILE_NAME));
@@ -118,6 +150,26 @@ bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
 				if (EmojiToIconIndex(&u, 1))
 					d->GlyphMap[u>>3] |= 1 << (u & 7);
 			}
+		}
+	}
+
+	auto Dpi = LgiScreenDpi();
+	PtSize = PointSize();
+	if (PtSize > 0 && priv->Img)
+	{
+		int NewCell = (int) ((double)PtSize * Dpi / 50);
+		int Nx = priv->Img->X() * NewCell / EMOJI_CELL_SIZE;
+		int Ny = priv->Img->Y() * NewCell / EMOJI_CELL_SIZE;
+
+		if
+		(
+			NewCell != EMOJI_CELL_SIZE &&
+			!priv->Scaled &&
+			priv->Scaled.Reset(new GMemDC(Nx, Ny, priv->Img->GetColourSpace()))
+		)
+		{
+			ResampleDC(priv->Scaled.Get(), priv->Img.Get());
+			priv->Cell = NewCell;
 		}
 	}
 
