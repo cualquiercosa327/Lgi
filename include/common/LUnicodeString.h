@@ -172,7 +172,7 @@ public:
 	ssize_t Bytes() { Scan(); return words * sizeof(T); }
 	ssize_t Words() { Scan(); return words; }
 	ssize_t Chars() { Scan(); return chars; }
-	T *Get() { return Start; }
+	T *Get() { return cur; }
 	T *End() { Scan(); return start + words; }
 
 	void Empty()

@@ -11,6 +11,7 @@
 #include "GdiLeak.h"
 #include "GDisplayString.h"
 #include "GPixelRops.h"
+#include "LUnicodeString.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -661,20 +662,16 @@ void GDisplayString::Layout(bool Debug)
 					f->Create();
 			}
 
-			bool Debug = WasTab;
-			
-			const uint16 *u16;
+			bool Debug = WasTab;			
 			uint32 u32;
-			ssize_t Len = len << 1;
-			for (u16 = (const uint16*)Str; true;)
+			for (LUnicodeString<wchar_t> u(Str, len); true; u++)
 			{
-				OsChar *s = (OsChar*)u16;
-				u32 = LgiUtf16To32(u16, Len);
+				u32 = *u;
 				GFont *n = GlyphSub ? Sys->GetGlyph(u32, Font) : Font;
 				bool Change =	n != f ||						// The font changed
 								(IsTabChar(u32) ^ WasTab) ||	// Entering/leaving a run of tabs
 								!u32 ||							// Hit a NULL character
-								(s - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
+								(u.Get() - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
 				if (Change)
 				{
 					// End last segment
@@ -686,7 +683,7 @@ void GDisplayString::Layout(bool Debug)
 							n->Create();
 					}
 
-					Info[i].Len = (int) (s - Info[i].Str);
+					Info[i].Len = (int) (u.Get() - Info[i].Str);
 					if (Info[i].Len)
 					{
 						if (WasTab)
@@ -739,7 +736,7 @@ void GDisplayString::Layout(bool Debug)
 
 					// Start next segment
 					WasTab = IsTabChar(u32);
-					Info[i].Str = s;
+					Info[i].Str = u.Get();
 				}
 
 				if (!u32) break;

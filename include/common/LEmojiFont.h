@@ -1,3 +1,9 @@
+/*	Instantiation:
+
+	GAutoPtr<GFont> f(new LEmojiFont());
+	if (f && f->Create())
+		GFontSystem::Inst()->AddFont(f);
+*/
 #ifndef _EMOJI_FONT_H_
 #define _EMOJI_FONT_H_
 

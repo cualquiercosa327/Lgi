@@ -30,7 +30,7 @@ LEmojiFont::~LEmojiFont()
 
 void LEmojiFont::_Measure(int &x, int &y, OsChar *Str, int len)
 {
-	ssize_t Len = len;
+	ssize_t Len = len * sizeof(*Str);
 
 	x = 0;
 	y = priv->Cell;
@@ -87,13 +87,18 @@ void LEmojiFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int len, GRect 
 			int Cx = Idx % EMOJI_GROUP_X;
 			int Cy = Idx / EMOJI_GROUP_X;
 
-			GRect r(0, 0, priv->Cell-1, priv->Cell-1);
-			r.Offset(Cx * priv->Cell, Cy * priv->Cell);
+			GRect Icon(0, 0, priv->Cell-1, priv->Cell-1);
+			Icon.Offset(Cx * priv->Cell, Cy * priv->Cell);
 
 			if (!Transparent())
-				pDC->Rectangle(x, y, x + priv->Cell - 1, y + priv->Cell - 1);
+			{
+				if (r)
+					pDC->Rectangle(r);
+				else
+					pDC->Rectangle(x, y, x + priv->Cell - 1, y + priv->Cell - 1);
+			}
 
-			pDC->Blt(x, y, Src, &r);
+			pDC->Blt(x, y, Src, &Icon);
 
 			x += priv->Cell;
 		}
