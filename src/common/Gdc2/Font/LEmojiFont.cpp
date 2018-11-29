@@ -117,8 +117,7 @@ bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
 		if (!priv->Fn)
 		{
 			GFile::Path p(LSP_APP_INSTALL);
-			p--;
-			p += "Lgi\\trunk\\src\\common\\Text\\Emoji\\EmojiMap.png";
+			p += "..\\Lgi\\trunk\\src\\common\\Text\\Emoji\\EmojiMap.png";
 			if (p.Exists())
 				priv->Fn.Reset(NewStr(p));
 		}
@@ -130,6 +129,7 @@ bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
 		{
 			LgiAssert(priv->Img->GetBits() == 32);
 		}
+		else return false;
 	}
 
 	if (!d->GlyphMap)

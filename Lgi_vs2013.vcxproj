@@ -483,6 +483,7 @@
     <ClCompile Include="src\common\Text\GUnicode.cpp" />
     <ClCompile Include="src\common\Text\GUtf8.cpp" />
     <ClCompile Include="src\common\Text\GXmlTree.cpp" />
+    <ClCompile Include="src\common\Text\LUnicodeString.cpp" />
     <ClCompile Include="src\common\Widgets\GBitmap.cpp" />
     <ClCompile Include="src\common\Widgets\GBox.cpp" />
     <ClCompile Include="src\common\Widgets\GButton.cpp">
