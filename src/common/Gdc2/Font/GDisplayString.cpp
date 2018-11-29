@@ -728,7 +728,9 @@ void GDisplayString::Layout(bool Debug)
 							m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
 							x += Info[i].X = sx > 0xffff ? 0xffff : sx;
 						}
-						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
+
+						auto Ch = Info[i].First();
+						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Ch];
 
 						i++;
 					}

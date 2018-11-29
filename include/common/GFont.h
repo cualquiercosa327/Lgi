@@ -184,7 +184,7 @@ class LgiClass GFont :
 	public GTypeFace
 {
 	friend class GFontSystem;
-
+protected:
 	class GFontPrivate *d;
 
 	// Methods
@@ -196,9 +196,9 @@ class LgiClass GFont :
 	#if defined(WINNATIVE)
 	friend class GDisplayString;
 
-	void _Measure(int &x, int &y, OsChar *Str, int Len);
-	int _CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type);
-	void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
+	virtual void _Measure(int &x, int &y, OsChar *Str, int Len);
+	virtual int _CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type);
+	virtual void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
 	#endif
 
 public:
@@ -216,10 +216,10 @@ public:
 	GFont(GFontType &Type);
 	/// Copy constructor
 	GFont(GFont &Fnt);
-	~GFont();
+	virtual ~GFont();
 
 	/// Creates a new font handle with the specified face / pt size
-	bool Create
+	virtual bool Create
 	(
 		/// The new font face
 		const char *Face = 0,
@@ -239,16 +239,16 @@ public:
 	bool CreateFromCss(GCss *Css);
 
 	/// Clears any handles and memory associated with the object.
-	bool Destroy();
+	virtual bool Destroy();
 
 	/// Returns the OS font handle
-	OsFont Handle();
+	virtual OsFont Handle();
 
 	/// Copies the font
-	GFont &operator =(GFont &f);
+	virtual GFont &operator =(GFont &f);
 
 	/// Returns the pixel height of the font
-	int GetHeight();
+	virtual int GetHeight();
 
 	/// Gets the creation parameter passed in (0 by default).
 	GSurface *GetSurface();

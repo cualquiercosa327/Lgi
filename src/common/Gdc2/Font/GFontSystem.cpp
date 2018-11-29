@@ -553,19 +553,18 @@ bool GFontSystem::AddFont(GAutoPtr<GFont> Fnt)
 	if (d->Used >= CountOf(Font))
 		return false;
 
-	// GProfile Prof("AddFnt");
 	Fnt->Create();
-	// Prof.Add("GetGlyphs");
 
 	auto *Map = Fnt->GetGlyphMap();
 	if (Map)
 	{
 		uint8 Used = d->Used;
+
 		// Insert all the characters of this font into the LUT
 		// so that we can map from a character back to the font
-		// Prof.Add("Lut");
 		for (int k=0; k<=MAX_UNICODE; k += 8)
 		{
+			// unroll the loop for maximum speed..
 			uint8 m = Map[k >> 3];
 			
 			#define TestLut(i) \
@@ -582,7 +581,6 @@ bool GFontSystem::AddFont(GAutoPtr<GFont> Fnt)
 		}
 	}
 
-	// Prof.Add("Release");
 	Font[d->Used++] = Fnt.Release();
 	return true;
 }
@@ -607,6 +605,11 @@ GFont *GFontSystem::GetGlyph(uint32 u, GFont *UserFont)
 	GFont *Has = 0;
 	if (Lut[u])
 	{
+		if (Lut[u] == 1)
+		{
+			int asd=0;
+		}
+
 		Has = Font[Lut[u]];
 		LgiAssert(Has != NULL);
 		if (!Has)
