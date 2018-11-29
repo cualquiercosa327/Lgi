@@ -72,8 +72,8 @@
 
 #endif
 
-#define LGI_WHITESPACE_WEIGHT			0.15f // amount of foreground colour in visible whitespace
-#define MAX_UNICODE						0xffff // maximum unicode char I can handle
+#define LGI_WHITESPACE_WEIGHT			0.15f		// amount of foreground colour in visible whitespace
+#define MAX_UNICODE						0x10FFFF	// maximum unicode char I can handle
 #define _HasUnicodeGlyph(map, u)		( (map[(u)>>3] & (1 << ((u) & 7))) != 0  )
 
 enum LgiPxToIndexType
@@ -407,8 +407,8 @@ class LgiClass GFontSystem : public GCapabilityClient
 
 private:
 	// System Font List
-	List<const char> AllFonts;
-	List<const char> SubFonts; // Fonts yet to be scanned for substitution
+	GString::Array AllFonts;
+	GString::Array SubFonts; // Fonts yet to be scanned for substitution
 
 	// Missing Glyph Substitution
 	uchar Lut[MAX_UNICODE+1];
@@ -424,7 +424,7 @@ public:
 	~GFontSystem();
 
 	/// Enumerate all installed fonts
-	bool EnumerateFonts(List<const char> &Fonts);
+	bool EnumerateFonts(GString::Array &Fonts);
 
 	/// Returns whether the current Lgi implementation supports glyph sub
 	bool GetGlyphSubSupport();
@@ -436,7 +436,7 @@ public:
 	GFont *GetGlyph
 	(
 		/// A utf-32 character
-		int u,
+		uint32 u,
 		/// The base font used for rendering
 		GFont *UserFont
 	);
@@ -444,6 +444,8 @@ public:
 	/// ideally it can render the whole thing. But the next best alternative is returned
 	/// when no font matches all characters in the string.
 	GFont *GetBestFont(char *Str);
+	/// Add a custom font to the glyph lookup table
+	bool AddFont(GAutoPtr<GFont> Fnt);
 
 	#ifdef __GTK_H__
 	

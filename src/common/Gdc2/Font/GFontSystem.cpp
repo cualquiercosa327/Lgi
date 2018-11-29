@@ -135,8 +135,6 @@ GFontSystem::~GFontSystem()
 		DeleteObj(Font[i]);
 	}
 
-	AllFonts.DeleteArrays();
-	SubFonts.DeleteArrays();
 	DeleteObj(d);
 	Me = 0;
 	FontSystemDone = true;
@@ -190,24 +188,23 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 						int FontType,
 						LPARAM lParam)
 {
-	List<char> *p = (List<char>*) lParam;
+	GString::Array *p = (GString::Array*) lParam;
 	if (p)
-	{
-		p->Insert(WideToUtf8(lpelf->elfLogFont.lfFaceName));
-	}
+		p->New() = lpelf->elfLogFont.lfFaceName;
 	return true;
 }
 #endif
 
-int StringSort(const char *a, const char *b, NativeInt Data)
+int StringSort(GString *a, GString *b)
 {
-	if (a && b) return stricmp(a, b);
+	if (a && b) return stricmp(*a, *b);
 	return 0;
 }
 
-bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
+bool GFontSystem::EnumerateFonts(GString::Array &Fonts)
 {
-	if (!AllFonts.First())
+	Fonts.SetFixedLength(false);
+	if (!AllFonts.Length())
 	{
 		#if defined WINNATIVE
 
@@ -297,16 +294,8 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 		AllFonts.Sort(StringSort);
 	}
 
-	if (AllFonts.First() && &AllFonts != &Fonts)
-	{
-		for (const char *s=AllFonts.First(); s; s=AllFonts.Next())
-		{
-			Fonts.Insert(NewStr(s));
-		}
-		return true;
-	}
-
-	return false;
+	Fonts = AllFonts;
+	return true;
 }
 
 bool GFontSystem::HasIconv(bool Quiet)
@@ -548,10 +537,61 @@ GFont *GFontSystem::GetBestFont(char *Str)
 	return MatchingFont;
 }
 
-GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
+typedef LHashTbl<StrKey<char,false>,int> FontMap;
+DeclGArrayCompare(FontNameCmp, GString, FontMap)
+{
+	int ap = param->Find(*a);
+	int bp = param->Find(*b);
+	return bp - ap;
+}
+
+bool GFontSystem::AddFont(GAutoPtr<GFont> Fnt)
+{
+	if (!Fnt)
+		return false;
+
+	if (d->Used >= CountOf(Font))
+		return false;
+
+	// GProfile Prof("AddFnt");
+	Fnt->Create();
+	// Prof.Add("GetGlyphs");
+
+	auto *Map = Fnt->GetGlyphMap();
+	if (Map)
+	{
+		uint8 Used = d->Used;
+		// Insert all the characters of this font into the LUT
+		// so that we can map from a character back to the font
+		// Prof.Add("Lut");
+		for (int k=0; k<=MAX_UNICODE; k += 8)
+		{
+			uint8 m = Map[k >> 3];
+			
+			#define TestLut(i) \
+				if (!Lut[k+i] && (m & (1 << i))) \
+					Lut[k+i] = Used;
+			TestLut(0);
+			TestLut(1);
+			TestLut(2);
+			TestLut(3);
+			TestLut(4);
+			TestLut(5);
+			TestLut(6);
+			TestLut(7);
+		}
+	}
+
+	// Prof.Add("Release");
+	Font[d->Used++] = Fnt.Release();
+	return true;
+}
+
+GFont *GFontSystem::GetGlyph(uint32 u, GFont *UserFont)
 {
 	if (u > MAX_UNICODE || !UserFont)
 	{
+		LgiAssert(!"Invalid character");
 		return 0;
 	}
 
@@ -571,129 +611,76 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 		LgiAssert(Has != NULL);
 		if (!Has)
 		{
-			LgiTrace("%s:%i - Font table missing pointer. u=%i Lut[u]=%i\n", __FILE__, __LINE__, u, Lut[u]);
+			LgiTrace("%s:%i - Font table missing pointer. u=%i Lut[u]=%i\n", _FL, u, Lut[u]);
 			Has = UserFont;
 		}
 	}
 	else if (d->Used < 255 && !d->FontTableLoaded)
 	{
 		// Add fonts to Lut...
-		if (!SubFonts.First())
+		if (!SubFonts.Length())
 		{
 			#if LGI_EXCEPTIONS
 			try
 			{
 			#endif
+				FontMap Pref(0, 0);
 				if (GFontSystem::Inst()->EnumerateFonts(SubFonts))
 				{
 					// Reorder font list to prefer certain known as good fonts or
 					// avoid certain bad fonts.
-					List<const char> Ascend, Descend;
-					
 					if (LgiGetOs() == LGI_OS_WIN32 ||
 						LgiGetOs() == LGI_OS_WIN64)
 					{
-						Ascend.Insert("Microsoft Sans Serif");
-						Ascend.Insert("Arial Unicode MS");
-						Ascend.Insert("Verdana");
-						Ascend.Insert("Tahoma");
+						Pref.Add("Microsoft Sans Serif", 1);
+						Pref.Add("Arial Unicode MS", 1);
+						Pref.Add("Verdana", 1);
+						Pref.Add("Tahoma", 1);
 
-						Descend.Insert("Bookworm");
-						Descend.Insert("Christmas Tree");
-						Descend.Insert("MingLiU");
+						Pref.Add("Bookworm", -1);
+						Pref.Add("Christmas Tree", -1);
+						Pref.Add("MingLiU", -1);
 					}
 					
 					if (LgiGetOs() == LGI_OS_LINUX)
 					{
 						// Windows fonts are much better than anything Linux 
 						// has to offer.
-						Ascend.Insert("Verdana");
-						Ascend.Insert("Tahoma");
-						Ascend.Insert("Arial Unicode MS");
+						Pref.Add("Verdana", 1);
+						Pref.Add("Tahoma", 1);
+						Pref.Add("Arial Unicode MS", 1);
 						
 						// Most linux fonts suck... and the rest aren't much
 						// good either
-						Descend.Insert("AR PL *");
-						Descend.Insert("Baekmuk *");
-						Descend.Insert("console8*");
-						Descend.Insert("Courier*");
-						Descend.Insert("Fangsong*");
-						Descend.Insert("Kochi*");
-						Descend.Insert("MiscFixed");
-						Descend.Insert("Serto*");
-						Descend.Insert("Standard Symbols*");
-						Descend.Insert("Nimbus*");
+						Pref.Add("AR PL *", -1);
+						Pref.Add("Baekmuk *", -1);
+						Pref.Add("console8*", -1);
+						Pref.Add("Courier*", -1);
+						Pref.Add("Fangsong*", -1);
+						Pref.Add("Kochi*", -1);
+						Pref.Add("MiscFixed", -1);
+						Pref.Add("Serto*", -1);
+						Pref.Add("Standard Symbols*", -1);
+						Pref.Add("Nimbus*", -1);
 					}
 
 					// Prefer these fonts...
-					List<const char> Temp;
-					const char *p;
-					for (p=Ascend.First(); p; p=Ascend.Next())
-					{
-						for (const char *f=SubFonts.First(); f; )
-						{
-							if (MatchStr(p, f))
-							{
-								SubFonts.Delete(f);
-								Temp.Insert(f);
-								f = SubFonts.Current();
-							}
-							else
-							{
-								f = SubFonts.Next();
-							}
-						}
-					}
-					for (p=Temp.First(); p; p=Temp.Next())
-					{
-						SubFonts.Insert(p, 0);
-					}
-
-					// Avoid these fonts...
-					Temp.Empty();
-					for (p=Descend.First(); p; p=Descend.Next())
-					{
-						for (const char *f=SubFonts.First(); f; )
-						{
-							if (MatchStr(p, f))
-							{
-								SubFonts.Delete(f);
-								Temp.Insert(f);
-								f = SubFonts.Current();
-							}
-							else
-							{
-								f = SubFonts.Next();
-							}
-						}
-					}
-					for (p=Temp.First(); p; p=Temp.Next())
-					{
-						SubFonts.Insert(p);
-					}
+					SubFonts.Sort<FontMap>(FontNameCmp, &Pref);
 
 					// Delete fonts prefixed with '@' to the end, as they are for
 					// vertical rendering... and aren't suitable for what LGI uses
 					// fonts for.
-					for (const char *f=SubFonts.First(); f; )
+					for (unsigned i=0; i<SubFonts.Length(); i++)
 					{
-						if (*f == '@')
-						{
-							SubFonts.Delete(f);
-							DeleteObj((char*&)f);
-							f = SubFonts.Current();
-						}
-						else
-						{
-							f = SubFonts.Next();
-						}
+						if (SubFonts[i](0) == '@')
+							SubFonts.DeleteAt(i--, true);
 					}
 				}
 			#if LGI_EXCEPTIONS
 			}
 			catch (...)
 			{
-				LgiTrace("%s:%i - Font enumeration crashed.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - Font enumeration crashed.\n", _FL);
 			}
 			#endif
 		}
@@ -702,58 +689,52 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 		try
 		{
 		#endif
-			const char *s;
-			while (	(d->Used < CountOf(Font) - 1) &&
-					(s = SubFonts.First()))
+			// Start loading in fonts from the remaining 'SubFonts' container until we find the char we're looking for, 
+			// but only for a max of 10ms. This may result in a few missing glyphs but reduces the max time a display
+			// string takes to layout
+			auto Start = LgiCurrentTime();
+			int Used = d->Used;
+			while (SubFonts.Length() > 0 && (LgiCurrentTime() - Start) < 10)
 			{
-				SubFonts.Delete(s);
+				GString f = SubFonts[0];
+				SubFonts.DeleteAt(0, true);
 
-				GFont *n = new GFont;
-				if (n)
+				if (d->Used >= CountOf(Font))
 				{
-					int LutIndex = d->Used;
+					// No more space
+					SubFonts.Empty();
+					break;
+				}
 
-					*n = *UserFont;
-					n->Face(s);
-					DeleteArray((char*&)s);
-					n->Create();
-					Font[d->Used++] = n;
-
-					if (n->GetGlyphMap())
+				GAutoPtr<GFont> Fnt(new GFont);
+				if (Fnt)
+				{
+					*Fnt.Get() = *UserFont;
+					Fnt->Face(f);
+					if (AddFont(Fnt))
 					{
-						// Insert all the characters of this font into the LUT
-						// so that we can map from a character back to the font
-						for (int k=0; k<=MAX_UNICODE; k++)
+						GFont *Prev = Font[d->Used - 1];
+						if (_HasUnicodeGlyph(Prev->GetGlyphMap(), u))
 						{
-							if (!Lut[k] &&
-								_HasUnicodeGlyph(n->GetGlyphMap(), k))
-							{
-								Lut[k] = LutIndex;
-							}
-						}
-
-						if (_HasUnicodeGlyph(n->GetGlyphMap(), u))
-						{
-							Has = n;
+							Has = Prev;
 							LgiAssert(Has != NULL);
 							break;
 						}
 					}
 				}
-				else
-				{
-					DeleteArray((char*&)s);
-				}
 			}
+
+			LgiTrace("Loaded %i fonts for glyph sub.\n", d->Used - Used);
+
 		#if LGI_EXCEPTIONS
 		}
 		catch (...)
 		{
-			LgiTrace("%s:%i - Glyph search crashed.\n", __FILE__, __LINE__);
+			LgiTrace("%s:%i - Glyph search crashed.\n", _FL);
 		}
 		#endif
 
-		if (!SubFonts.First())
+		if (!SubFonts.Length())
 		{
 			d->FontTableLoaded = true;
 		}

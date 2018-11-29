@@ -163,14 +163,11 @@ int SortFunc(LListItem *a, LListItem *b, NativeInt Data)
 
 void GFontSelect::EnumerateFonts()
 {
-	List<const char> Fonts;
+	GString::Array Fonts;
 	if (GFontSystem::Inst()->EnumerateFonts(Fonts))
 	{
-		for (const char *n = Fonts.First(); n; n = Fonts.Next())
-		{
+		for (auto &n : Fonts)
 			InsertFont(n);
-			DeleteArray((char*&)n);
-		}
 
 		d->Lst->Sort(SortFunc);
 		d->Lst->ResizeColumnsToContent();
