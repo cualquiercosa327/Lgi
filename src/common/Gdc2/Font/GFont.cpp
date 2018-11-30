@@ -200,7 +200,7 @@ bool GTypeFace::operator ==(GTypeFace &t)
 		return false;
 	if (Face() && t.Face() && stricmp(Face(), t.Face()) != 0)
 		return false;
-	if (PointSize() != t.PointSize())
+	if (Size() != t.Size())
 		return false;
 	if (GetWeight() != t.GetWeight())
 		return false;

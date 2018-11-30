@@ -536,7 +536,7 @@ GFont *GFontSystem::GetBestFont(char *Str)
 	return MatchingFont;
 }
 
-typedef LHashTbl<StrKey<char,false>,int> FontMap;
+typedef LHashTbl<ConstStrKey<char,false>,int> FontMap;
 DeclGArrayCompare(FontNameCmp, GString, FontMap)
 {
 	int ap = param->Find(*a);

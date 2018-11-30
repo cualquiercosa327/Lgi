@@ -124,6 +124,7 @@
 		3477C46D1CC26DEB0028B84B /* GAlert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C46C1CC26DEB0028B84B /* GAlert.cpp */; };
 		3477C4ED1CC27F1C0028B84B /* GTrayIcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */; };
 		3477C5171CC303B70028B84B /* LgiClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 3477C5161CC303B70028B84B /* LgiClass.h */; };
+		347D192121B1F5700008C4CB /* GFont_W.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 347D192021B1F5700008C4CB /* GFont_W.cpp */; };
 		348362421F233A77003B2A6D /* GStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 348362411F233A77003B2A6D /* GStream.h */; };
 		34A3ACE820568D5800B1D62A /* LStringLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE720568D5800B1D62A /* LStringLayout.cpp */; };
 		34A3ACEA20568D9700B1D62A /* GMenuCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */; };
@@ -252,6 +253,7 @@
 		3477C46C1CC26DEB0028B84B /* GAlert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GAlert.cpp; path = ../../../common/Lgi/GAlert.cpp; sourceTree = "<group>"; };
 		3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GTrayIcon.cpp; path = ../../../common/Lgi/GTrayIcon.cpp; sourceTree = "<group>"; };
 		3477C5161CC303B70028B84B /* LgiClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiClass.h; path = ../../../include/common/LgiClass.h; sourceTree = "<group>"; };
+		347D192021B1F5700008C4CB /* GFont_W.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GFont_W.cpp; path = ../../../common/Gdc2/Font/GFont_W.cpp; sourceTree = "<group>"; };
 		348362411F233A77003B2A6D /* GStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStream.h; path = ../../../../include/common/GStream.h; sourceTree = "<group>"; };
 		34A3ACE720568D5800B1D62A /* LStringLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LStringLayout.cpp; path = ../../../common/Gdc2/Font/LStringLayout.cpp; sourceTree = "<group>"; };
 		34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMenuCommon.cpp; path = ../../../common/Lgi/GMenuCommon.cpp; sourceTree = "<group>"; };
@@ -442,6 +444,7 @@
 		3477C2BD1CBF97DA0028B84B /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				347D192021B1F5700008C4CB /* GFont_W.cpp */,
 				34A3ACE720568D5800B1D62A /* LStringLayout.cpp */,
 				345920FC1F25649000098DFD /* GFont.h */,
 				345920FD1F25649000098DFD /* GFontCache.h */,
@@ -698,6 +701,7 @@
 				3477C2D01CC047F50028B84B /* GToolBar.cpp in Sources */,
 				3477C3011CC04BF00028B84B /* GButton.cpp in Sources */,
 				3477C3061CC04BF00028B84B /* GProgress.cpp in Sources */,
+				347D192121B1F5700008C4CB /* GFont_W.cpp in Sources */,
 				3477C3001CC04BF00028B84B /* GBox.cpp in Sources */,
 				3477C2871CBF086A0028B84B /* GView.mm in Sources */,
 				3477C3021CC04BF00028B84B /* GCheckBox.cpp in Sources */,

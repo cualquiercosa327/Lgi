@@ -22,7 +22,7 @@ bool LUnicodeString_UnitTests()
 
 	LUnicodeString<wchar_t> Utf16;
 	uint32 ch;
-	while (ch = *Utf8++)
+	while ((ch = *Utf8++))
 	{
 		*Utf16++ = ch;
 	}

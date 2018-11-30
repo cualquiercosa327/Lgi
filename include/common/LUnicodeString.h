@@ -114,6 +114,7 @@ class LUnicodeString
 	void Write(char16 *&s, uint32 ch) { Write((uint16*&)s, ch); }
 	#else
 	uint32 Read(char16 *&s) { return Read((const uint32*&)s); }
+	void Write(char16 *&s, uint32 ch) { Write((uint32*&)s, ch); }
 	#endif
 
 	uint32 Read(const uint32 *&s)

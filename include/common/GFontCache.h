@@ -114,6 +114,8 @@ public:
 			Fam.Add(NewStr(DefaultFont->Face()));
 		
 		GCss::Len Sz = Style->FontSize();
+		if (!Sz.IsValid())
+			Sz = DefaultFont->Size();
 		GCss::FontWeightType Weight = Style->FontWeight();
 		GCss::FontWeightType DefaultWeight = DefaultFont && DefaultFont->Bold() ?
 											GCss::FontWeightBold :
