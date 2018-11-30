@@ -75,7 +75,7 @@ public:
 						{
 							Fnt->SubGlyphs(false);
 
-							if (Fnt->Create(f, 16))
+							if (Fnt->Create(f, "16pt"))
 							{
 								LList *m = _HasUnicodeGlyph(Fnt->GetGlyphMap(), c) ? Match : NonMatch;
 
