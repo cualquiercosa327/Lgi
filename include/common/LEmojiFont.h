@@ -21,7 +21,7 @@ public:
 	LEmojiFont();
 	~LEmojiFont();
 
-	bool Create(const char *Face = NULL, int PtSize = -1, GSurface *pSurface = NULL) override;
+	bool Create(const char *Face = NULL, GCss::Len Size = GCss::LenInherit, GSurface *pSurface = NULL) override;
 	int GetHeight() override;
 };
 

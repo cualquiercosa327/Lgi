@@ -526,11 +526,7 @@ public:
 			*this = o;
 		}
 
-		~ImageDef()
-		{
-			if (Type == ImageOwn)
-				DeleteObj(Img);
-		}
+		~ImageDef();
 
 		bool Parse(const char *&s);
 		bool operator !=(const ImageDef &i);		

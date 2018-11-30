@@ -45,7 +45,7 @@ public:
 	}
 	
 	GFont *AddFont(	const char *Face,
-					int PtSize,
+					GCss::Len Size,
 					GCss::FontWeightType Weight,
 					GCss::FontStyleType Style,
 					GCss::TextDecorType Decor)
@@ -59,7 +59,7 @@ public:
 				f->Face() &&
 				Face &&
 				!_stricmp(f->Face(), Face) &&
-				f->PointSize() == PtSize &&
+				f->Size() == Size &&
 				f->Bold() == (Weight == GCss::FontWeightBold) &&
 				f->Italic() == (Style == GCss::FontStyleItalic) &&
 				f->Underline() == (Decor == GCss::TextDecorUnderline)
@@ -75,7 +75,7 @@ public:
 			f->Italic(Style == GCss::FontStyleItalic);
 			f->Underline(Decor == GCss::TextDecorUnderline);
 			
-			if (!f->Create(Face, PtSize))
+			if (!f->Create(Face, Size))
 			{
 				LgiAssert(0);
 				DeleteObj(f);
@@ -125,7 +125,7 @@ public:
 		for (unsigned i = 0; !f && i<Fam.Length(); i++)
 		{		
 			f = AddFont(Fam[i],
-						(int) (Sz.Type == GCss::LenPt ? Sz.Value : (float)DefaultFont->PointSize()),
+						Sz,
 						Weight != GCss::FontWeightInherit ? Weight : DefaultWeight,
 						FontStyle != GCss::FontStyleInherit ? FontStyle : GCss::FontStyleNormal,
 						Decor != GCss::TextDecorInherit ? Decor : GCss::TextDecorNone);

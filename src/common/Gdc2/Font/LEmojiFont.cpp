@@ -111,10 +111,10 @@ int LEmojiFont::GetHeight()
 	return priv->Cell;
 }
 
-bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
+bool LEmojiFont::Create(const char *Face, GCss::Len Sz, GSurface *pSurface)
 {
-	if (PtSize > 0)
-		PointSize(PtSize);
+	if (Sz.IsValid())
+		Size(Sz);
 
 	if (!priv->Fn)
 	{
@@ -159,10 +159,10 @@ bool LEmojiFont::Create(const char *Face, int PtSize, GSurface *pSurface)
 	}
 
 	auto Dpi = LgiScreenDpi();
-	PtSize = PointSize();
-	if (PtSize > 0 && priv->Img)
+	Sz = Size();
+	if (Sz.IsValid() && priv->Img)
 	{
-		int NewCell = (int) ((double)PtSize * Dpi / 50);
+		int NewCell = (int) (Sz.Value * Dpi / 50);
 		int Nx = priv->Img->X() * NewCell / EMOJI_CELL_SIZE;
 		int Ny = priv->Img->Y() * NewCell / EMOJI_CELL_SIZE;
 

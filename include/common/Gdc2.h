@@ -176,7 +176,7 @@ class GFilter;
 class GSurface;
 
 #include "GRect.h"
-#include "GFont.h"
+// #include "GFont.h"
 #include "GPoint.h"
 #include "GColour.h"
 

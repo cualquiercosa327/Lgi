@@ -9,6 +9,7 @@
 #include "LgiOsClasses.h"
 #include "GColour.h"
 #include "GCapabilities.h"
+#include "GCss.h"
 
 //////////////////////////////////////////////////////////////
 // Defines
@@ -101,6 +102,8 @@ public:
 
 	/// Sets the font face name
 	void Face(const char *s);
+	/// Sets the font size
+	void Size(GCss::Len);
 	/// Sets the point size
 	void PointSize(int i);
 	/// Sets the tab size in device units (pixels)
@@ -139,8 +142,10 @@ public:
 
 	/// \returns the font face
 	char *Face();
-	/// \returns the point size
+	/// \returns the point size (avoid, use 'Size' instead)
 	int PointSize();
+	/// \returns the size
+	GCss::Len Size();
 	/// \returns the tabsize in pixels
 	int TabSize();
 	/// \returns the quality setting
@@ -207,8 +212,8 @@ public:
 	(
 		/// Font face name
 		const char *face = 0,
-		/// Point size of the font
-		int point = -1
+		/// Size of the font
+		GCss::Len size = GCss::LenInherit
 	);
 	/// Construct from OS font handle
 	GFont(OsFont Handle);
@@ -224,7 +229,7 @@ public:
 		/// The new font face
 		const char *Face = 0,
 		/// The pt size
-		int PtSize = -1,
+		GCss::Len Size = GCss::LenInherit,
 		/// Creating a font for a particular surface (e.g. printing).
 		GSurface *pSurface = 0
 	);

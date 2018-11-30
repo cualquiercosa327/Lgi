@@ -184,7 +184,7 @@ void GFontSelect::UpdatePreview()
 	f.Bold(Bold);
 	f.Underline(Underline);
 	f.Italic(Italic);
-	if (f.Create(Face, Size))
+	if (f.Create(Face, GCss::Len(GCss::LenPt, (float)Size)))
 	{
 		GMemDC *Dc = new GMemDC;
 		if (Dc->Create(263, 65, GdcD->GetColourSpace()))

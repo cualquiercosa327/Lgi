@@ -267,7 +267,6 @@ public:
 						Weight > GCss::FontWeight400;
 		bool IsItalic = Style->FontStyle() == GCss::FontStyleItalic;
 		bool IsUnderline = Style->TextDecoration() == GCss::TextDecorUnderline;
-		double PtSize = 0.0;
 
 		if (Size.Type == GCss::LenInherit ||
 			Size.Type == GCss::LenNormal)
@@ -324,9 +323,9 @@ public:
 			}
 
 			// Find the correct font size...
-			PtSize = Size.Value;
-			if (PtSize < MinimumPointSize)
-				PtSize = MinimumPointSize;
+			if (Size.Type == GCss::LenPt &&
+				Size.Value < MinimumPointSize)
+				Size.Value = MinimumPointSize;
 			
 			int BestPxDiff = 10000;
 			GAutoPtr<GFont> BestFont;
@@ -341,14 +340,14 @@ public:
 				Tmp->Underline(IsUnderline);
 				
 				if (FaceIdx >= Face.Length() ||
-					!Tmp->Create(Face[FaceIdx], (int)PtSize))
+					!Tmp->Create(Face[FaceIdx], Size))
 				{
 					if (FaceIdx < Face.Length())
 					{
 						FaceIdx++;
 						continue;
 					}
-					else if (!Tmp->Create(SysFont->Face(), (int)PtSize))
+					else if (!Tmp->Create(SysFont->Face(), Size))
 					{
 						break;
 					}
@@ -375,17 +374,21 @@ public:
 					break;
 				}
 
-				if (Diff > 0)
+				if (Size.Type == GCss::LenPt)
 				{
-					if (PtSize > MinimumPointSize)
-						PtSize--;
+					if (Diff > 0)
+					{
+						if (Size.Value > MinimumPointSize)
+							Size.Value--;
+						else
+							break;
+					}
 					else
-					    break;
+						Size.Value++;
 				}
-				else
-					PtSize++;
+				else break;
 			}
-			while (PtSize > MinimumPointSize && PtSize < 100);
+			while (Size.Value > MinimumPointSize && Size.Value < 100);
 
 			if (!BestFont)
 				return Owner->GetFont();
@@ -419,8 +422,6 @@ public:
 					return f;
 				}
 			}
-
-			PtSize = Pt;
 		}
 		else if (Size.Type == GCss::LenPercent)
 		{
@@ -428,9 +429,10 @@ public:
 			// of the CSS calculations, any that appear here have no "font-size"
 			// in their parent tree, so we just use the default font size times
 			// the requested percent
-			PtSize = Size.Value * Default->PointSize() / 100.0;
-			if (PtSize < MinimumPointSize)
-				PtSize = MinimumPointSize;
+			Size.Type = GCss::LenPt;
+			Size.Value *= Default->PointSize() / 100.0;
+			if (Size.Value < MinimumPointSize)
+				Size.Value = MinimumPointSize;
 		}
 		else if (Size.Type == GCss::LenEm)
 		{
@@ -438,9 +440,10 @@ public:
 			// of the CSS calculations, any that appear here have no "font-size"
 			// in their parent tree, so we just use the default font size times
 			// the requested percent
-			PtSize = Size.Value * Default->PointSize();
-			if (PtSize < MinimumPointSize)
-				PtSize = MinimumPointSize;
+			Size.Type = GCss::LenPt;
+			Size.Value *= Default->PointSize();
+			if (Size.Value < MinimumPointSize)
+				Size.Value = MinimumPointSize;
 		}
 		else if (Size.Type == GCss::SizeXXSmall ||
 				Size.Type == GCss::SizeXSmall ||
@@ -452,17 +455,20 @@ public:
 		{
 			int Idx = Size.Type-GCss::SizeXXSmall;
 			LgiAssert(Idx >= 0 && Idx < CountOf(GCss::FontSizeTable));
-			PtSize = Default->PointSize() * GCss::FontSizeTable[Idx];
-			if (PtSize < MinimumPointSize)
-				PtSize = MinimumPointSize;
+			Size.Type = GCss::LenPt;
+			Size.Value = Default->PointSize() * GCss::FontSizeTable[Idx];
+			if (Size.Value < MinimumPointSize)
+				Size.Value = MinimumPointSize;
 		}
 		else if (Size.Type == GCss::SizeSmaller)
 		{
-			PtSize = Default->PointSize() - 1;
+			Size.Type = GCss::LenPt;
+			Size.Value = (float)(Default->PointSize() - 1);
 		}
 		else if (Size.Type == GCss::SizeLarger)
 		{
-			PtSize = Default->PointSize() + 1;
+			Size.Type = GCss::LenPt;
+			Size.Value = (float)(Default->PointSize() + 1);
 		}
 		else LgiAssert(!"Not impl.");
 
@@ -470,7 +476,7 @@ public:
 		{
 			char *ff = ValidStr(Face[0]) ? Face[0] : Default->Face();
 			f->Face(ff);
-			f->PointSize((int) (PtSize ? PtSize : Default->PointSize()));
+			f->Size(Size.IsValid() ? Size : Default->Size());
 			f->Bold(IsBold);
 			f->Italic(IsItalic);
 			f->Underline(IsUnderline);

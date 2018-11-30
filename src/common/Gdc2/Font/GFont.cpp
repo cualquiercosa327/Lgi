@@ -138,7 +138,7 @@ class GTypeFacePrivate
 public:
 	// Type
 	char *_Face;			// type face
-	int _PtSize;			// point size
+	GCss::Len _Size;		// size
 	int _Weight;
 	bool _Italic;
 	bool _Underline;
@@ -164,7 +164,7 @@ public:
 		IsSymbol = false;
 		_Ascent = _Descent = _Leading = 0.0;
 		_Face = 0;
-		_PtSize = 8;
+		_Size = GCss::Len(GCss::LenPt, 8.0f);
 		_Weight = FW_NORMAL;
 		_Italic = false;
 		_Underline = false;
@@ -225,13 +225,18 @@ void GTypeFace::Face(const char *s)
 	}
 }
 
-void GTypeFace::PointSize(int i)
+void GTypeFace::Size(GCss::Len s)
 {
-	if (d->_PtSize != i)
+	if (d->_Size != s)
 	{
-		d->_PtSize = i;
+		d->_Size = s;
 		_OnPropChange(true);
 	}
+}
+
+void GTypeFace::PointSize(int i)
+{
+	Size(GCss::Len(GCss::LenPt, (float)i));
 }
 
 void GTypeFace::TabSize(int i)
@@ -352,9 +357,18 @@ char *GTypeFace::Face()
 	return d->_Face;
 }
 
+GCss::Len GTypeFace::Size()
+{
+	return d->_Size;
+}
+
 int GTypeFace::PointSize()
 {
-	return d->_PtSize;
+	if (d->_Size.Type == GCss::LenPt)
+		return (int)d->_Size.Value;
+	
+	LgiAssert(!"What now?");
+	return 0;
 }
 
 int GTypeFace::TabSize()
@@ -425,12 +439,12 @@ double GTypeFace::Leading()
 GAutoPtr<GLibrary> GFontPrivate::Gdi32;
 #endif
 
-GFont::GFont(const char *face, int point)
+GFont::GFont(const char *face, GCss::Len size)
 {
 	d = new GFontPrivate;
-	if (face && point > 0)
+	if (face && size.IsValid())
 	{
-		Create(face, point);
+		Create(face, size);
 	}
 }
 
@@ -628,7 +642,7 @@ bool GFont::IsValid()
 	#ifdef WIN32
 	if (!d->hFont)
 	{
-		Status = Create(Face(), PointSize());
+		Status = Create(Face(), GCss::Len(GCss::LenPt, (float)PointSize()));
 	}
 	#else
 	if (d->Dirty)
@@ -805,7 +819,7 @@ GSurface *GFont::GetSurface()
 	return d->pSurface;
 }
 
-bool GFont::Create(const char *face, int height, GSurface *pSurface)
+bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 {
 	bool FaceChanging = false;
 	bool SizeChanging = false;
@@ -821,10 +835,10 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		Face(face);
 	}
 	
-	if (height > 0)
+	if (size.IsValid())
 	{
-		SizeChanging = GTypeFace::d->_PtSize != height;
-		GTypeFace::d->_PtSize = height;
+		SizeChanging = GTypeFace::d->_Size != size;
+		GTypeFace::d->_Size = size;
 	}
 	
 	if ((SizeChanging || FaceChanging) && this == SysFont && ValidInitFaceSize)

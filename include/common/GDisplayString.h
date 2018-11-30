@@ -1,6 +1,8 @@
 #ifndef _GDISPLAY_STRING_H_
 #define _GDISPLAY_STRING_H_
 
+#include "GFont.h"
+
 #if defined(LGI_SDL)
 #elif defined(LINUX)
 	namespace Pango
