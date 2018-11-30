@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "Lgi.h"
+
 #if WINNATIVE
 #include "GFontSelect.h"
 #include "GdiLeak.h"
@@ -146,5 +147,21 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 	pDC->EndDC();
 
 }
+
+#else
+
+void GFont::_Measure(int &x, int &y, OsChar *Str, int Len)
+{
+}
+
+int GFont::_CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type)
+{
+	return -1;
+}
+
+void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore)
+{
+}
+
 #endif
 

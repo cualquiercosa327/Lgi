@@ -642,12 +642,12 @@ bool GFont::IsValid()
 	#ifdef WIN32
 	if (!d->hFont)
 	{
-		Status = Create(Face(), GCss::Len(GCss::LenPt, (float)PointSize()));
+		Status = Create(Face(), Size());
 	}
 	#else
 	if (d->Dirty)
 	{
-		Status = Create(Face(), PointSize());
+		Status = Create(Face(), Size());
 		d->Dirty = false;
 	}
 	#endif
@@ -1475,7 +1475,8 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	if (LogFont)
 	{
-		return Create(LogFont->GetFace(), LogFont->GetPointSize(), pSurface);
+		GCss::Len Sz(GCss::LenPt, (float)LogFont->GetPointSize());
+		return Create(LogFont->GetFace(), Sz, pSurface);
 	}
 
 	return false;

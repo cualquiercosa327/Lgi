@@ -282,8 +282,7 @@ bool GFontSystem::EnumerateFonts(GString::Array &Fonts)
 				CFStringRef fontName = (CFStringRef) CFArrayGetValueAtIndex(fontFamilies, i);
 				if (fontName)
 				{
-					GString n = fontName;
-					AllFonts.Insert(NewStr(n));
+					AllFonts.New() = fontName;
 				}
 			}
 			CFRelease(fontFamilies);
