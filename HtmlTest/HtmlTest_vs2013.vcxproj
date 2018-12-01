@@ -215,6 +215,7 @@
     <Manifest Include="..\src\win32\General\Lgi.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Files\spacex.html" />
     <None Include="Files\Test.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1031,9 +1031,11 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
+	bool Prev = d->Cancel->IsCancelled();
 	d->Cancel->Cancel();
 	LMutex::Auto Lck(&Lock, _FL);
 
+	bool Status = Library != NULL;
 	if (Library)
 	{
 		if (Ssl)
@@ -1064,12 +1066,13 @@ DebugTrace("%s:%i - BIO_free\n", _FL);
 			OnInformation("Connection closed.");
 		}
 
-		Ssl = 0;
-		Bio = 0;
+		Ssl = NULL;
+		Bio = NULL;
 	}
-	else return false;
 
-	return true;
+	d->Cancel->Cancel(Prev);
+
+	return Status;
 }
 
 bool SslSocket::Listen(int Port)

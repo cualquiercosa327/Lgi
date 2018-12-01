@@ -823,7 +823,7 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 {
 	bool FaceChanging = false;
 	bool SizeChanging = false;
-	bool ValidInitFaceSize = ValidStr(Face()) && PointSize() > 0;
+	bool ValidInitFaceSize = ValidStr(Face()) && Size().IsValid();
 
 	if (face)
 	{
@@ -935,7 +935,14 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 	
 	d->pSurface = pSurface;
 	HDC hDC = pSurface ? pSurface->Handle() : GetDC(0);
-	int Win32Height = WinPointToHeight(PointSize(), hDC);
+	auto Sz = Size();
+	int Win32Height = 0;
+	if (Sz.Type == GCss::LenPt)
+		Win32Height = WinPointToHeight((int)Sz.Value, hDC);
+	else if (Sz.Type == GCss::LenPx)
+		Win32Height = (int)(Sz.Value + 0.5);
+	else
+		LgiAssert(!"What now?");
 	
 	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
 								(
@@ -944,13 +951,9 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 								);
 	int Cs;
 	if (GTypeFace::d->IsSymbol)
-	{
 		Cs = SYMBOL_CHARSET;
-	}
 	else
-	{
 		Cs = ANSI_CHARSET;
-	}
 
 	d->OwnerUnderline = Face() &&
 						stricmp(Face(), "Courier New") == 0 && 
