@@ -1855,11 +1855,6 @@ GFont *GTag::NewFont()
 
 GFont *GTag::GetFont()
 {
-	if (Debug)
-	{
-		int asd=0;
-	}
-
 	if (!Font)
 	{
 		if (PropAddress(PropFontFamily) != 0                    ||
