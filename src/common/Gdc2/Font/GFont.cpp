@@ -940,7 +940,7 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 	if (Sz.Type == GCss::LenPt)
 		Win32Height = WinPointToHeight((int)Sz.Value, hDC);
 	else if (Sz.Type == GCss::LenPx)
-		Win32Height = (int)(Sz.Value + 0.5);
+		Win32Height = (int)(Sz.Value * 1.2);
 	else
 		LgiAssert(!"What now?");
 	
@@ -1489,7 +1489,7 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 GFont &GFont::operator =(GFont &f)
 {
 	Face(f.Face());
-	PointSize(f.PointSize());
+	Size(f.Size());
 	TabSize(f.TabSize());
 	Quality(f.Quality());
 	Fore(f.Fore());

@@ -306,9 +306,11 @@ public:
 					break;
 				}
 				
+				auto FntSz = f->Size();
 				if (f->Face() &&
 					_stricmp(f->Face(), Face[0]) == 0 &&
-					f->PointSize() == Pt &&
+					FntSz.Type == GCss::LenPt &&
+					abs(FntSz.Value - Pt) < 0.001 &&
 					f->Bold() == IsBold &&
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
@@ -1853,6 +1855,11 @@ GFont *GTag::NewFont()
 
 GFont *GTag::GetFont()
 {
+	if (Debug)
+	{
+		int asd=0;
+	}
+
 	if (!Font)
 	{
 		if (PropAddress(PropFontFamily) != 0                    ||
@@ -2696,7 +2703,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			// LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
+			LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
 		}
 	}
 	#endif
@@ -3167,12 +3174,13 @@ void GTag::SetStyle()
 				bool Digit = false, NonW = false;
 				for (auto *c = s; *c; c++)
 				{
-					if (IsDigit(*c)) Digit = true;
+					if (IsDigit(*c) || *c == '-') Digit = true;
 					else if (!IsWhiteSpace(*c)) NonW = true;
 				}
 				if (Digit && !NonW)
 				{
-					switch (atoi(s))
+					auto Sz = atoi(s);
+					switch (Sz)
 					{
 						case 1: FontSize(Len(GCss::LenEm, 0.63f)); break;
 						case 2: FontSize(Len(GCss::LenEm, 0.82f)); break;

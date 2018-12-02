@@ -656,7 +656,7 @@ void GDisplayString::Layout(bool Debug)
 			f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
 			if (f && f != Font)
 			{
-				f->PointSize(Font->PointSize());
+				f->Size(Font->Size());
 				f->SetWeight(Font->GetWeight());
 				if (!f->Handle())
 					f->Create();
@@ -677,7 +677,7 @@ void GDisplayString::Layout(bool Debug)
 					// End last segment
 					if (n && n != Font)
 					{
-						n->PointSize(Font->PointSize());
+						n->Size(Font->Size());
 						n->SetWeight(Font->GetWeight());
 						if (!n->Handle())
 							n->Create();
@@ -1671,7 +1671,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 
 				f->Colour(cFore, cBack);
 
-				f->PointSize(Font->PointSize() + Info[i].SizeDelta);
+				auto Sz = Font->Size();
+				Sz.Value += Info[i].SizeDelta;
+				f->Size(Sz);
 				f->Transparent(Font->Transparent());
 				f->Underline(Font->Underline());
 				if (!f->Handle())
