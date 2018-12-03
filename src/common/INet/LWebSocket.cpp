@@ -89,8 +89,8 @@ int LSelect::Select(GArray<GSocket*> &Results, bool Rd, bool Wr, int TimeoutMs)
 	}
 		
 	int v = select(	(int)Max+1,
-					Flags == O_READ ? &r : NULL,
-					Flags == O_WRITE ? &r : NULL,
+					Rd ? &r : NULL,
+					Wr ? &r : NULL,
 					NULL, TimeoutMs >= 0 ? &t : NULL);
 	if (v > 0)
 	{
