@@ -827,9 +827,9 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 								int StartRd = -1, EndRd = -1;
 								while ((t = LexCpp(s, LexStrdup)))
 								{
-									if (!StrcmpW(t, L"("))
+									if (StartRd < 0 && !StrcmpW(t, L"("))
 										StartRd = a.Length();
-									else if (!StrcmpW(t, L")"))
+									else if (EndRd < 0 && !StrcmpW(t, L")"))
 										EndRd = a.Length();
 
 									if (!StrcmpW(t, StrSemiColon))
