@@ -74,7 +74,7 @@ int GFont::_CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type)
 					Fit++;
 			}
 		}
-		
+
 		SelectObject(hDC, hOldFont);
 	}
 	else
