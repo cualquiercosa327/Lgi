@@ -36,10 +36,10 @@ Known bugs:
 #include "Lgi.h"
 #include "ParserCommon.h"
 
-#if 0
+#if 1
 // #define DEBUG_FILE		"\\ape-apcp.c"
-#define DEBUG_FILE		"apcp\\apcp\\apcp.h"
-#define DEBUG_LINE		550
+#define DEBUG_FILE		"gen_probe.c"
+#define DEBUG_LINE		280
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -758,7 +758,7 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 						{
 							// Check if this is really a class/struct definition or just a reference
 							char16 *next = s;
-							while (*next && !strchr(";){", *next))
+							while (*next && !strchr(";(){", *next))
 								next++;
 							
 							if (*next == '{')
@@ -824,8 +824,14 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 
 								GArray<char16*> a;
 								char16 *t;
+								int StartRd = -1, EndRd = -1;
 								while ((t = LexCpp(s, LexStrdup)))
 								{
+									if (!StrcmpW(t, L"("))
+										StartRd = a.Length();
+									else if (!StrcmpW(t, L")"))
+										EndRd = a.Length();
+
 									if (!StrcmpW(t, StrSemiColon))
 										break;
 									a.Add(t);
@@ -833,7 +839,9 @@ bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int 
 
 								if (a.Length())
 								{
-									Defns.New().Set(DefnTypedef, FileName, a.Last(), Line + 1);
+									int iName = StartRd > 0 && EndRd > StartRd ? StartRd - 1 : a.Length() - 1;
+									auto sName = a[iName];
+									Defns.New().Set(DefnTypedef, FileName, sName, Line + 1);
 									a.DeleteArrays();
 								}
 							}
