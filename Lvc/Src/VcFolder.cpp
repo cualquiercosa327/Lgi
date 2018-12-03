@@ -1289,7 +1289,7 @@ GString ConvertUPlus(GString s)
 	
 	c.Add(0);
 	#ifdef LINUX
-	return GString((char16)c.AddressOf());
+	return GString((char16*)c.AddressOf());
 	#else
 	return GString(c.AddressOf());
 	#endif
@@ -1416,7 +1416,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 							File = ConvertUPlus(p.Last());
 						else
 							File = p.Last();
-							
+
 						VcFile *f = new VcFile(d, this, NULL, IsWorking);
 						f->SetText(p[0], COL_STATE);
 						f->SetText(File.Replace("\\","/"), COL_FILENAME);
