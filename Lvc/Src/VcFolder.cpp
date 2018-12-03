@@ -1417,7 +1417,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 						else
 							File = p.Last();
 							
-						VcFile *f = new VcFile(d, this, p[1], IsWorking);
+						VcFile *f = new VcFile(d, this, NULL, IsWorking);
 						f->SetText(p[0], COL_STATE);
 						f->SetText(File.Replace("\\","/"), COL_FILENAME);
 						f->GetStatus();
