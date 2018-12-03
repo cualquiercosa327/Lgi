@@ -201,15 +201,15 @@
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0" Id="44">
-				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDisplayString.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFont.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFont_W.cpp" Type="2" Platforms="1" />
+				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GFontCache.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFontCodePages.cpp" Type="2" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFontSystem.cpp" Type="2" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\LStringLayout.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/LStringLayout.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/LStringLayout.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0" Id="45">
