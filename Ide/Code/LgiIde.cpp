@@ -1462,7 +1462,8 @@ public:
 				char *Data = (char*)v.Value.Binary.Data;
 				for (char *s=Data; (NativeInt)s<(NativeInt)Data+v.Value.Binary.Length; s += strlen(s) + 1)
 				{
-					Lst->Insert(NewStr(s));
+					auto ns = NewStr(s);
+					Lst->Insert(ns);
 				}
 			}
 		}
