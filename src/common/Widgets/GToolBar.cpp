@@ -91,7 +91,7 @@ GToolBar *LgiLoadToolbar(GViewI *Parent, const char *File, int x, int y)
 	GToolBar *Toolbar = new GToolBar;
 	if (Toolbar)
 	{
-		GString FileName = LgiFindFile(File);
+		GAutoString FileName(LgiFindFile(File));
 		if (FileName)
 		{
 			bool Success = FileName && Toolbar->SetBitmap(FileName, x, y);

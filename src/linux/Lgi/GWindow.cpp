@@ -325,10 +325,14 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 									NULL,
 									NULL,
 									(guchar **)&extents))
-					d->Decor.Set(extents[0], extents[2], extents[1], extents[3]);
-				else
-					printf("%s:%i - Error: gdk_property_get failed.\n", _FL);
-	  		}  			
+				{
+					d->Decor.Set(extents[0], extents[2], extents[1], extents[3]);					
+					g_free(extents);
+				}
+				else printf("%s:%i - Error: gdk_property_get failed.\n", _FL);
+	  		}  	
+	  		
+	  		g_free(Name);		
 			break;
 		}
 		case GDK_CLIENT_EVENT:

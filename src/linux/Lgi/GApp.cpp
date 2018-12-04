@@ -315,7 +315,7 @@ public:
 		if (WmLib)
 		{
 			Proc_LgiWmExit WmExit = (Proc_LgiWmExit) WmLib->GetAddress("LgiWmExit");
-			if (WmExit && WmExit())
+			if (!WmExit || WmExit())
 			{
 				DeleteObj(WmLib);
 			}

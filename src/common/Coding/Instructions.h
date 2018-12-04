@@ -1820,7 +1820,7 @@ case IDebug:
 		#elif defined MAC
 			__builtin_trap();
 		#elif defined LINUX
-			std::raise(SIGINT);
+			Gtk::raise(SIGINT);
 		#else
 			#warning "Not impl."
 		#endif

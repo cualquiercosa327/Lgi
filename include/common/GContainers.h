@@ -809,6 +809,7 @@ public:
 				delete [] i->Ptr[n];
 				i->Ptr[n] = NULL;
 			}
+			delete i;
 		}
 		FirstObj = LastObj = NULL;
 		Items = 0;
