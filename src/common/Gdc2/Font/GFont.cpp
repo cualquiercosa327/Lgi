@@ -496,10 +496,18 @@ bool GFont::CreateFromCss(GCss *Css)
 		Face(Fam[0]);
 
 	GCss::Len Sz = Css->FontSize();
-	if (Sz.Type == GCss::LenPt)
-		PointSize((int)(Sz.Value+0.5));
-	else if (Sz.IsValid())
-		LgiAssert(!"Impl me.");
+	switch (Sz.Type)
+	{
+		case GCss::SizeSmaller:
+			Size(GCss::Len(GCss::LenPt, (float)SysFont->PointSize()-1));
+			break;
+		case GCss::SizeLarger:
+			Size(GCss::Len(GCss::LenPt, (float)SysFont->PointSize()+1));
+			break;
+		default:
+			Size(Sz);
+			break;
+	}
 
 	GCss::FontWeightType w = Css->FontWeight();
 	if (w == GCss::FontWeightBold)

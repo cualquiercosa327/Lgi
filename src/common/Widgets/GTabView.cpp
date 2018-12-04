@@ -192,7 +192,7 @@ struct GTabPagePriv
 			}
 			else
 			{
-				Tab->SetFont(f = SysFont);
+				f = Tab->GetFont();
 			}
 		
 			if (f)

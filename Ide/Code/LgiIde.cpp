@@ -547,7 +547,7 @@ public:
 		Registers = NULL;
 
 		Small = *SysFont;
-		Small.PointSize(Small.PointSize()-2);
+		Small.PointSize(Small.PointSize()-1);
 		Small.Create();
 		LgiAssert(Small.Handle());
 		
