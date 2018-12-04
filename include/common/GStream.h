@@ -96,17 +96,12 @@ protected:
 	uint64 StartTime;
 	uint64 EndTime;
 	uint64 Total;
-	ssize_t Size;
-	char *Buf;
+	GArray<char> Buffer;
 
 public:
 	/// Constructor
-	GStreamOp
-	(
-		// Buffer size in bytes, 4 KB by default
-		ssize_t BufSize = 4 << 10
-	);
-	virtual ~GStreamOp();
+	GStreamOp(int64 BufSz = -1);
+	virtual ~GStreamOp() {}
 
 	// Properties
 	ssize_t GetRate();
@@ -132,7 +127,7 @@ public:
 class LgiClass GCopyStreamer : public GStreamOp
 {
 public:
-	GCopyStreamer(ssize_t BufSize = 4 << 10) : GStreamOp(BufSize) {}
+	GCopyStreamer(int64 BufSz = -1) : GStreamOp(BufSz) {}
 	virtual ssize_t Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
 };
 

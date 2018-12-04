@@ -504,6 +504,9 @@ bool GFont::CreateFromCss(GCss *Css)
 		case GCss::SizeLarger:
 			Size(GCss::Len(GCss::LenPt, (float)SysFont->PointSize()+1));
 			break;
+		case GCss::LenInherit:
+			Size(SysFont->Size());
+			break;
 		default:
 			Size(Sz);
 			break;

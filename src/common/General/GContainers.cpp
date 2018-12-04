@@ -498,6 +498,22 @@ ssize_t GStringPipe::SaveToBuffer(char *Start, ssize_t BufSize, ssize_t Chars)
 	return Str - Start;
 }
 
+ssize_t GStringPipe::Pop(GArray<char> &Buf)
+{
+	ssize_t Chars = LineChars();
+	if (Chars > 0)
+	{
+		Chars++; // For the '\n'
+		if ((ssize_t)Buf.Length() < Chars + 1)
+			if (!Buf.Length(Chars + 1))
+				return -1;
+		SaveToBuffer(Buf.AddressOf(), Chars, Chars);
+	}
+	else return 0;
+
+	return Chars;
+}
+
 GString GStringPipe::Pop()
 {
 	GString s;
