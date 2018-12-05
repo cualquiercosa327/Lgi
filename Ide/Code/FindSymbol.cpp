@@ -58,13 +58,12 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		GString Path;
 		int Platforms;
 		GString::Array *Inc;
-		GAutoWString Source;
 		GArray<DefnInfo> Defs;
 		bool IsSource;
 		bool IsHeader;
 		bool IsPython;
 		
-		bool Parse()
+		bool Parse(GAutoWString Source)
 		{
 			IsSource = false;
 			IsHeader = false;
@@ -72,7 +71,6 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			Defs.Length(0);
 			
 			bool Status = false;
-			// GString Src = (wchar_t*)Source.Get();
 			char *Ext = LgiGetExtension(Path);
 			if (Ext)
 			{
@@ -227,14 +225,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		Headers.DeleteArrays();
 		
 		// Parse for symbols...
-		f->Source.Reset(Utf8ToWide(Source));
-
 		#ifdef DEBUG_FILE
 		if (Debug)
 			printf("%s:%i - About to parse '%s' containing %i chars.\n", _FL, f->Path.Get(), StrlenW(f->Source));
 		#endif
-
-		return f->Parse();
+		return f->Parse(GAutoWString(Utf8ToWide(Source)));
 	}
 	
 	bool ReparseFile(GString Path)
