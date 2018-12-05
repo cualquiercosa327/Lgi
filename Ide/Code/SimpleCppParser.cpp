@@ -36,7 +36,7 @@ Known bugs:
 #include "Lgi.h"
 #include "ParserCommon.h"
 
-#if 1
+#if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
 #define DEBUG_FILE		"gen_probe.c"
 #define DEBUG_LINE		280
