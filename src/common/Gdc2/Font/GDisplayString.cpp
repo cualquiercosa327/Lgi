@@ -1111,7 +1111,7 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 					{
 						f = Sys->Font[Info[i].FontId];
 						f->Colour(Font->Fore(), Font->Back());
-						f->PointSize(Font->PointSize());
+						f->Size(Font->Size());
 						if (!f->Handle())
 						{
 							f->Create();
