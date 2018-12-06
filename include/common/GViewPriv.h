@@ -68,12 +68,10 @@ public:
 	{
 		Loop = false;
 		View = NULL;
-		printf("Signal pulse %i\n", GetId());
 		Event.Signal();
 
 		while (!IsExited())
 			LgiSleep(0);
-		printf("Pulse done %i\n", GetId());
 	}
 	
 	int Main()

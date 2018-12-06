@@ -649,15 +649,12 @@ void GView::SetPulse(int Length)
 
 	if (d->Pulse)
 	{
-		printf("Deleting pulse %i\n", d->Pulse->GetId());
 		DeleteObj(d->Pulse);
-		printf("	..done\n");
 	}
 
 	if (Length > 0)
 	{
 		d->Pulse = new GPulseThread(this, Length);
-		printf("Start pulse %i for %p:%s\n", d->Pulse->GetId(), this, GetClass());
 	}
 }
 
