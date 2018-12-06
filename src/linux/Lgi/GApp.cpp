@@ -576,6 +576,7 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		
 		for (auto m : q)
 		{
+			printf("Process %p,%i,%i,%i\n", m.v, m.m, m.a, m.b);
 			if (!GView::LockHandler(m.v, GView::OpLock))
 			{
 				// printf("%s:%i - Invalid view to post event to.\n", _FL);
@@ -594,6 +595,8 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					{
 						gtk_propagate_event(Widget, e);
 						gdk_event_free(e);
+						
+						printf("Unref %p %s.%p\n", Widget, m.v->GetClass(), m.v);
 						g_object_unref(Widget);
 					}
 				}
@@ -1458,6 +1461,27 @@ GlibPostMessage(GlibEventParams *p)
     return FALSE;
 }
 
+void GApp::OnDetach(GViewI *View)
+{
+	LMessageQue::MsgArray *q = MsgQue.Lock(_FL);
+	if (!q)
+	{
+		printf("%s:%i - Couldn't lock app.\n", _FL);
+		return;
+	}
+
+	for (unsigned i=0; i<q->Length(); i++)
+	{
+		if ((*q)[i].v == View)
+		{
+			printf("Clearing detaching view.\n");
+			q->DeleteAt(i--, true);
+		}
+	}
+
+	MsgQue.Unlock();
+}
+
 bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b)
 {
 	LMessageQue::MsgArray *q = MsgQue.Lock(_FL);
@@ -1467,11 +1491,12 @@ bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b
 		return false;
 	}
 	
-	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, View, Msg, a, b);
 	auto Widget = View->Handle();
+	printf("Ref %p %s.%p (len=%i)\n", Widget, View->GetClass(), View, (int)q->Length());
 	g_object_ref(Widget); // ref widget till we try and propagate the message to it...
 	
 	q->New().Set(View, Msg, a, b);
+	printf("Insert %p,%i,%i,%i\n", View, Msg, a, b);
 	MsgQue.Unlock();
 	
 	return true;

@@ -16,7 +16,7 @@
 
 #define DEBUG_OAUTH2				0
 #ifdef _DEBUG
-	#define DEBUG_FETCH				1
+	#define DEBUG_FETCH				0
 #else
 	#define DEBUG_FETCH				0
 #endif

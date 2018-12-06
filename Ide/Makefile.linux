@@ -1031,7 +1031,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/linux/Gtk/LgiWidget.h : 
 
-../include/common/GViewPriv.h : 
+../include/common/GViewPriv.h : ../include/common/LThreadEvent.h
 
 ../include/common/GEventTargetThread.h : ../include/common/LThread.h \
 	../include/common/LMutex.h \
@@ -2095,7 +2095,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
 	../include/common/LgiRes.h
 
-../include/common/GViewPriv.h : 
+../include/common/GViewPriv.h : ../include/common/LThreadEvent.h
 
 ../include/common/LUnrolledList.h : 
 

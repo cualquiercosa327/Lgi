@@ -1213,12 +1213,22 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 			_FL, Face(), PointSize(), Bold(), Italic());
 	else if (!ValidStr(Face()))
 		printf("%s:%i - No font face.\n", _FL);
-	else if (PointSize() < 2)
-		printf("%s:%i - Invalid point size: %i.\n", _FL, PointSize());
+	else if (!Size().IsValid())
+		printf("%s:%i - Invalid size.\n", _FL);
 	else
 	{
+		auto Sz = Size();
 		Gtk::pango_font_description_set_family(d->hFont, Face());
-		Gtk::pango_font_description_set_size(d->hFont, (double)PointSize() * PANGO_SCALE);
+		if (Sz.Type == GCss::LenPt)
+			Gtk::pango_font_description_set_size(d->hFont, Sz.Value * PANGO_SCALE);
+		else if (Sz.Type == GCss::LenPx)
+			Gtk::pango_font_description_set_absolute_size(d->hFont, Sz.Value * PANGO_SCALE);
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+			
 		if (Bold())
 			Gtk::pango_font_description_set_weight(d->hFont, Gtk::PANGO_WEIGHT_BOLD);
 		

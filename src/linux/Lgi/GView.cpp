@@ -646,11 +646,18 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 void GView::SetPulse(int Length)
 {
 	ThreadCheck();
-	
-	DeleteObj(d->Pulse);
+
+	if (d->Pulse)
+	{
+		printf("Deleting pulse %i\n", d->Pulse->GetId());
+		DeleteObj(d->Pulse);
+		printf("	..done\n");
+	}
+
 	if (Length > 0)
 	{
 		d->Pulse = new GPulseThread(this, Length);
+		printf("Start pulse %i for %p:%s\n", d->Pulse->GetId(), this, GetClass());
 	}
 }
 
@@ -962,6 +969,7 @@ bool GView::Detach()
 	{
 		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
 		// printf("%s:%i - gtk_widget_destroy on %s.%p\n", _FL, d->ActualClass.Get(), _View);
+		LgiApp->OnDetach(this);
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}

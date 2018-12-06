@@ -1199,7 +1199,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GString.h \
 	./include/common/GStringClass.h
 
-./include/common/GViewPriv.h : 
+./include/common/GViewPriv.h : ./include/common/LThreadEvent.h
 
 ./include/common/GLibraryUtils.h : 
 
