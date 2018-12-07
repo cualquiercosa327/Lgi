@@ -46,7 +46,7 @@ void LEmojiFont::_Measure(int &x, int &y, OsChar *Str, int len)
 
 int LEmojiFont::_CharAt(int xPos, OsChar *Str, int len, LgiPxToIndexType Type)
 {
-	ssize_t Len = len;
+	ssize_t Len = len * sizeof(*Str);
 
 	int x = 0;
 	int Char = 0;
@@ -60,6 +60,7 @@ int LEmojiFont::_CharAt(int xPos, OsChar *Str, int len, LgiPxToIndexType Type)
 			x += priv->Cell;
 			Char++;
 		}
+		else break;
 	}
 
 	return -1;
