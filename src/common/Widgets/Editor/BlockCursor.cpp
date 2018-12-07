@@ -16,6 +16,7 @@ GRichTextPriv::BlockCursor::BlockCursor(Block *b, ssize_t off, int line)
 	Pos.ZOff(-1, -1);
 	Line.ZOff(-1, -1);
 	LineHint = 0;
+	Blink = true;
 
 	if (b)
 		Set(b, off, line);
