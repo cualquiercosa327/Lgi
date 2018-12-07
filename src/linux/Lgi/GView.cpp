@@ -28,15 +28,6 @@ using namespace Gtk;
 #define ADJ_UP						3
 #define ADJ_DOWN					4
 
-/*
-struct X11_INVALIDATE_PARAMS
-{
-	GView *View;
-	GRect Rgn;
-	bool Repaint;
-};
-*/
-
 #if GtkVer(2, 14)
 #else
 #define gtk_widget_get_window(widget) ((widget)->window)
@@ -832,14 +823,14 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 	return false;
 }
 
-const char *GView::GetClass()
-{
-	return d->ActualClass ? d->ActualClass : "GView";
-}
-
 bool GView::IsAttached()
 {
 	return	_View && _View->parent;
+}
+
+const char *GView::GetClass()
+{
+	return "GView";
 }
 
 bool GView::Attach(GViewI *parent)
@@ -854,9 +845,7 @@ bool GView::Attach(GViewI *parent)
 	
 	if (!_View)
 	{
-		d->ActualClass = GetClass();
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
-		// printf("%s:%i - lgi_widget_new on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 	}
 	
 	if (_View)
@@ -965,7 +954,6 @@ bool GView::Detach()
 	if (_View)
 	{
 		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
-		// printf("%s:%i - gtk_widget_destroy on %s.%p\n", _FL, d->ActualClass.Get(), _View);
 		LgiApp->OnDetach(this);
 		gtk_widget_destroy(_View);
 		_View = 0;

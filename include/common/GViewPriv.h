@@ -154,7 +154,6 @@ public:
 		#if defined __GTK_H__
 		bool			InPaint;
 		bool			GotOnCreate;
-		GString			ActualClass;
 		#elif defined(MAC) && !defined(COCOA)
 		static HIObjectClassRef BaseClass;
 		#endif

@@ -480,8 +480,7 @@ public:
 		{
 			OpCreate,
 			OpDelete,
-			OpLock,
-			OpUnlock,
+			OpExists,
 		};
 	
 		static bool LockHandler(GViewI *v, LockOp Op);

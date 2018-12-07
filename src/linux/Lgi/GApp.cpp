@@ -577,7 +577,7 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		for (auto m : q)
 		{
 			// printf("Process %p,%i,%i,%i\n", m.v, m.m, m.a, m.b);
-			if (!GView::LockHandler(m.v, GView::OpLock))
+			if (!GView::LockHandler(m.v, GView::OpExists))
 			{
 				// printf("%s:%i - Invalid view to post event to.\n", _FL);
 			}
@@ -610,8 +610,6 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 				m.v->OnEvent(&Msg);
 				
 				#endif
-				
-				GView::LockHandler(m.v, GView::OpUnlock);
 			}
 		}
 	}
@@ -1479,6 +1477,7 @@ void GApp::OnDetach(GViewI *View)
 		return;
 	}
 
+	#if VIEW_REF_MODE
 	for (unsigned i=0; i<q->Length(); i++)
 	{
 		if ((*q)[i].v == View)
@@ -1487,6 +1486,7 @@ void GApp::OnDetach(GViewI *View)
 			q->DeleteAt(i--, true);
 		}
 	}
+	#endif
 
 	MsgQue.Unlock();
 }
