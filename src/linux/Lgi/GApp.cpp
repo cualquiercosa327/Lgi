@@ -583,6 +583,8 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 			}
 			else
 			{
+				#if VIEW_REF_MODE
+				
 				GdkEvent *e = gdk_event_new(GDK_CLIENT_EVENT);
 				if (e)
 				{
@@ -601,6 +603,13 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					}
 				}
 				else printf("%s:%i - gdk_event_new failed.\n", _FL);
+				
+				#else
+
+				GMessage Msg(m.m, m.a, m.b);
+				m.v->OnEvent(&Msg);
+				
+				#endif
 				
 				GView::LockHandler(m.v, GView::OpUnlock);
 			}
@@ -1492,10 +1501,14 @@ bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b
 	}
 	
 	auto Widget = View->Handle();
+
+	#if VIEW_REF_MODE
 	// printf("Ref %p %s.%p (len=%i)\n", Widget, View->GetClass(), View, (int)q->Length());
 	g_object_ref(Widget); // ref widget till we try and propagate the message to it...
+	#endif
 	
 	q->New().Set(View, Msg, a, b);
+
 	// printf("Insert %p,%i,%i,%i\n", View, Msg, a, b);
 	MsgQue.Unlock();
 	

@@ -403,6 +403,7 @@
 			<Node File="./include/win32/LgiOsDefs.h" Type="3" Platforms="1" />
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LCancel.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LError.h" Type="3" Platforms="15" />
 		<Node File="./include/common/Lgi.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClass.h" Type="3" Platforms="15" />
