@@ -298,7 +298,7 @@ GWindow::GWindow() : GView(NULL)
 	
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 	
-	GRect pos(0, 50, 200, 100);
+	GRect pos(200, 200, 200, 200);
 	NSRect frame = pos;
 	Wnd.p = [[LNsWindow alloc] init:d Frame:frame];
 	if (Wnd)
@@ -1604,10 +1604,8 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 		r.x2 = r.x1 + x - 1;
 	
 	Pos = r;
-	/*
 	if (Wnd)
 		[Wnd.p setFrame:Pos display:YES];
-		*/
 	
 	return true;
 }
