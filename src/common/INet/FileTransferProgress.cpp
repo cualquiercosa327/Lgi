@@ -219,10 +219,9 @@ void GPaneThrottle::OnMouseClick(GMouse &m)
 class GPaneHistory : public GStatusPane
 {
 	GDom *App;
-	int64 Cur;
-	int64 Max;
-	int64 Last;
-	int64 PartialTime;
+	int64 Cur; // Current value
+	int64 Max; // Max value
+	uint64 Last; // Last time value changed
 	int64 Bytes[MAX_SAMPLE];
 
 	GSurface *pMemDC;
@@ -317,16 +316,15 @@ void GPaneHistory::Value(int64 i)
 		Max = 0;
 		Last = LgiCurrentTime();
 		Cur = -i;
-		PartialTime = 0;
 		Clear();
 	}
 	else
 	{
-		int64 Now = LgiCurrentTime();
+		uint64 Now = LgiCurrentTime();
 		int64 NewData = i - Cur;
 		int64 Diff = Now - Last;
 
-		if (Diff > 0)
+		if (Last > 0)
 		{
 			double Sec = (double)Diff / 1000.0;
 			double Rate = (double) NewData / Sec;
