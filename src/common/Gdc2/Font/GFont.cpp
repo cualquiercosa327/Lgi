@@ -1287,7 +1287,7 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 				if (d->Attributes)
 					CFRelease(d->Attributes);
 
-				CGFloat Size = PointSize();
+				auto Sz = Size();
 				GString sFamily(Face());
 				GString sBold("Bold");
 				int keys = 1;
@@ -1313,7 +1313,15 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 					CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(FontAttrD);
 					if (descriptor)
 					{
-						d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
+						float PtSz = 0.0;
+						if (Sz.Type == GCss::LenPt)
+							PtSz = Sz.Value;
+						else if (Sz.Type == GCss::LenPx)
+							PtSz = Sz.Value * 72.0f / LgiScreenDpi();
+						else
+							LgiAssert(!"Impl me.");
+						
+						d->hFont = CTFontCreateWithFontDescriptor(descriptor, PtSz, NULL);
 						CFRelease(descriptor);
 					}
 					else LgiAssert(0);
