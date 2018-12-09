@@ -184,7 +184,6 @@ const char *VcFolder::GetVcName()
 			Def = "cvs";
 			break;
 		default:
-			LgiAssert(!"Impl me.");
 			break;
 	}
 	
@@ -1850,7 +1849,8 @@ bool VcFolder::ParseClean(int Result, GString s, ParseParams *Params)
 
 void VcFolder::GetVersion()
 {
-	switch (GetType())
+	auto t = GetType();
+	switch (t)
 	{
 		case VcGit:
 		case VcSvn:
@@ -1859,7 +1859,7 @@ void VcFolder::GetVersion()
 			StartCmd("--version", &VcFolder::ParseVersion, NULL, LogNormal);
 			break;
 		default:
-			LgiAssert(!"Impl me.");
+			OnCmdError(NULL, "No version control found.");
 			break;
 	}
 }
