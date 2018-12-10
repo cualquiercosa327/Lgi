@@ -167,6 +167,11 @@ GTreeNode::~GTreeNode()
 {
 }
 
+void GTreeNode::SetLayoutDirty()
+{
+	Tree->d->LayoutDirty = true;
+}
+
 void GTreeNode::_Visible(bool v)
 {
 	for (GTreeItem *i=GetChild(); i; i=i->GetNext())
@@ -601,7 +606,13 @@ void GTreeItem::_Remove()
 void GTreeItem::_PourText(GdcPt2 &Size)
 {
 	GFont *f = Tree ? Tree->GetFont() : SysFont;
-	GDisplayString ds(f, GetText());
+	auto *Txt = GetText();
+	if ((void*)Txt == (void*)0xfeeefeeefeeefeee ||
+		(void*)Txt == (void*)0xcdcdcdcdcdcdcdcd)
+	{
+		int asd=0;
+	}
+	GDisplayString ds(f, Txt);
 	Size.x = ds.X() + 4;
 	Size.y = 0;
 }
