@@ -604,11 +604,6 @@ GFont *GFontSystem::GetGlyph(uint32 u, GFont *UserFont)
 	GFont *Has = 0;
 	if (Lut[u])
 	{
-		if (Lut[u] == 1)
-		{
-			int asd=0;
-		}
-
 		Has = Font[Lut[u]];
 		LgiAssert(Has != NULL);
 		if (!Has)
