@@ -103,6 +103,7 @@ public:
 		Last = false;
 		Depth = 0;
 		Text.ZOff(-1, -1);
+		Icon.ZOff(-1, -1);
 	}
 
 	~GTreeItemPrivate()
