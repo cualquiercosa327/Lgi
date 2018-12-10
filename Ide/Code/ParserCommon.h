@@ -49,7 +49,8 @@ public:
 	
 	void Set(DefnType type, char *file, GString s, int line)
 	{
-		LgiAssert(s(0) != ')');
+		if (s(0) == ')')
+			printf("%s:%i - Unexpected ')'.\n", _FL);
 		
 		Type = type;
 		File = file;

@@ -24,7 +24,7 @@
 // Classes
 class FileTransferProgress : public GStatusPane, public Progress
 {
-	int64 StartTime;
+	uint64 StartTime;
 	int64 StartPos;
 	GProgressStatusPane *ProgressPane;
 	GArray<GStatusPane*> StatusInfo;

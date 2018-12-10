@@ -34,7 +34,9 @@ class GMimeBuf : public GStringPipe
 
 public:
 	GMimeBuf(GStreamI *src, GStreamEnd *end);
-	ssize_t Pop(char *Str, ssize_t BufSize);
+
+	ssize_t Pop(GArray<char> &Buf) override;
+	ssize_t Pop(char *Str, ssize_t BufSize) override;
 };
 
 class GMime

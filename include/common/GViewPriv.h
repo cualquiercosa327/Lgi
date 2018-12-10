@@ -42,15 +42,18 @@ public:
 };
 
 #if !WINNATIVE
+#include "LThreadEvent.h"
+
 class GPulseThread : public LThread
 {
 	GView *View;
 	int Length;
+	LThreadEvent Event;
 
 public:
 	bool Loop;
 
-	GPulseThread(GView *view, int len) : LThread("GPulseThread")
+	GPulseThread(GView *view, int len) : LThread("GPulseThread"), Event("GPulseThread")
 	{
 		LgiAssert(view);
 		
@@ -63,28 +66,24 @@ public:
 	
 	~GPulseThread()
 	{
-		LgiAssert(Loop == false);
-	}
-
-	void Delete()
-	{
-		DeleteOnExit = true;
 		Loop = false;
-	}
+		View = NULL;
+		Event.Signal();
 
+		while (!IsExited())
+			LgiSleep(0);
+	}
+	
 	int Main()
 	{
 		while (Loop && LgiApp)
 		{
-			LgiSleep(Length);
-			if (Loop && View)
-			{
-				if (!View->PostEvent(M_PULSE))
-				{
-					// printf("%s:%i - Pulse PostEvent failed. Exiting loop.\n", _FL);
-					Loop = false;
-				}
-			}
+			auto s = Event.Wait(Length);
+			if (!Loop || s == LThreadEvent::WaitError)
+				break;
+			
+			if (View && !View->PostEvent(M_PULSE))
+				Loop = false;
 		}
 		
 		return 0;
@@ -155,7 +154,6 @@ public:
 		#if defined __GTK_H__
 		bool			InPaint;
 		bool			GotOnCreate;
-		GString			ActualClass;
 		#elif defined(MAC) && !defined(COCOA)
 		static HIObjectClassRef BaseClass;
 		#endif

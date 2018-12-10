@@ -809,6 +809,7 @@ public:
 				delete [] i->Ptr[n];
 				i->Ptr[n] = NULL;
 			}
+			delete i;
 		}
 		FirstObj = LastObj = NULL;
 		Items = 0;
@@ -1097,6 +1098,7 @@ public:
 	~GStringPipe() {}
 
 	virtual ssize_t Pop(char *Str, ssize_t Chars);
+	virtual ssize_t Pop(GArray<char> &Buf);
 	virtual GString Pop();
 	virtual ssize_t Push(const char *Str, ssize_t Chars = -1);
 	virtual ssize_t Push(const char16 *Str, ssize_t Chars = -1);

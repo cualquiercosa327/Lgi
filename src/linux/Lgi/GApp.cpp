@@ -315,7 +315,7 @@ public:
 		if (WmLib)
 		{
 			Proc_LgiWmExit WmExit = (Proc_LgiWmExit) WmLib->GetAddress("LgiWmExit");
-			if (WmExit && WmExit())
+			if (!WmExit || WmExit())
 			{
 				DeleteObj(WmLib);
 			}
@@ -576,12 +576,15 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		
 		for (auto m : q)
 		{
-			if (!GView::LockHandler(m.v, GView::OpLock))
+			// printf("Process %p,%i,%i,%i\n", m.v, m.m, m.a, m.b);
+			if (!GView::LockHandler(m.v, GView::OpExists))
 			{
 				// printf("%s:%i - Invalid view to post event to.\n", _FL);
 			}
 			else
 			{
+				#if VIEW_REF_MODE
+				
 				GdkEvent *e = gdk_event_new(GDK_CLIENT_EVENT);
 				if (e)
 				{
@@ -594,12 +597,19 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					{
 						gtk_propagate_event(Widget, e);
 						gdk_event_free(e);
+						
+						// printf("Unref %p %s.%p\n", Widget, m.v->GetClass(), m.v);
 						g_object_unref(Widget);
 					}
 				}
 				else printf("%s:%i - gdk_event_new failed.\n", _FL);
 				
-				GView::LockHandler(m.v, GView::OpUnlock);
+				#else
+
+				GMessage Msg(m.m, m.a, m.b);
+				m.v->OnEvent(&Msg);
+				
+				#endif
 			}
 		}
 	}
@@ -1458,6 +1468,29 @@ GlibPostMessage(GlibEventParams *p)
     return FALSE;
 }
 
+void GApp::OnDetach(GViewI *View)
+{
+	LMessageQue::MsgArray *q = MsgQue.Lock(_FL);
+	if (!q)
+	{
+		printf("%s:%i - Couldn't lock app.\n", _FL);
+		return;
+	}
+
+	#if VIEW_REF_MODE
+	for (unsigned i=0; i<q->Length(); i++)
+	{
+		if ((*q)[i].v == View)
+		{
+			printf("Clearing detaching view.\n");
+			q->DeleteAt(i--, true);
+		}
+	}
+	#endif
+
+	MsgQue.Unlock();
+}
+
 bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b)
 {
 	LMessageQue::MsgArray *q = MsgQue.Lock(_FL);
@@ -1467,11 +1500,16 @@ bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b
 		return false;
 	}
 	
-	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, View, Msg, a, b);
 	auto Widget = View->Handle();
+
+	#if VIEW_REF_MODE
+	// printf("Ref %p %s.%p (len=%i)\n", Widget, View->GetClass(), View, (int)q->Length());
 	g_object_ref(Widget); // ref widget till we try and propagate the message to it...
+	#endif
 	
 	q->New().Set(View, Msg, a, b);
+
+	// printf("Insert %p,%i,%i,%i\n", View, Msg, a, b);
 	MsgQue.Unlock();
 	
 	return true;

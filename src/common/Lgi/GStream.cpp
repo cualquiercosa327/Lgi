@@ -80,18 +80,13 @@ ssize_t GStream::Print(const char *Format, ...)
 }
 
 /////////////////////////////////////////////////////////////////
-GStreamOp::GStreamOp(ssize_t BufSize)
+GStreamOp::GStreamOp(int64 BufSz)
 {
 	StartTime = 0;
 	EndTime = 0;
 	Total = 0;
-	Size = MAX(BufSize, 256);
-	Buf = new char[Size];
-}
-
-GStreamOp::~GStreamOp()
-{
-	DeleteArray(Buf);
+	if (BufSz > 0)
+		Buffer.Length(BufSz);
 }
 
 ssize_t GStreamOp::GetRate()
@@ -193,23 +188,26 @@ ssize_t GEndOfLine::IsEnd(void *s, ssize_t Len)
 /////////////////////////////////////////////////////////////////////////////////
 ssize_t GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
 {
-	if (!Source || !Dest || !Buf)
+	if (!Source || !Dest)
 		return -1;
 
 	int64 Bytes = 0;
 	ssize_t r, w, e = -1;
 	StartTime = LgiCurrentTime();
 
+	if (Buffer.Length() == 0)
+		Buffer.Length(4 << 10);
+
 	while (e < 0)
 	{
-		if ((r = Source->Read(Buf, Size)) > 0)
+		if ((r = Source->Read(Buffer.AddressOf(), Buffer.Length())) > 0)
 		{
 			if (End)
 			{
-				e = End->IsEnd(Buf, r);
+				e = End->IsEnd(Buffer.AddressOf(), r);
 			}
 
-			if ((w = Dest->Write(Buf, e >= 0 ? MIN(e, r) : r)) > 0)
+			if ((w = Dest->Write(Buffer.AddressOf(), e >= 0 ? MIN(e, r) : r)) > 0)
 			{
 				Bytes += w;
 				Total += w;

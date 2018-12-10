@@ -15,7 +15,11 @@
 #include "LJson.h"
 
 #define DEBUG_OAUTH2				0
-#define DEBUG_FETCH					1
+#ifdef _DEBUG
+	#define DEBUG_FETCH				0
+#else
+	#define DEBUG_FETCH				0
+#endif
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
 
 

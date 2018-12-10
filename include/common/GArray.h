@@ -112,6 +112,12 @@ public:
 				Ptr >= p &&
 				Ptr < &p[len];
 	}
+
+	/// Does a range check on an index...
+	bool IdxCheck(ssize_t i)
+	{
+		return i >= 0 && i < len;
+	}
 	
 	/// Returns the number of used entries
 	size_t Length() const

@@ -29,6 +29,7 @@ protected:
 	virtual GRect *Pos() { return 0; }
 	virtual void _ClearDs(int Col);
 	void _Visible(bool v);
+	void SetLayoutDirty();
 
 public:
 	GTreeNode();
@@ -76,6 +77,7 @@ public:
 			return false;
 		
 		Items.Sort(Compare, user_param);
+		SetLayoutDirty();
 		return true;
 	}
 

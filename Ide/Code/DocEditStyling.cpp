@@ -416,6 +416,13 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 						st.Len = e - s;
 						st.Fore = n->Type == KType ? ColourType : ColourKeyword;
 					}
+					else
+					{
+						while (	IsAlpha(*e) ||
+								IsDigit(*e) ||
+								*e == '_')
+							e++;
+					}
 
 					s = e - 1;
 				}

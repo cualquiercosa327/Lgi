@@ -8,7 +8,7 @@ class LSelect
 {
 protected:
 	GArray<GSocket*> s;
-	int Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs);
+	int Select(GArray<GSocket*> &Results, bool Rd, bool Wr, int TimeoutMs);
 
 public:
 	LSelect(GSocket *sock = NULL);

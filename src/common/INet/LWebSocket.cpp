@@ -27,7 +27,7 @@ LSelect &LSelect::operator +=(GSocket *sock)
 	return *this;
 }
 	
-int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
+int LSelect::Select(GArray<GSocket*> &Results, bool Rd, bool Wr, int TimeoutMs)
 {
 	if (s.Length() == 0)
 		return 0;
@@ -43,8 +43,8 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	for (unsigned i=0; i<s.Length(); i++)
 	{
 		fds[i].fd = s[i]->Handle();
-		fds[i].events =	((Flags & O_WRITE) ? POLLOUT : 0) |
-						((Flags & O_READ) ? POLLIN : 0) |
+		fds[i].events =	(Wr ? POLLOUT : 0) |
+						(Rd ? POLLIN : 0) |
 						POLLRDHUP |
 						POLLERR;
 		fds[i].revents = 0;
@@ -89,8 +89,8 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	}
 		
 	int v = select(	(int)Max+1,
-					Flags == O_READ ? &r : NULL,
-					Flags == O_WRITE ? &r : NULL,
+					Rd ? &r : NULL,
+					Wr ? &r : NULL,
 					NULL, TimeoutMs >= 0 ? &t : NULL);
 	if (v > 0)
 	{
@@ -109,14 +109,14 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 GArray<GSocket*> LSelect::Readable(int TimeoutMs)
 {
 	GArray<GSocket*> r;
-	Select(r, O_READ, TimeoutMs);
+	Select(r, true, false, TimeoutMs);
 	return r;
 }
 
 GArray<GSocket*> LSelect::Writeable(int TimeoutMs)
 {
 	GArray<GSocket*> r;
-	Select(r, O_WRITE, TimeoutMs);
+	Select(r, false, true, TimeoutMs);
 	return r;
 }
 

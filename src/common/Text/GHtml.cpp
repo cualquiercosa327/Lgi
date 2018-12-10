@@ -279,9 +279,6 @@ public:
 		if (Size.Type == GCss::LenPx)
 		{
 		    int RequestPx = (int)Size.Value;
-			GArray<int> Map; // map of point-sizes to heights
-			int NearestPoint = 0;
-			int Diff = 1000;
 
 			// Look for cached fonts of the right size...
 			for (f=Fonts.First(); f; f=Fonts.Next())
@@ -292,113 +289,11 @@ public:
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
 				{
-				    int PtSize = f->PointSize();
-				    int Height = FontPxHeight(f);
-					Map[PtSize] = Height;
-
-					if (!NearestPoint)
-						NearestPoint = f->PointSize();
-					else
-					{
-						int NearDiff = abs(Map[NearestPoint] - RequestPx);
-						int CurDiff = abs(f->GetHeight() - RequestPx);
-						if (CurDiff < NearDiff)
-						{
-							NearestPoint = f->PointSize();
-						}
-					}
-					
-					if (RequestPx < FontPxHeight(f) &&
-					    f->PointSize() == MinimumPointSize)
-				    {
-				        return f;
-				    }
-
-					Diff = FontPxHeight(f) - RequestPx;
-					if (abs(Diff) < 2)
-					{
+				    int Px = FontPxHeight(f);
+					if (abs(Px - RequestPx) < 2)
 						return f;
-					}
 				}
 			}
-
-			// Find the correct font size...
-			if (Size.Type == GCss::LenPt &&
-				Size.Value < MinimumPointSize)
-				Size.Value = MinimumPointSize;
-			
-			int BestPxDiff = 10000;
-			GAutoPtr<GFont> BestFont;
-			uint32 FaceIdx = 0;
-			
-			do
-			{
-				GAutoPtr<GFont> Tmp(new GFont);
-				
-				Tmp->Bold(IsBold);
-				Tmp->Italic(IsItalic);
-				Tmp->Underline(IsUnderline);
-				
-				if (FaceIdx >= Face.Length() ||
-					!Tmp->Create(Face[FaceIdx], Size))
-				{
-					if (FaceIdx < Face.Length())
-					{
-						FaceIdx++;
-						continue;
-					}
-					else if (!Tmp->Create(SysFont->Face(), Size))
-					{
-						break;
-					}
-				}
-				
-				int ActualHeight = FontPxHeight(Tmp);
-				Diff = ActualHeight - RequestPx;
-				if (Diff == 0)
-				{
-					// Best possible font size.
-					BestFont = Tmp;
-					BestPxDiff = Diff;
-					break;
-				}
-				else if (abs(Diff) < BestPxDiff)
-				{
-					// Getting better... keep going
-					BestFont = Tmp;
-					BestPxDiff = Diff;
-				}
-				else
-				{
-					// Getting worse now... stop
-					break;
-				}
-
-				if (Size.Type == GCss::LenPt)
-				{
-					if (Diff > 0)
-					{
-						if (Size.Value > MinimumPointSize)
-							Size.Value--;
-						else
-							break;
-					}
-					else
-						Size.Value++;
-				}
-				else break;
-			}
-			while (Size.Value > MinimumPointSize && Size.Value < 100);
-
-			if (!BestFont)
-				return Owner->GetFont();
-
-			Fonts.Insert(f = BestFont.Release());
-			if (!f || !f->Face())
-			{
-				LgiAssert(0);
-			}
-			return f;
 		}
 		else if (Size.Type == GCss::LenPt)
 		{
@@ -411,9 +306,11 @@ public:
 					break;
 				}
 				
+				auto FntSz = f->Size();
 				if (f->Face() &&
 					_stricmp(f->Face(), Face[0]) == 0 &&
-					f->PointSize() == Pt &&
+					FntSz.Type == GCss::LenPt &&
+					abs(FntSz.Value - Pt) < 0.001 &&
 					f->Bold() == IsBold &&
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
@@ -2801,7 +2698,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			// LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
+			LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
 		}
 	}
 	#endif
@@ -3268,7 +3165,32 @@ void GTag::SetStyle()
 			}
 
 			if (Get("Size", s))
-				FontSize(Len(s));
+			{
+				bool Digit = false, NonW = false;
+				for (auto *c = s; *c; c++)
+				{
+					if (IsDigit(*c) || *c == '-') Digit = true;
+					else if (!IsWhiteSpace(*c)) NonW = true;
+				}
+				if (Digit && !NonW)
+				{
+					auto Sz = atoi(s);
+					switch (Sz)
+					{
+						case 1: FontSize(Len(GCss::LenEm, 0.63f)); break;
+						case 2: FontSize(Len(GCss::LenEm, 0.82f)); break;
+						case 3: FontSize(Len(GCss::LenEm, 1.0f)); break;
+						case 4: FontSize(Len(GCss::LenEm, 1.13f)); break;
+						case 5: FontSize(Len(GCss::LenEm, 1.5f)); break;
+						case 6: FontSize(Len(GCss::LenEm, 2.0f)); break;
+						case 7: FontSize(Len(GCss::LenEm, 3.0f)); break;
+					}
+				}
+				else
+				{
+					FontSize(Len(s));
+				}
+			}
 			break;
 		}
 		case TAG_SELECT:

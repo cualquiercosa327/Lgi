@@ -48,6 +48,7 @@
 			<Node File="./Code/FindSymbol.h" Type="3" Platforms="15" />
 			<Node File="./Code/GHistory.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GHistory.h" Type="3" Platforms="15" />
+			<Node File="./Code/ParserCommon.h" Type="3" Platforms="15" />
 			<Node File="./Code/PythonParser.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SimpleCppParser.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SimpleCppParser.h" Type="3" Platforms="15" />
@@ -233,7 +234,9 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
-			<PostBuildCommands />
+			<PostBuildCommands>
+				<Linux />
+			</PostBuildCommands>
 		</Advanced>
 	</Settings>
 </Project>

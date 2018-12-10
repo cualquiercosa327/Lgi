@@ -455,6 +455,64 @@ GMimeBuf::GMimeBuf(GStreamI *src, GStreamEnd *end)
 	Src->SetPos(0);
 }
 
+ssize_t GMimeBuf::Pop(GArray<char> &Out)
+{
+	ssize_t Ret = 0;
+
+	while (!(Ret = GStringPipe::Pop(Out)))
+	{
+		if (Src)
+		{
+			char Buf[1024];
+			ssize_t r = Src ? Src->Read(Buf, sizeof(Buf)) : 0;
+			if (r)
+			{
+				if (End)
+				{
+					ssize_t e = End->IsEnd(Buf, r);
+					if (e >= 0)
+					{
+						// End of stream
+						ssize_t s = e - Total;
+						Push(Buf, s);
+						Total += s;
+						Src = 0; // no more data anyway
+					}
+					else
+					{
+						// Not the end
+						Push(Buf, r);
+						Total += r;
+					}
+				}
+				else
+				{
+					Push(Buf, r);
+					Total += r;
+				}
+			}
+			else
+			{
+				Src = NULL; // Source data is finished
+			}
+		}
+		else
+		{
+			// Is there any unterminated space in the string pipe?
+			int64 Sz = GStringPipe::GetSize();
+			if (Sz > 0)
+			{
+				if (Out.Length() < Sz)
+					Out.Length(Sz);
+				Ret = GStringPipe::Read(Out.AddressOf(), Sz);
+			}
+			break;
+		}
+	}
+
+	return Ret;
+}
+
 ssize_t GMimeBuf::Pop(char *Str, ssize_t BufSize)
 {
 	ssize_t Ret = 0;
@@ -1087,22 +1145,24 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 		else
 		{
 			// Read the headers..
-			char Buf[1024];
 			GStringPipe HeaderBuf;
 			ssize_t r;
-			while ((r = Source->Pop(Buf, sizeof(Buf))) > 0)
+
+			if (Buffer.Length() == 0)
+				Buffer.Length(1 << 10);
+
+			while ((r = Source->Pop(Buffer)) > 0)
 			{
-				if (!strchr(MimeEol, Buf[0]))
+				if (!strchr(MimeEol, Buffer[0]))
 				{
 					// Store part of the headers
-					HeaderBuf.Push(Buf, r);
+					HeaderBuf.Push(Buffer.AddressOf(), r);
 				}
 				else break;
 			}
 
 			if (r < 0)
 				return 0;
-
 
 			// Not an error
 			Mime->Headers = HeaderBuf.NewStr();
@@ -1135,18 +1195,18 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 				ssize_t Written = 0;
 
 				Status = true;
-				while ((Len = Source->Pop(Buf, sizeof(Buf))))
+				while ((Len = Source->Pop(Buffer)))
 				{
 					// Check for boundary
 					MimeBoundary Type = MimeData;
 					if (Boundary)
 					{
-						 Type = IsMimeBoundary(Boundary, Buf);
+						 Type = IsMimeBoundary(Boundary, Buffer.AddressOf());
 					}
 					
 					if (State)
 					{
-						State->Type = IsMimeBoundary(State->Boundary, Buf);
+						State->Type = IsMimeBoundary(State->Boundary, Buffer.AddressOf());
 						if (State->Type)
 						{
 							Status = Done = true;
@@ -1184,11 +1244,11 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 						// Process data
 						if (Decoder)
 						{
-							Written += Decoder->Write(Buf, Len);
+							Written += Decoder->Write(Buffer.AddressOf(), Len);
 						}
 						else
 						{
-							ssize_t w = Mime->DataStore->Write(Buf, Len);
+							ssize_t w = Mime->DataStore->Write(Buffer.AddressOf(), Len);
 							if (w > 0)
 							{
 								Written += w;

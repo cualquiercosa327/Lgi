@@ -209,18 +209,9 @@ bool GView::LockHandler(GViewI *v, GView::LockOp Op)
 				LgiAssert(!"Either locked or missing.");
 			break;
 		}
-		case OpLock:
+		case OpExists:
 		{
-			if (Ref >= 1)
-				Status = m->Add(v, Ref + 1);
-			break;
-		}
-		case OpUnlock:
-		{
-			if (Ref > 1)
-				Status = m->Add(v, Ref - 1);
-			else
-				LgiAssert(!"Not locked?");
+			Status = Ref > 0;
 			break;
 		}
 	}	

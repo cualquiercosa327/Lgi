@@ -56,6 +56,7 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 	LgiWidget *p = LGI_WIDGET(gtk_type_new(lgi_widget_get_type()));
 	if (p)
 	{
+		// printf("Created %p for %s:%p\n", p, target->GetClass(), target);
 		p->target = target;
 		p->w = w;
 		p->h = h;
@@ -91,10 +92,8 @@ lgi_widget_remove(GtkContainer *wid, GtkWidget *child)
 				bool widget_was_visible = GTK_WIDGET_VISIBLE(child);
 				
 				LgiWidget *cw = LGI_WIDGET(c.w);
-				/*
-				if (cw)
-					printf("%s:%i - unparenting %s.%p\n", _FL, cw->target->GetClass(), c.w);
-				*/
+				// if (cw)
+					// printf("Unparenting %p, %s.%p\n", cw, cw->target->GetClass(), cw->target);
 				gtk_widget_unparent(child);
 				
 				p->child.DeleteAt(i, true);

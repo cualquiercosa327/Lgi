@@ -184,7 +184,6 @@ const char *VcFolder::GetVcName()
 			Def = "cvs";
 			break;
 		default:
-			LgiAssert(!"Impl me.");
 			break;
 	}
 	
@@ -1289,7 +1288,7 @@ GString ConvertUPlus(GString s)
 	
 	c.Add(0);
 	#ifdef LINUX
-	return GString((char16)c.AddressOf());
+	return GString((char16*)c.AddressOf());
 	#else
 	return GString(c.AddressOf());
 	#endif
@@ -1347,7 +1346,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 		case VcGit:
 		{
 			GString::Array Lines = s.SplitDelimit("\r\n");
-			int Fmt = ToolVersion[VcGit] >= Ver2Int("2.6.0") ? 2 : 1;
+			int Fmt = ToolVersion[VcGit] >= Ver2Int("2.8.0") ? 2 : 1;
 			for (auto Ln : Lines)
 			{
 				char Type = Ln(0);
@@ -1357,7 +1356,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 				else if (Ln.Find("usage: git") >= 0)
 				{
 					// It's probably complaining about the --porcelain=2 parameter
-					LgiAssert(!"Git argument error.");
+					OnCmdError(s, "Args error");
 				}
 				else if (Type != '?')
 				{
@@ -1366,9 +1365,14 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					if (Fmt == 2)
 					{
 						GString::Array p = Ln.SplitDelimit(" ", 8);
-						f = new VcFile(d, this, p[6], IsWorking);
-						f->SetText(p[1].Strip("."), COL_STATE);
-						f->SetText(p.Last(), COL_FILENAME);
+						if (p.Length() < 7)
+							d->Log->Print("%s:%i - Error: not enough tokens: '%s'\n", _FL, Ln.Get());
+						else
+						{
+							f = new VcFile(d, this, p[6], IsWorking);
+							f->SetText(p[1].Strip("."), COL_STATE);
+							f->SetText(p.Last(), COL_FILENAME);
+						}
 					}
 					else if (Fmt == 1)
 					{
@@ -1416,8 +1420,8 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 							File = ConvertUPlus(p.Last());
 						else
 							File = p.Last();
-							
-						VcFile *f = new VcFile(d, this, p[1], IsWorking);
+
+						VcFile *f = new VcFile(d, this, NULL, IsWorking);
 						f->SetText(p[0], COL_STATE);
 						f->SetText(File.Replace("\\","/"), COL_FILENAME);
 						f->GetStatus();
@@ -1477,7 +1481,8 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 				LgiAssert(!"Where is the version?");
 			
 			// What version did =2 become available? It's definately not in v2.5.4
-			if (ToolVersion[VcGit] >= Ver2Int("2.6.0"))
+			// Not in v2.7.4 either...
+			if (ToolVersion[VcGit] >= Ver2Int("2.8.0"))
 				Arg = "status --porcelain=2";
 			else
 				Arg = "status --porcelain";
@@ -1850,7 +1855,8 @@ bool VcFolder::ParseClean(int Result, GString s, ParseParams *Params)
 
 void VcFolder::GetVersion()
 {
-	switch (GetType())
+	auto t = GetType();
+	switch (t)
 	{
 		case VcGit:
 		case VcSvn:
@@ -1859,7 +1865,7 @@ void VcFolder::GetVersion()
 			StartCmd("--version", &VcFolder::ParseVersion, NULL, LogNormal);
 			break;
 		default:
-			LgiAssert(!"Impl me.");
+			OnCmdError(NULL, "No version control found.");
 			break;
 	}
 }

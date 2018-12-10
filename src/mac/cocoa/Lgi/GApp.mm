@@ -846,13 +846,12 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	{
 		#if 1
 		// This impl allows for us to exit gracefully.
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		// NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		int Depth = ++d->RunDepth;
 		
 		do
 		{
-			[pool release];
-			pool = [[NSAutoreleasePool alloc] init];
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 			NSEvent *event =
 				[	d->NsApp
@@ -863,10 +862,12 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 			[d->NsApp sendEvent:event];
 			[d->NsApp updateWindows];
+
+			[pool release];
 		}
 		while (d->RunDepth >= Depth);
 		
-		[pool release];
+		// [pool release];
 		#else
 		NSApplicationMain(GetArgs(), GetArg());
 		#endif

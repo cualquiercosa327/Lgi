@@ -247,7 +247,7 @@ bool GFontSystem::EnumerateFonts(GString::Array &Fonts)
 	        const char * family_name;
 
 	        family_name = Gtk::pango_font_family_get_name (family);
-	        AllFonts.Insert(NewStr(family_name));
+	        AllFonts.New() = family_name;
 	    }
 	    Gtk::g_free (families);
 
