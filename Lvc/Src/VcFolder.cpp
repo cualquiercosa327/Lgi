@@ -1731,6 +1731,12 @@ void VcFolder::Push()
 
 bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 {
+	if (Result)
+	{
+		OnCmdError(s, "Push failed.");
+		return false;
+	}
+
 	switch (GetType())
 	{
 		case VcGit:
@@ -1778,6 +1784,12 @@ void VcFolder::Pull(LoggingType Logging)
 
 bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 {
+	if (Result)
+	{
+		OnCmdError(s, "Pull failed.");
+		return false;
+	}
+
 	switch (GetType())
 	{
 		case VcGit:
