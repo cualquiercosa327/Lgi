@@ -293,6 +293,9 @@ public:
 		MoveToCenter();
 		SetQuitOnClose(true);
 
+		Opts.SerializeFile(false);
+		SerializeState(&Opts, "WndPos", true);
+
 		#ifdef WINDOWS
 		SetIcon(MAKEINTRESOURCEA(IDI_ICON1));
 		#else
@@ -384,7 +387,6 @@ public:
 			Visible(true);
 		}
 
-		Opts.SerializeFile(false);
 		GXmlTag *f = Opts.LockTag(OPT_Folders, _FL);
 		if (!f)
 		{
@@ -412,12 +414,14 @@ public:
 			}
 			Opts.Unlock();
 		}
-
+		
 		SetPulse(200);
 	}
 
 	~App()
 	{
+		SerializeState(&Opts, "WndPos", false);
+
 		GXmlTag *f = Opts.LockTag(OPT_Folders, _FL);
 		if (f)
 		{

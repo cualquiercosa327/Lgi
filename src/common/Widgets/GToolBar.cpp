@@ -1178,7 +1178,6 @@ bool GToolBar::OnLayout(GViewLayoutInfo &Inf)
 		Pour(r);
 		Inf.Width.Min = X();
 		Inf.Width.Max = X();
-		LgiTrace("Toolbar %i,%i\n", X(), Y());
 	}
 	else
 	{
