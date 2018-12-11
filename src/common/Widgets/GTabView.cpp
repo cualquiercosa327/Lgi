@@ -1394,8 +1394,8 @@ GColour GTabPage::GetBackground()
 
 void GTabPage::OnStyleChange()
 {
-	d->Ds.Reset();
-	Invalidate();
+	SetFont(SysFont, false);
+	GetParent()->Invalidate();
 }
 
 void GTabPage::SetFont(GFont *Font, bool OwnIt)

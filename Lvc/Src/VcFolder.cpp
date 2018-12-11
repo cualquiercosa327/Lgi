@@ -721,6 +721,11 @@ void VcFolder::OnCmdError(GString Output, const char *Msg)
 	Color(GColour::Red);
 }
 
+void VcFolder::ClearError()
+{
+	Color(GCss::ColorInherit);
+}
+
 bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 {
 	switch (GetType())
@@ -1736,6 +1741,7 @@ bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 		OnCmdError(s, "Push failed.");
 		return false;
 	}
+	else ClearError();
 
 	switch (GetType())
 	{
@@ -1789,6 +1795,7 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 		OnCmdError(s, "Pull failed.");
 		return false;
 	}
+	else ClearError();
 
 	switch (GetType())
 	{

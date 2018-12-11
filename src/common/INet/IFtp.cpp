@@ -614,7 +614,7 @@ bool IFtp::SetDir(const char *Dir)
 	}
 	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
+		LgiTrace("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 	}
 
 	return Status;

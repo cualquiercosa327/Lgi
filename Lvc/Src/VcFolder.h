@@ -154,6 +154,7 @@ class VcFolder : public GTreeItem, public GCss
 	bool StartCmd(const char *Args, ParseFn Parser, ParseParams *Params = NULL, LoggingType Logging = LogNone);
 	void OnBranchesChange();
 	void OnCmdError(GString Output, const char *Msg);
+	void ClearError();
 	void OnChange(PropType Prop) { Update(); }
 	VcFile *FindFile(const char *Path);
 
