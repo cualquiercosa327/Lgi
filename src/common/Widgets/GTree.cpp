@@ -608,11 +608,15 @@ void GTreeItem::_PourText(GdcPt2 &Size)
 {
 	GFont *f = Tree ? Tree->GetFont() : SysFont;
 	auto *Txt = GetText();
+	
+	#if defined(_WIN64) && defined(_DEBUG)
 	if ((void*)Txt == (void*)0xfeeefeeefeeefeee ||
 		(void*)Txt == (void*)0xcdcdcdcdcdcdcdcd)
 	{
-		int asd=0;
+		LgiAssert(!"Yeah nah...");
 	}
+	#endif
+	
 	GDisplayString ds(f, Txt);
 	Size.x = ds.X() + 4;
 	Size.y = 0;
