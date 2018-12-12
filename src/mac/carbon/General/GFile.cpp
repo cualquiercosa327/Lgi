@@ -899,7 +899,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, boo
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
-				char *f = strrchr(Files[i], DIR_CHAR);
+				auto f = strrchr(Files[i], DIR_CHAR);
 				LgiMakePath(p, sizeof(p), p, f?f+1:Files[i]);
 				if (!Move(Files[i], p, Status ? Status->AddressOf(i) : NULL))
 				{
