@@ -5,7 +5,7 @@
 
 #include "GVariant.h"
 
-#define DEBUG_DND	1
+#define DEBUG_DND	0
 
 #if WINNATIVE
 

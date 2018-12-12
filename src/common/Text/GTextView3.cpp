@@ -1557,8 +1557,8 @@ bool GTextView3::Insert(size_t At, const char16 *Data, ssize_t Len)
 			}
 
 			#ifdef _DEBUG
-			Prof.Add("Validate");
-			ValidateLines();
+			// Prof.Add("Validate");
+			// ValidateLines();
 			#endif
 
 			if (AdjustStylePos)

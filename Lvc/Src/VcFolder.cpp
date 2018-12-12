@@ -5,6 +5,29 @@
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 #endif
 
+int Ver2Int(GString v)
+{
+	auto p = v.Split(".");
+	int i = 0;
+	for (auto s : p)
+	{
+		auto Int = s.Int();
+		if (Int < 256)
+		{
+			i <<= 8;
+			i |= (uint8)Int;
+		}
+		else
+		{
+			LgiAssert(0);
+			return 0;
+		}
+	}
+	return i;
+}
+
+int ToolVersion[VcMax] = {0};
+
 ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
 {
 	Process = p;
@@ -161,7 +184,6 @@ const char *VcFolder::GetVcName()
 			Def = "cvs";
 			break;
 		default:
-			LgiAssert(!"Impl me.");
 			break;
 	}
 	
@@ -180,7 +202,7 @@ const char *VcFolder::GetVcName()
 	return VcCmd;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, bool LogCmd)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, LoggingType Logging)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
@@ -188,7 +210,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 	if (CmdErrors > 2)
 		return false;
 
-	if (d->Log && LogCmd)
+	if (d->Log && Logging != LogSilo)
 		d->Log->Print("%s %s\n", Exe, Args);
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
@@ -197,7 +219,12 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, b
 
 	Process->SetInitFolder(Params && Params->AltInitPath ? Params->AltInitPath : Path);
 
-	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
+	GString::Array Ctx;
+	Ctx.SetFixedLength(false);
+	Ctx.Add(Path);
+	Ctx.Add(Exe);
+	Ctx.Add(Args);
+	GAutoPtr<Cmd> c(new Cmd(Ctx, Logging, d->Log));
 	if (!c)
 		return false;
 
@@ -305,8 +332,12 @@ void VcFolder::Select(bool b)
 
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
+			if (GetType() == VcSvn && CommitListDirty)
+				IsLogging = StartCmd("up", &VcFolder::ParsePull, new ParseParams("log"));
+			else
+				IsLogging = StartCmd("log", &VcFolder::ParseLog);
+
 			CommitListDirty = false;
-			IsLogging = StartCmd("log", &VcFolder::ParseLog);
 		}
 
 		if (Branches.Length() == 0)
@@ -538,6 +569,8 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 				{
 					if (!Map.Find(Rev->GetRev()))
 						Log.Add(Rev.Release());
+					else
+						Skipped++;
 				}
 				else if (Raw)
 				{
@@ -648,13 +681,49 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
-void VcFolder::OnCmdError()
+VcFile *VcFolder::FindFile(const char *Path)
 {
-	GString::Array a = GetProgramsInPath(GetVcName());
-	d->Log->Print("'%s' executables in the path:\n", GetVcName());
-	for (auto Bin : a)
-		d->Log->Print("    %s\n", Bin.Get());
-	d->Log->Print("\n");
+	if (!Path)
+		return NULL;
+
+	GArray<VcFile*> Files;
+	if (d->Files->GetAll(Files))
+	{
+		GString p = Path;
+		p = p.Replace(DIR_STR, "/");
+		for (auto f : Files)
+		{
+			auto Fn = f->GetFileName();
+			if (p.Equals(Fn))
+			{
+				return f;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+void VcFolder::OnCmdError(GString Output, const char *Msg)
+{
+	if (!CmdErrors)
+	{
+		d->Log->Write(Output, Output.Length());
+
+		GString::Array a = GetProgramsInPath(GetVcName());
+		d->Log->Print("'%s' executables in the path:\n", GetVcName());
+		for (auto Bin : a)
+			d->Log->Print("    %s\n", Bin.Get());
+	}
+				
+	CmdErrors++;
+	d->Tabs->Value(1);
+	Color(GColour::Red);
+}
+
+void VcFolder::ClearError()
+{
+	Color(GCss::ColorInherit);
 }
 
 bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
@@ -671,16 +740,7 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 		{
 			if (s.Find("client is too old") >= 0)
 			{
-				if (!CmdErrors)
-				{
-					d->Log->Write(s, s.Length());
-					d->Tabs->Value(1);
-
-					OnCmdError();
-				}
-				
-				CmdErrors++;
-				Update();
+				OnCmdError(s, "Client too old");
 				break;
 			}
 			
@@ -705,54 +765,6 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
-bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
-{
-	if (GTreeItem::Select())
-		Select(true);
-	
-	CommitListDirty = Result == 0;
-	CurrentCommit.Empty();
-	IsCommit = false;
-
-	if (Result)
-		return false;
-
-	if (Result == 0)
-	{
-		d->ClearFiles();
-
-		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
-		if (w)
-			w->SetCtrlName(IDC_MSG, NULL);
-	}
-
-	switch (GetType())
-	{
-		case VcGit:
-		{
-			Unpushed++;
-			Update();
-
-			if (Params && Params->Str.Find("Push") >= 0)
-				Push();
-			break;
-		}
-		case VcSvn:
-		{
-			CurrentCommit.Empty();
-			CommitListDirty = true;
-			break;
-		}
-		default:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-	}
-
-	return true;
-}
-
 bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 {
 	if (Result == 0)
@@ -766,7 +778,16 @@ bool VcFolder::ParseUpdate(int Result, GString s, ParseParams *Params)
 
 bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 {
-	ParseDiffs(s, NULL, true);
+	if (GetType() == VcSvn)
+	{
+		ParseParams Local;
+		if (!Params) Params = &Local;
+		Params->IsWorking = true;
+		ParseStatus(Result, s, Params);
+	}
+	else
+		ParseDiffs(s, NULL, true);
+	
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
 
@@ -777,6 +798,31 @@ bool VcFolder::ParseWorking(int Result, GString s, ParseParams *Params)
 	}
 
 	return false;
+}
+
+bool VcFolder::ParseDiff(int Result, GString s, ParseParams *Params)
+{
+	ParseDiffs(s, NULL, true);
+	return false;
+}
+
+void VcFolder::Diff(VcFile *file)
+{
+	switch (GetType())
+	{
+		case VcSvn:
+		case VcGit:
+		case VcHg:
+		{
+			GString a;
+			a.Printf("diff \"%s\"", file->GetFileName());
+			StartCmd(a, &VcFolder::ParseDiff);
+			break;
+		}
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
 }
 
 bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
@@ -799,10 +845,25 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 						f->SetDiff(Diff);
 					Diff.Empty();
 
-					GString Fn = a[i].Split(" ").Last()(2, -1);
-					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText("M", COL_STATE);
-					f->SetText(Fn, COL_FILENAME);
+					auto Bits = a[i].SplitDelimit();
+					GString Fn, State = "M";
+					if (Bits[1].Equals("--cc"))
+					{
+						Fn = Bits.Last();
+						State = "C";
+					}
+					else
+						Fn = Bits.Last()(2,-1);
+
+					LgiTrace("%s\n", a[i].Get());
+
+					f = FindFile(Fn);
+					if (!f)
+						f = new VcFile(d, this, Rev, IsWorking);
+
+					f->SetText(State, COL_STATE);
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
+					f->GetStatus();
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "new file", 8))
@@ -848,7 +909,7 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 
 					GString Fn = a[i].Split(" ").Last();
 					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText(Fn, COL_FILENAME);
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "index", 5) ||
@@ -895,8 +956,14 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 					InPreamble = false;
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
-					f = new VcFile(d, this, Rev, IsWorking);
-					f->SetText(Fn, COL_FILENAME);
+
+					f = FindFile(Fn);
+					if (!f)
+						f = new VcFile(d, this, Rev, IsWorking);
+
+					f->SetText(Fn.Replace("\\","/"), COL_FILENAME);
+					f->SetText("M", COL_STATE);
+					f->GetStatus();
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "------", 6))
@@ -961,7 +1028,7 @@ void VcFolder::OnPulse()
 		Cmd *c = Cmds[i];
 		if (c && c->Rd->IsExited())
 		{
-			GString s = c->Buf.NewGStr();
+			GString s = c->GetBuf();
 			int Result = c->Rd->ExitCode();
 			if (Result == ErrSubProcessFailed)
 			{
@@ -970,7 +1037,8 @@ void VcFolder::OnPulse()
 				CmdErrors++;
 			}
 
-			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
+			if (c->PostOp)
+				Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
 			Cmds.DeleteAt(i--, true);
 			delete c;
 			CmdsChanged = true;
@@ -1011,10 +1079,49 @@ void VcFolder::OnMouseClick(GMouse &m)
 	if (m.IsContextMenu())
 	{
 		GSubMenu s;
+		s.AppendItem("Browse To", IDM_BROWSE_FOLDER);
+		s.AppendItem(
+			#ifdef WINDOWS
+			"Command Prompt At",
+			#else
+			"Terminal At",
+			#endif
+			IDM_TERMINAL);
+		s.AppendItem("Clean", IDM_CLEAN);
+		s.AppendSeparator();
 		s.AppendItem("Remove", IDM_REMOVE);
 		int Cmd = s.Float(GetTree(), m);
 		switch (Cmd)
 		{
+			case IDM_BROWSE_FOLDER:
+			{
+				LgiBrowseToFile(Path);
+				break;
+			}
+			case IDM_TERMINAL:
+			{
+				#if defined(MAC)
+					LgiExecute("/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal", Path);
+				#elif defined(WINDOWS)
+					TCHAR w[MAX_PATH];
+					auto r = GetWindowsDirectory(w, CountOf(w));
+					if (r > 0)
+					{
+						GFile::Path p = GString(w);
+						p += "system32\\cmd.exe";
+						FileDev->SetCurrentFolder(Path);
+						LgiExecute(p);
+					}
+				#elif defined(LINUX)
+					// #error "Impl me."
+				#endif
+				break;
+			}
+			case IDM_CLEAN:
+			{
+				Clean();
+				break;
+			}
 			case IDM_REMOVE:
 			{
 				OnRemove();
@@ -1041,11 +1148,11 @@ void VcFolder::OnUpdate(const char *Rev)
 		{
 			case VcGit:
 				Args.Printf("checkout %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, LogNormal);
 				break;
 			case VcSvn:
 				Args.Printf("up -r %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, LogNormal);
 				break;
 			default:
 			{
@@ -1107,10 +1214,13 @@ void VcFolder::OnExpand(bool b)
 
 void VcFolder::OnPaint(ItemPaintCtx &Ctx)
 {
-	if (CmdErrors)
-	{
-		Ctx.Fore = GColour::Red;
-	}
+	auto c = Color();
+	if (c.IsValid())
+		Ctx.Fore = c;
+	c = BackgroundColor();
+	if (c.IsValid() && !GTreeItem::Select())
+		Ctx.Back = c;
+
 	GTreeItem::OnPaint(Ctx);
 }
 
@@ -1155,10 +1265,45 @@ void VcFolder::ListCommit(VcCommit *c)
 	}
 }
 
+GString ConvertUPlus(GString s)
+{
+	GArray<uint32> c;
+	GUtf8Ptr p(s);
+	int32 ch;
+	while ((ch = p))
+	{
+		if (ch == '{')
+		{
+			auto n = p.GetPtr();
+			if (n[1] == 'U' &&
+				n[2] == '+')
+			{
+				// Convert unicode code point
+				p += 3;
+				ch = (int32)htoi(p.GetPtr());
+				c.Add(ch);
+				while ((ch = p) != '}')
+					p++;
+			}
+			else c.Add(ch);
+		}
+		else c.Add(ch);
+		p++;
+	}
+	
+	c.Add(0);
+	#ifdef LINUX
+	return GString((char16*)c.AddressOf());
+	#else
+	return GString(c.AddressOf());
+	#endif
+}
+
 bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 {
 	bool ShowUntracked = d->Files->GetWindow()->GetCtrlValue(IDC_UNTRACKED) != 0;
 	bool IsWorking = Params ? Params->IsWorking : false;
+	List<LListItem> Ins;
 
 	switch (GetType())
 	{
@@ -1189,7 +1334,7 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					VcFile *f = new VcFile(d, this, WorkingRev, IsWorking);
 					f->SetText(Status, COL_STATE);
 					f->SetText(File, COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 				else if (f(0) == '?' &&
 						ShowUntracked)
@@ -1198,12 +1343,65 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 					VcFile *f = new VcFile(d, this, NULL, IsWorking);
 					f->SetText("?", COL_STATE);
 					f->SetText(File, COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 			}
 			break;
 		}
 		case VcGit:
+		{
+			GString::Array Lines = s.SplitDelimit("\r\n");
+			int Fmt = ToolVersion[VcGit] >= Ver2Int("2.8.0") ? 2 : 1;
+			for (auto Ln : Lines)
+			{
+				char Type = Ln(0);
+				if (Ln.Lower().Find("error:") >= 0)
+				{
+				}
+				else if (Ln.Find("usage: git") >= 0)
+				{
+					// It's probably complaining about the --porcelain=2 parameter
+					OnCmdError(s, "Args error");
+				}
+				else if (Type != '?')
+				{
+					VcFile *f = NULL;
+					
+					if (Fmt == 2)
+					{
+						GString::Array p = Ln.SplitDelimit(" ", 8);
+						if (p.Length() < 7)
+							d->Log->Print("%s:%i - Error: not enough tokens: '%s'\n", _FL, Ln.Get());
+						else
+						{
+							f = new VcFile(d, this, p[6], IsWorking);
+							f->SetText(p[1].Strip("."), COL_STATE);
+							f->SetText(p.Last(), COL_FILENAME);
+						}
+					}
+					else if (Fmt == 1)
+					{
+						GString::Array p = Ln.SplitDelimit(" ");
+						f = new VcFile(d, this, NULL, IsWorking);
+						f->SetText(p[0], COL_STATE);
+						f->SetText(p.Last(), COL_FILENAME);
+					}
+					
+					if (f)
+						Ins.Insert(f);
+				}
+				else if (ShowUntracked)
+				{
+					VcFile *f = new VcFile(d, this, NULL, IsWorking);
+					f->SetText("?", COL_STATE);
+					f->SetText(Ln(2,-1), COL_FILENAME);
+					Ins.Insert(f);
+				}
+			}
+			break;
+		}
+		case VcHg:
+		case VcSvn:
 		{
 			GString::Array Lines = s.SplitDelimit("\r\n");
 			for (auto Ln : Lines)
@@ -1212,21 +1410,36 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 				if (Ln.Lower().Find("error:") >= 0)
 				{
 				}
+				else if (strchr(" /t", Type) ||
+						Ln.Find("Summary of conflicts") >= 0)
+				{
+					// Ignore
+				}
 				else if (Type != '?')
 				{
-					GString::Array p = Ln.SplitDelimit(" ", 8);
+					GString::Array p = Ln.SplitDelimit(" ", 1);
+					if (p.Length() == 2)
+					{
+						GString File;
+						if (GetType() == VcSvn)
+							File = ConvertUPlus(p.Last());
+						else
+							File = p.Last();
 
-					VcFile *f = new VcFile(d, this, p[6], IsWorking);
-					f->SetText(p[1].Strip("."), COL_STATE);
-					f->SetText(p.Last(), COL_FILENAME);
-					d->Files->Insert(f);
+						VcFile *f = new VcFile(d, this, NULL, IsWorking);
+						f->SetText(p[0], COL_STATE);
+						f->SetText(File.Replace("\\","/"), COL_FILENAME);
+						f->GetStatus();
+						Ins.Insert(f);
+					}
+					else LgiAssert(!"What happen?");
 				}
 				else if (ShowUntracked)
 				{
 					VcFile *f = new VcFile(d, this, NULL, IsWorking);
 					f->SetText("?", COL_STATE);
 					f->SetText(Ln(2,-1), COL_FILENAME);
-					d->Files->Insert(f);
+					Ins.Insert(f);
 				}
 			}
 			break;
@@ -1238,26 +1451,49 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 		}
 	}
 
-	d->Files->ResizeColumnsToContent();
+	Unpushed = Ins.Length() > 0;
+	Update();
+	if (GTreeItem::Select())
+	{
+		d->Files->Insert(Ins);
+		d->Files->ResizeColumnsToContent();
+	}
+	else
+	{
+		Ins.DeleteObjects();
+	}
+
 	return false; // Don't refresh list
 }
 
 void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 {
-	d->ClearFiles();
+	if (GTreeItem::Select())
+		d->ClearFiles();
 
 	GString Arg;
 	switch (GetType())
 	{
+		case VcSvn:
+		case VcHg:
+			Arg = "status";
+			break;
 		case VcCvs:
 			Arg = "status -l";
 			break;
 		case VcGit:
-			Arg = "status --porcelain=2";
+			if (!ToolVersion[VcGit])
+				LgiAssert(!"Where is the version?");
+			
+			// What version did =2 become available? It's definately not in v2.5.4
+			// Not in v2.7.4 either...
+			if (ToolVersion[VcGit] >= Ver2Int("2.8.0"))
+				Arg = "status --porcelain=2";
+			else
+				Arg = "status --porcelain";
 			break;
 		default:
-			Arg = "status";
-			break;
+			return;
 	}
 
 	ParseParams *p = new ParseParams;
@@ -1285,6 +1521,9 @@ void VcFolder::ListWorkingFolder()
 			case VcCvs:
 				Arg = "-q diff --brief";
 				break;
+			case VcSvn:
+				Arg = "status";
+				break;
 			case VcGit:
 				StartCmd("diff --staged", &VcFolder::ParseWorking);
 				Arg = "diff --diff-filter=ACDMRTU";
@@ -1297,6 +1536,89 @@ void VcFolder::ListWorkingFolder()
 
 		IsWorkingFld = StartCmd(Arg, &VcFolder::ParseWorking);
 	}
+}
+
+void VcFolder::GitAdd()
+{
+	if (!PostAdd)
+		return;
+
+	GString Args;
+	if (PostAdd->Files.Length() == 0)
+	{
+		GString m(PostAdd->Msg);
+		m = m.Replace("\"", "\\\"");
+		Args.Printf("commit -m \"%s\"", m.Get());
+		IsCommit = StartCmd(Args, &VcFolder::ParseCommit, PostAdd->Param, LogNormal);
+		PostAdd.Reset();
+	}
+	else
+	{
+		GString Last = PostAdd->Files.Last();
+		Args.Printf("add \"%s\"", Last.Replace("\"", "\\\"").Replace("/", DIR_STR).Get());
+		PostAdd->Files.PopLast();	
+		StartCmd(Args, &VcFolder::ParseGitAdd, NULL, LogNormal);
+	}
+}
+
+bool VcFolder::ParseGitAdd(int Result, GString s, ParseParams *Params)
+{
+	GitAdd();
+	return false;
+}
+
+bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
+{
+	if (GTreeItem::Select())
+		Select(true);
+	
+	CommitListDirty = Result == 0;
+	CurrentCommit.Empty();
+	IsCommit = false;
+
+	if (Result)
+		return false;
+
+	if (Result == 0)
+	{
+		d->ClearFiles();
+
+		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
+		if (w)
+			w->SetCtrlName(IDC_MSG, NULL);
+	}
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			Unpushed++;
+			Update();
+
+			if (Params && Params->Str.Find("Push") >= 0)
+				Push();
+			break;
+		}
+		case VcSvn:
+		{
+			CurrentCommit.Empty();
+			CommitListDirty = true;
+			GetTree()->SendNotify(LvcCommandEnd);
+			if (!Result)
+			{
+				Unpushed = 0;
+				Update();
+			}
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return true;
 }
 
 void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
@@ -1330,18 +1652,30 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 		{
 			case VcGit:
 			{
-				if (Partial)
+				if (Add.Length() == 0)
 				{
-					LgiMsg(GetTree(), "%s:%i - Not impl.", _FL, AppName, MB_OK, _FL);
 					break;
+				}
+				else if (Partial)
+				{
+					if (PostAdd.Reset(new GitCommit))
+					{
+						PostAdd->Files.SetFixedLength(false);
+						for (auto f : Add)
+							PostAdd->Files.Add(f->GetFileName());
+						PostAdd->Msg = Msg;
+						PostAdd->Branch = Branch;
+						PostAdd->Param = Param;
+						GitAdd();
+					}
 				}
 				else
 				{
 					GString m(Msg);
 					m = m.Replace("\"", "\\\"");
 					Args.Printf("commit -am \"%s\"", m.Get());
+					IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, LogNormal);
 				}
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, true);
 				break;
 			}
 			case VcSvn:
@@ -1349,10 +1683,16 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 				GString::Array a;
 				a.New().Printf("commit -m \"%s\"", Msg);
 				for (VcFile **pf = NULL; Add.Iterate(pf); )
-					a.New() = (*pf)->GetFileName();
+				{
+					GString s = (*pf)->GetFileName();
+					if (s.Find(" ") >= 0)
+						a.New().Printf("\"%s\"", s.Get());
+					else
+						a.New() = s;
+				}
 
 				Args = GString(" ").Join(a);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, LogNormal);
 
 				if (d->Tabs && IsCommit)
 				{
@@ -1377,7 +1717,7 @@ void VcFolder::Push()
 	switch (GetType())
 	{
 		case VcGit:
-			Working = StartCmd("push", &VcFolder::ParsePush, NULL, true);
+			Working = StartCmd("push", &VcFolder::ParsePush, NULL, LogNormal);
 			break;
 		case VcSvn:
 			// Nothing to do here.. the commit pushed the data already
@@ -1396,6 +1736,13 @@ void VcFolder::Push()
 
 bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 {
+	if (Result)
+	{
+		OnCmdError(s, "Push failed.");
+		return false;
+	}
+	else ClearError();
+
 	switch (GetType())
 	{
 		case VcGit:
@@ -1416,17 +1763,18 @@ bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 	return false; // no reselect
 }
 
-void VcFolder::Pull()
+void VcFolder::Pull(LoggingType Logging)
 {
 	GString Args;
 	bool Status = false;
 	switch (GetType())
 	{
+		case VcHg:
 		case VcGit:
-			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, Logging);
 			break;
 		case VcSvn:
-			Status = StartCmd("up", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("up", &VcFolder::ParsePull, NULL, Logging);
 			break;
 		default:
 			LgiAssert(!"Impl me.");
@@ -1442,9 +1790,17 @@ void VcFolder::Pull()
 
 bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 {
+	if (Result)
+	{
+		OnCmdError(s, "Pull failed.");
+		return false;
+	}
+	else ClearError();
+
 	switch (GetType())
 	{
 		case VcGit:
+		case VcHg:
 		{
 			// Git does a merge by default, so the current commit changes...
 			CurrentCommit.Empty();
@@ -1464,6 +1820,17 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 					CurrentCommit = p.Last();
 					break;
 				}
+				else if (Ln->Find("svn cleanup") >= 0)
+				{
+					OnCmdError(s, "Needs cleanup");
+					break;
+				}
+			}
+
+			if (Params && Params->Str.Equals("log"))
+			{
+				IsLogging = StartCmd("log", &VcFolder::ParseLog);
+				return false;
 			}
 			break;
 		}
@@ -1474,6 +1841,106 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	GetTree()->SendNotify(LvcCommandEnd);
 	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+void VcFolder::Clean()
+{
+	switch (GetType())
+	{
+		case VcSvn:
+			StartCmd("cleanup", &VcFolder::ParseClean, NULL, LogNormal);
+			break;
+		default:
+			LgiMsg(GetTree(), "Not implemented.", AppName);
+			break;
+	}
+}
+
+bool VcFolder::ParseClean(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcSvn:
+			if (Result == 0)
+				Color(ColorInherit);
+			break;
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+
+	return false;
+}
+
+void VcFolder::GetVersion()
+{
+	auto t = GetType();
+	switch (t)
+	{
+		case VcGit:
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
+			StartCmd("--version", &VcFolder::ParseVersion, NULL, LogNormal);
+			break;
+		default:
+			OnCmdError(NULL, "No version control found.");
+			break;
+	}
+}
+
+bool VcFolder::ParseVersion(int Result, GString s, ParseParams *Params)
+{
+	auto p = s.SplitDelimit();
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			if (p.Length() > 2)
+			{
+				ToolVersion[GetType()] = Ver2Int(p[2]);
+				printf("Git version: %s\n", p[2].Get());
+			}
+			else
+				LgiAssert(0);
+			break;
+		}
+		case VcSvn:
+		{
+			if (p.Length() > 2)
+			{
+				ToolVersion[GetType()] = Ver2Int(p[2]);
+				printf("Svn version: %s\n", p[2].Get());
+			}
+			else
+				LgiAssert(0);
+			break;
+		}
+		case VcHg:
+		{
+			if (p.Length() >= 5)
+			{
+				auto Ver = p[4].Strip("()");
+				ToolVersion[GetType()] = Ver2Int(Ver);
+				printf("Hg version: %s\n", Ver.Get());
+			}
+			break;
+		}
+		case VcCvs:
+		{
+			#ifdef _DEBUG
+			for (auto i : p)
+				printf("i='%s'\n", i.Get());
+			#endif
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		default:
+			break;
+	}
+
+	return false;
 }
 
 bool VcFolder::ParseAddFile(int Result, GString s, ParseParams *Params)
@@ -1542,6 +2009,53 @@ bool VcFolder::Revert(const char *Path, const char *Revision)
 			return StartCmd(a, &VcFolder::ParseRevert);
 			break;
 		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool VcFolder::ParseResolve(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			break;
+		}
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return true;
+}
+
+bool VcFolder::Resolve(const char *Path)
+{
+	if (!Path)
+		return false;
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString a;
+			a.Printf("add \"%s\"", Path);
+			return StartCmd(a, &VcFolder::ParseResolve, new ParseParams(Path));
+		}
+		case VcSvn:
+		case VcHg:
+		case VcCvs:
 		default:
 		{
 			LgiAssert(!"Impl me.");

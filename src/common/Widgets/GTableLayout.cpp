@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		102
+// #define DEBUG_LAYOUT		100
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -348,6 +348,7 @@ class GTableLayoutPrivate
 
 public:
 	GdcPt2 PrevSize;
+	bool LayoutDirty;
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
 	int BorderSpacing;
@@ -790,12 +791,13 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				GFont *f = Cbo->GetFont();
 				int min_x = -1, max_x = 0;
 				char *t;
-				
+
 				for (int i=0; i < Cbo->Length() && (t = (*Cbo)[i]); i++)
 				{
 					GDisplayString ds(f, t);
-					min_x = min_x < 0 ? ds.X() : MIN(min_x, ds.X());
-					max_x = MAX(ds.X() + 4, max_x);
+					int x = ds.X();
+					min_x = min_x < 0 ? x : MIN(min_x, x);
+					max_x = MAX(x + 4, max_x);
 				}				
 				
 				Min = MAX(Min, min_x + PadX);
@@ -1264,6 +1266,7 @@ void TableCell::OnPaint(GSurface *pDC)
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
 	PrevSize.Set(-1, -1);
+	LayoutDirty = false;
 	InLayout = false;
 	DebugLayout = false;
 	Ctrl = ctrl;
@@ -1343,6 +1346,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	// responsible for doing pre layout stuff for an entire control of cells.
 	int Cx, Cy, i;
 
+	GString::Array Ps;
+	Ps.SetFixedLength(false);
+	GAutoPtr<GProfile> Prof(/*Debug ? new GProfile("Layout") :*/ NULL);
+
 	// Zero everything to start with
 	MinCol.Length(0);
 	MaxCol.Length(0);
@@ -1371,6 +1378,13 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					c->Cell.y1 == Cy &&
 					c->Cell.X() == 1)
 				{
+					if (Prof)
+					{
+						GString &s = Ps.New();
+						s.Printf("pre layout %i,%i", c->Cell.x1, c->Cell.y1);
+						Prof->Add(s);
+					}
+
 					int &MinC = MinCol[Cx];
 					int &MaxC = MaxCol[Cx];
 					CellFlag &ColF = ColFlags[Cx];
@@ -1398,6 +1412,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	}
 	#endif
 
+	if (Prof) Prof->Add("Pre layout spanned");
 	// Pre-layout column width for spanned cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1413,6 +1428,13 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
 					
+					if (Prof)
+					{
+						GString &s = Ps.New();
+						s.Printf("spanned %i,%i", c->Cell.x1, c->Cell.y1);
+						Prof->Add(s);
+					}
+
 					if (c->Width().IsValid())
 					{
 						GCss::Len l = c->Width();
@@ -1525,6 +1547,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	#endif
 
 	// Now allocate unused space
+	if (Prof) Prof->Add("DistributeUnusedSpace");
 	DistributeUnusedSpace(MinCol, MaxCol, ColFlags, Client.X(), BorderSpacing, DebugLayout?&Dbg:NULL);
 
 	#if DEBUG_LAYOUT
@@ -1541,6 +1564,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	#endif
 	
 	// Collect together our sizes
+	if (Prof) Prof->Add("Collect together our sizes");
 	int Spacing = BorderSpacing * ((int)MinCol.Length() - 1);
 	if (MinX)
 	{
@@ -1559,6 +1583,8 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 			*Flag = MAX(*Flag, ColFlags[i]);
 		}
 	}
+
+	Prof.Reset();
 }
 
 void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, CellFlag *Flag)
@@ -1845,13 +1871,27 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	int64 Start = LgiCurrentTime();
 	#endif
 
+	GString s;
+	s.Printf("Layout %i x %i", Client.X(), Client.Y());
+	GAutoPtr<GProfile> Prof(/*Debug ? new GProfile(s) :*/ NULL);
+
+	if (Prof) Prof->Add("Horz");
+
 	LayoutHorizontal(Client);
+
+	if (Prof) Prof->Add("Vert");
+
 	LayoutVertical(Client);
+
+	if (Prof) Prof->Add("Post");
+
 	LayoutPost(Client);
+
+	if (Prof) Prof->Add("Notify");
 
 	Ctrl->SendNotify(GNotifyTableLayout_LayoutChanged);
 	#if DEBUG_PROFILE
-	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
+	LgiTrace("GTableLayout::Layout(%i) = %i ms\n", Ctrl->GetId(), (int)(LgiCurrentTime()-Start));
 	#endif
 
 	#if DEBUG_LAYOUT
@@ -1919,7 +1959,7 @@ bool GTableLayout::SizeChanged()
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	if (SizeChanged())
+	if (SizeChanged() || d->LayoutDirty)
 	{
 		d->PrevSize.x = r.X();
 		d->PrevSize.y = r.Y();
@@ -1932,6 +1972,7 @@ void GTableLayout::OnPosChange()
 				r = t.ApplyPadding(r);
 			}
 			
+			d->LayoutDirty = false;
 			d->Layout(r);
 		}
 	}
@@ -1959,17 +2000,14 @@ GRect GTableLayout::GetUsedArea()
 
 void GTableLayout::InvalidateLayout()
 {
-	d->PrevSize.Set(-1, -1);
-	if (d->IsInLayout())
+	if (!d->LayoutDirty)
 	{
-		PostEvent(	M_CHANGE,
-					(GMessage::Param) GetId(),
-					(GMessage::Param) GNotifyTableLayout_LayoutChanged);
-	}
-	else
-	{
-		OnPosChange();
-		Invalidate();
+		d->LayoutDirty = true;
+		if (IsAttached())
+		{
+			// LgiTrace("%s:%i - Post layout\n", _FL);
+			PostEvent(M_TABLE_LAYOUT);
+		}
 	}
 }
 
@@ -1990,12 +2028,12 @@ GMessage::Result GTableLayout::OnEvent(GMessage *m)
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	//GRect Client = GetClient();
 	if (SizeChanged())
 	{
 		#ifdef LGI_SDL
 		OnPosChange();
 		#else
+		// LgiTrace("%s:%i - Post layout\n", _FL);
 		PostEvent(M_TABLE_LAYOUT);
 		#endif
 		return;
@@ -2128,9 +2166,15 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		d->PrevSize.Set(-1, -1);
-        // OnPosChange();
-        Invalidate();
+		if (!d->LayoutDirty)
+		{
+			d->LayoutDirty = true;
+			if (IsAttached())
+			{
+				// LgiTrace("%s:%i - Post layout\n", _FL);
+				PostEvent(M_TABLE_LAYOUT);
+			}
+		}
         return 0;
     }
 

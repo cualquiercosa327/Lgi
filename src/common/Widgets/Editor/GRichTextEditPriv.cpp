@@ -1541,7 +1541,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 	{
 		case GRichTextEdit::FontFamilyBtn:
 		{
-			List<const char> Fonts;
+			GString::Array Fonts;
 			if (!GFontSystem::Inst()->EnumerateFonts(Fonts))
 				return Error(_FL, "EnumerateFonts failed.");
 
@@ -1551,32 +1551,29 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			GSubMenu *Cur = NULL;
 			int Idx = 1;
 			char Last = 0;
-			for (const char *f = Fonts.First(); f; )
+			for (unsigned i=0; i<Fonts.Length(); i++)
 			{
-				if (*f == '@')
+				GString &f = Fonts[i];
+				if (f(0) == '@')
 				{
-					Fonts.Delete(f);
-					DeleteArray(f);
-					f = Fonts.Current();
+					Fonts.DeleteAt(i--);
 				}
 				else if (UseSub)
 				{
-					if (*f != Last || Cur == NULL)
+					if (f(0) != Last || Cur == NULL)
 					{
 						GString str;
-						str.Printf("%c...", Last = *f);
+						str.Printf("%c...", Last = f(0));
 						Cur = s.AppendSub(str);
 					}
 					if (Cur)
 						Cur->AppendItem(f, Idx++);
 					else
 						break;
-					f = Fonts.Next();
 				}
 				else
 				{
 					s.AppendItem(f, Idx++);
-					f = Fonts.Next();
 				}
 			}
 
@@ -2326,6 +2323,9 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 {
+	if (!Text && !Html)
+		return false;
+
 	GArray<uint32> Utf32;
 
 	bool Cf = CursorFirst();
@@ -2337,7 +2337,8 @@ bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 		if (ToHtml(NULL, Start, End))
 			*Html = UtfNameCache;
 	}
-	else if (Text)
+	
+	if (Text)
 	{
 		if (Start->Blk == End->Blk)
 		{
@@ -2376,7 +2377,6 @@ bool GRichTextPriv::GetSelection(GArray<char16> *Text, GAutoString *Html)
 		Text->Add(w, Strlen(w));
 		Text->Add(0);
 	}
-	else return false;
 
 	return true;
 }

@@ -98,14 +98,6 @@ case ICast:
 	#endif
 	break;
 }
-case IBreak:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Break\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
 case IAssign:
 {
 	#if VM_DECOMP
@@ -1806,7 +1798,7 @@ case IDomCall:
 	#endif
 	break;
 }
-case IDebug:
+case IBreakPoint:
 {
 	#if VM_DECOMP
 	if (Log)
@@ -1814,6 +1806,24 @@ case IDebug:
 	#elif VM_EXECUTE
 	OnException(_FL, CurrentScriptAddress-1, "ShowDebugger");
 	return ScriptWarning;
+	#endif
+	break;
+}
+case IDebug:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p Debugger\n", CurrentScriptAddress-1);
+	#elif VM_EXECUTE
+		#ifdef WINDOWS
+			__debugbreak();
+		#elif defined MAC
+			__builtin_trap();
+		#elif defined LINUX
+			Gtk::raise(SIGINT);
+		#else
+			#warning "Not impl."
+		#endif
 	#endif
 	break;
 }

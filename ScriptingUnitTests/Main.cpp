@@ -12,11 +12,21 @@ struct ConsoleLog : public GStream
 	}
 };
 
-class App : public GApp, public GScriptContext
+class App : public GApp, public GScriptContext, public GVmDebuggerCallback
 {
 	GScriptEngine *Engine;
 	GAutoString SrcFile;
 	ConsoleLog Log;
+
+	GVmDebugger *AttachVm(GVirtualMachine *Vm, GCompiledCode *Code, const char *Assembly)
+	{
+		return new GVmDebuggerWnd(NULL, this, Vm, Code, Assembly);
+	}
+
+	bool CompileScript(GAutoPtr<GCompiledCode> &Output, const char *FileName, const char *Source)
+	{
+		return false;
+	}
 	
 public:
 	int Status;
@@ -74,7 +84,7 @@ public:
 			return false;
 		}
 		
-		GScriptEngine Eng(NULL, NULL, NULL);
+		GScriptEngine Eng(NULL, NULL, this);
 		Eng.SetConsole(&Log);
 
 		GAutoString Src(::ReadTextFile(SrcFile));

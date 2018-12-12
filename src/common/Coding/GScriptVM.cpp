@@ -40,6 +40,8 @@
 
 #ifdef WIN32
 extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
+#elif defined(LINUX)
+#include <signal.h>
 #endif
 
 int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)

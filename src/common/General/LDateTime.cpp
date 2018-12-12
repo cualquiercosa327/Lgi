@@ -1785,6 +1785,52 @@ bool LDateTime::Decode(const char *In)
 				if (m > 0)
 					Month(m);
 			}
+			else if (strchr("+-", *s))
+			{
+				// timezone
+				DoTimeZone:
+				LDateTime Now;
+				double OurTmz = (double)Now.SystemTimeZone() / 60;
+
+				if (s &&
+					strchr("-+", *s) &&
+					strlen(s) == 5)
+				{
+					#if 1
+
+					int i = atoi(s);
+					int hr = i / 100;
+					int min = i % 100;
+					SetTimeZone(hr * 60 + min, false);
+
+					#else
+
+					// adjust for timezone
+					char Buf[32];
+					memcpy(Buf, s, 3);
+					Buf[3] = 0;
+
+					double TheirTmz = atof(Buf);
+					memcpy(Buf+1, s + 3, 2);
+
+					TheirTmz += (atof(Buf) / 60);
+					if (Tz)
+					{
+						*Tz = TheirTmz;
+					}
+
+					double AdjustHours = OurTmz - TheirTmz;
+
+					AddMinutes((int) (AdjustHours * 60));
+
+					#endif
+				}
+				else
+				{
+					// assume GMT
+					AddMinutes((int) (OurTmz * 60));
+				}
+			}
 			else if (s.IsNumeric())
 			{
 				int Count = 0;
@@ -1830,52 +1876,6 @@ bool LDateTime::Decode(const char *In)
 						
 					// My one and only Y2K fix
 					// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
-				}
-			}
-			else if (strchr("+-", *s))
-			{
-				// timezone
-				DoTimeZone:
-				LDateTime Now;
-				double OurTmz = (double)Now.SystemTimeZone() / 60;
-
-				if (s &&
-					strchr("-+", *s) &&
-					strlen(s) == 5)
-				{
-					#if 1
-
-					int i = atoi(s);
-					int hr = i / 100;
-					int min = i % 100;
-					SetTimeZone(hr * 60 + min, false);
-
-					#else
-
-					// adjust for timezone
-					char Buf[32];
-					memcpy(Buf, s, 3);
-					Buf[3] = 0;
-
-					double TheirTmz = atof(Buf);
-					memcpy(Buf+1, s + 3, 2);
-
-					TheirTmz += (atof(Buf) / 60);
-					if (Tz)
-					{
-						*Tz = TheirTmz;
-					}
-
-					double AdjustHours = OurTmz - TheirTmz;
-
-					AddMinutes((int) (AdjustHours * 60));
-
-					#endif
-				}
-				else
-				{
-					// assume GMT
-					AddMinutes((int) (OurTmz * 60));
 				}
 			}
 		}
@@ -2038,6 +2038,7 @@ bool LDateTime_Test()
 	LgiTrace("Get='%s'\n", t.Get().Get());
 	uint64 i2 = i + (24ULL * 60 * 60 * LDateTime::Second64Bit);
 	LDateTime t2;
+	t2.SetFormat(GDTF_DAY_MONTH_YEAR);
 	t2.Set(i2);
 	GString s = t2.Get();
 	LgiTrace("Set='%s'\n", s.Get());

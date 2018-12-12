@@ -183,7 +183,7 @@ public:
 	ResFileFormat GetFormat();
 
 	/// Load a specific file
-	bool Load(char *FileName);
+	bool Load(const char *FileName);
 	
 	/// Gets the filename used to load the object.
 	char *GetFileName();

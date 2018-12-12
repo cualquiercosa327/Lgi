@@ -21,7 +21,8 @@
 #include "GTextView3.h"
 #include "LList.h"
 
-#define LgiIdeVer				"1.0.0"
+#define APP_VER					"1.0"
+#define APP_URL					"http://www.memecode.com/lgi/ide"
 
 #define DEBUG_FIND_DEFN			0
 

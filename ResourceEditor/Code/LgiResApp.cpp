@@ -36,6 +36,12 @@ char TranslationStrMagic[] = "LgiRes.String";
 #define CTRL_Y						1.64
 #endif
 
+enum Ctrls
+{
+	IDC_HBOX = 100,
+	IDC_VBOX,
+};
+
 const char *TypeNames[] = {
     "",
 	"Css",
@@ -470,6 +476,7 @@ FieldView::FieldView(AppWnd *app) : Fields(NextId, true)
 	Ignore = true;
 
 	SetTabStop(true);
+	Sunken(true);
 	#ifdef WIN32
 	SetExStyle(GetExStyle() | WS_EX_CONTROLPARENT);
 	#endif
@@ -854,7 +861,7 @@ ObjContainer::ObjContainer(AppWnd *w) :
 	GTree(100, 0, 0, 100, 100, "LgiResObjTree")
 {
 	Window = w;
-	Sunken(false);
+	Sunken(true);
 
 	Insert(Style   = new ObjTreeItem( new ResFolder(Window, -TYPE_CSS)));
 	Insert(Dialogs = new ObjTreeItem( new ResFolder(Window, -TYPE_DIALOG)));
@@ -926,6 +933,9 @@ AppWnd::AppWnd() :
 	LastRes = 0;
 	Fields = 0;
 	ViewMenu = 0;
+	ContentView = NULL;
+	VBox = NULL;
+	HBox = NULL;
 	ShortCuts = 0;
 	CurLang = -1;
 	ShowLanguages.Add("en", true);
@@ -955,7 +965,55 @@ AppWnd::~AppWnd()
 
 void AppWnd::OnCreate()
 {
-	SetupUi();
+	if (_LoadMenu("IDM_MENU"))
+	{
+		if (_FileMenu)
+		{
+			int n = 6;
+			_FileMenu->AppendSeparator(n++);
+			_FileMenu->AppendItem("Import Win32 Script", IDM_IMPORT_WIN32, true, n++);
+			_FileMenu->AppendItem("Import LgiRes Language", IDM_IMPORT_LANG, true, n++);
+			_FileMenu->AppendItem("Compare To File...", IDM_COMPARE, true, n++);
+			_FileMenu->AppendSeparator(n++);
+			_FileMenu->AppendItem("Properties", IDM_PROPERTIES, true, n++);
+		}
+
+		ViewMenu = Menu->FindSubMenu(IDM_VIEW);
+		LgiAssert(ViewMenu);
+	}
+	else LgiTrace("%s:%i - _LoadMenu failed.\n", _FL);
+
+	Status = 0;
+	StatusInfo[0] = StatusInfo[1] = 0;
+
+	HBox = new GBox(IDC_HBOX);
+	if (HBox)
+	{
+		HBox->GetCss(true)->Padding("5px");
+
+		VBox = new GBox(IDC_VBOX, true);
+		if (VBox)
+		{
+			HBox->AddView(VBox);
+			VBox->AddView(Objs = new ObjContainer(this));
+			if (Objs)
+			{
+				Objs->AskImage(true);
+				Objs->AskText(true);
+			}
+			VBox->AddView(Fields = new FieldView(this));
+			VBox->Value(200);
+		}
+
+		HBox->Value(240);
+		HBox->Attach(this);
+	}
+
+	DropTarget(true);
+
+	GString Open;
+	if (LgiApp->GetOption("o", Open))
+		LoadLgi(Open);
 }
 
 void AppWnd::OnLanguagesChange(GLanguageId Lang, bool Add, bool Update)
@@ -1117,65 +1175,6 @@ public:
 		pDC->Rectangle();
 	}
 };
-
-void AppWnd::SetupUi()
-{
-	if (_LoadMenu("IDM_MENU"))
-	{
-		if (_FileMenu)
-		{
-			int n = 6;
-			_FileMenu->AppendSeparator(n++);
-			_FileMenu->AppendItem("Import Win32 Script", IDM_IMPORT_WIN32, true, n++);
-			_FileMenu->AppendItem("Import LgiRes Language", IDM_IMPORT_LANG, true, n++);
-			_FileMenu->AppendItem("Compare To File...", IDM_COMPARE, true, n++);
-			_FileMenu->AppendSeparator(n++);
-			_FileMenu->AppendItem("Properties", IDM_PROPERTIES, true, n++);
-		}
-
-
-		ViewMenu = Menu->FindSubMenu(IDM_VIEW);
-		LgiAssert(ViewMenu);
-	}
-	else printf("%s:%i - _LoadMenu failed.\n", _FL);
-
-	Status = 0;
-	StatusInfo[0] = StatusInfo[1] = 0;
-
-	MainSplit = new GSplitter;
-	if (MainSplit)
-	{
-		MainSplit->Attach(this);
-		MainSplit->Value(240);
-
-		SubSplit = new GSplitter;
-		if (SubSplit)
-		{
-			SubSplit->Raised(false);
-			
-			MainSplit->SetViewA(SubSplit, false);
-			SubSplit->Border(false);
-			SubSplit->IsVertical(false);
-			SubSplit->Value(200);
-
-			SubSplit->SetViewA(Objs = new ObjContainer(this));
-			if (Objs)
-			{
-				Objs->AskImage(true);
-				Objs->AskText(true);
-			}
-			SubSplit->SetViewB(Fields = new FieldView(this));
-		}
-	}
-
-	char Opt[256];
-	if (LgiApp->GetOption("o", Opt))
-	{
-		LoadLgi(Opt);
-	}
-
-	DropTarget(true);
-}
 
 GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
@@ -1415,9 +1414,9 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 			GAbout Dlg(	this,
 						AppName,
 						APP_VER,
-						"\nLgi Resource Editor.",
+						"\nLgi Resource Editor (lr8 files).",
 						"icon64.png",
-						"http://www.memecode.com/lgires.php",
+						"http://www.memecode.com/lgi/res",
 						"fret@memecode.com");
 			break;
 		}
@@ -1944,23 +1943,21 @@ void AppWnd::OnResourceSelect(Resource *r)
 	if (LastRes)
 	{
 		OnObjSelect(NULL);
-		MainSplit->SetViewB(0);
-		LastRes = 0;
+		if (ContentView)
+		{
+			ContentView->Detach();
+			DeleteObj(ContentView);
+		}
+		LastRes = NULL;
 	}
 	
 	if (r)
 	{
-		GView *Wnd = r->CreateUI();
-		if (Wnd)
+		ContentView = r->CreateUI();
+		if (ContentView)
 		{
-			if (SubSplit)
-			{
-				MainSplit->SetViewB(Wnd, false);
-			}
-			
-			LgiYield();
-			PourAll();
-			Wnd->Invalidate();
+			if (HBox)
+				ContentView->Attach(HBox);
 			LastRes = r;
 		}
 	}

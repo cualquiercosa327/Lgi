@@ -121,6 +121,7 @@ public:
 		GString Filename;
 		GString Error;
 		JobStatus Status;
+		GString MimeType, ContentId;
 
 		LoadJob(LThreadTarget *o) : LThreadJob(o)
 		{

@@ -225,7 +225,7 @@ bool LListItem::SetText(const char *s, int i)
 {
 	if (i < 0)
 		return false;
-		
+	
 	// Delete any existing column
 	DeleteArray((char*&)d->Str[i]);
 	DeleteObj(d->Display[i]);

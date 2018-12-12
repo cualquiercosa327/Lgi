@@ -22,6 +22,7 @@ public:
 private:
 	AppPriv *d;
 	VcFolder *Owner;
+	bool LoadDiff;
 	GString Diff;
 	GString Revision;
 	LListItemCheckBox *Chk;

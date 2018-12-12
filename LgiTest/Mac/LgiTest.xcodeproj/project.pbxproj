@@ -10,6 +10,7 @@
 		34109866217ACEC8007020CE /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34109865217ACEC8007020CE /* LgiMain.cpp */; };
 		34109868217ACEE0007020CE /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34109867217ACEE0007020CE /* Main.cpp */; };
 		3410986A217ACEF0007020CE /* LDbTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34109869217ACEF0007020CE /* LDbTable.cpp */; };
+		3417A98F21ADDB1700EF8085 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3417A98E21ADDB1700EF8085 /* Cocoa.framework */; };
 		347417BF2178B6B80097AD99 /* LgiCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 347417B82178B5630097AD99 /* LgiCocoa.framework */; };
 /* End PBXBuildFile section */
 
@@ -32,8 +33,9 @@
 
 /* Begin PBXFileReference section */
 		34109865217ACEC8007020CE /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
-		34109867217ACEE0007020CE /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Main.cpp; path = ../Main.cpp; sourceTree = SOURCE_ROOT; };
+		34109867217ACEE0007020CE /* Main.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Main.cpp; path = ../Main.cpp; sourceTree = SOURCE_ROOT; };
 		34109869217ACEF0007020CE /* LDbTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LDbTable.cpp; path = ../../src/common/Db/LDbTable.cpp; sourceTree = SOURCE_ROOT; };
+		3417A98E21ADDB1700EF8085 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = ../../../../../../../System/Library/Frameworks/Cocoa.framework; sourceTree = "<group>"; };
 		3474179C2178B50B0097AD99 /* LgiTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		347417AD2178B50B0097AD99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		347417B32178B5630097AD99 /* LgiCocoa.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCocoa.xcodeproj; path = ../../src/mac/cocoa/LgiCocoa.xcodeproj; sourceTree = "<group>"; };
@@ -45,18 +47,28 @@
 			buildActionMask = 2147483647;
 			files = (
 				347417BF2178B6B80097AD99 /* LgiCocoa.framework in Frameworks */,
+				3417A98F21ADDB1700EF8085 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3417A98D21ADDB1700EF8085 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3417A98E21ADDB1700EF8085 /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		347417932178B50A0097AD99 = {
 			isa = PBXGroup;
 			children = (
 				3474179E2178B50B0097AD99 /* LgiTest */,
 				347417B32178B5630097AD99 /* LgiCocoa.xcodeproj */,
 				3474179D2178B50B0097AD99 /* Products */,
+				3417A98D21ADDB1700EF8085 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -214,7 +226,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
@@ -261,7 +273,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;

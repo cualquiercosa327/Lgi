@@ -520,51 +520,70 @@ bool RemapDC(GSurface *pDC, GPalette *DestPal)
 	return Status;
 }
 
-/* floating point resample code...
+#if 0
 
-	double Area = 0.0;
-	double R = 0.0;
-	double G = 0.0;
-	double B = 0.0;
+float lerp(float s, float e, float t)
+{
+	return s+(e-s)*t;
+}
 
-	// Calc the right and bottom bounds of the original scale
-	double x2 = ((double) Dx+1) * ScaleX;
-	double y2 = ((double) Dy+1) * ScaleY;
+float blerp(float c00, float c10, float c01, float c11, float tx, float ty)
+{
+    return lerp(lerp(c00, c10, tx), lerp(c01, c11, tx), ty);
+}
 
-	// Loop through the source pixel(s) and sum all the area
-	// and RGB data
-	for (double x = (double) Dx * ScaleX; x<x2; x=((int)x)+1)
+bool ResampleDC(GSurface *dst, GSurface *src, GRect *FromRgn, Progress *Prog)
+{
+	// void scale(image_t *src, image_t *dst, float scalex, float scaley){
+    int newWidth = dst->X();
+    int newHeight= dst->Y();
+
+	switch (src->GetColourSpace())
 	{
-		for (double y = (double) Dy * ScaleY; y<y2; y=((int)y)+1)
+		case System32BitColourSpace:
 		{
-			// Get the source pixel colour
-			COLOUR c = CBit(24, pSrc->Get((int)x, (int)y), pSrc->GetBits(), pPal);
-			
-			// Calculate bounds of source pixel
-			double Fx, Fy, j;
-			Fx = modf(x, &j);
-			double Width = (x2 < ceil(x)) ? x2 - j : 1.0;
-			Fy = modf(y, &j);
-			double Height = (y2 < ceil(y)) ? y2 - j : 1.0;
+			for (int x = 0, y = 0; y < newHeight; x++)
+			{
+				if (x > newWidth)
+				{
+					x = 0;
+					y++;
+				}
+        
+				float gx = x / (float)(newWidth) * (src->X()-1);
+				float gy = y / (float)(newHeight) * (src->Y()-1);
+        
+				int gxi = (int)gx;
+				int gyi = (int)gy;
+				if (gxi + 1 >= src->X() ||
+					gyi + 1 >= src->Y())
+						continue;
+        
+				uint32_t result = 0;
+				#define getpixel(img, x, y)		((System32BitPixel*)(*img)[y])+x
+				System32BitPixel *c00 = getpixel(src, gxi, gyi);
+				System32BitPixel *c10 = getpixel(src, gxi+1, gyi);
+				System32BitPixel *c01 = getpixel(src, gxi, gyi+1);
+				System32BitPixel *c11 = getpixel(src, gxi+1, gyi+1);
+				System32BitPixel *d = getpixel(dst, x, y);
 
-			// Calculate area
-			double a = (Width-Fx) * (Height-Fy);
-			
-			// Add the colour and area to the running total
-			R += a * R24(c);
-			G += a * G24(c);
-			B += a * B24(c);
-			Area += a;
+				#define comp(c) \
+					d->c = (uint8_t)blerp(c00->c, c10->c, c01->c, c11->c, gx - gxi, gy - gyi);
+				comp(r);
+				comp(g);
+				comp(b);
+				comp(a);
+			}
+			break;
 		}
+		default:
+			LgiAssert(0);
 	}
 
-	R /= Area;
-	G /= Area;
-	B /= Area;
-	COLOUR c = Rgb24( ((int)R), ((int)G), ((int)B) );
-	pDest->Colour(CBit(pDest->GetBits(), c, 24));
-	pDest->Set(Dx, Dy);
-*/
+	return true;
+}
+
+#else
 
 bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 {
@@ -807,3 +826,4 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 	return true;
 }
 
+#endif

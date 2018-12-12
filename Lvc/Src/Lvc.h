@@ -14,7 +14,7 @@
 #define OPT_Folders		"Folders"
 #define OPT_Folder		"Folder"
 
-#define APP_VERSION		"0.1"
+#define APP_VERSION		"0.5"
 extern const char *AppName;
 
 enum LvcIcon
@@ -59,6 +59,7 @@ enum AppIds
 	IDM_UPDATE,
 	IDM_COPY_REV,
 	IDM_REMOVE,
+	IDM_CLEAN,
 	IDM_REVERT,
 	IDM_REVERT_TO_REV,
 	IDM_BLAME,
@@ -70,15 +71,21 @@ enum AppIds
 	IDM_EOL_AUTO,
 	IDM_ADD_FILE,
 	IDM_ADD_BINARY_FILE,
+	IDM_BROWSE_FOLDER,
+	IDM_TERMINAL,
+	IDM_RESOLVE,
 };
 
 enum VersionCtrl
 {
 	VcNone,
+	
 	VcCvs,
 	VcSvn,
 	VcGit,
 	VcHg,
+	
+	VcMax,
 };
 
 class VcFolder;

@@ -210,7 +210,8 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 
 		int LineX = Fx >> GDisplayString::FShift;
 		MaxX = MAX(MaxX, LineX);
-	}
+		Ln.DeleteObjects();
+	}	
 }	
 
 struct Break

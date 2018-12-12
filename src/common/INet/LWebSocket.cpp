@@ -27,7 +27,7 @@ LSelect &LSelect::operator +=(GSocket *sock)
 	return *this;
 }
 	
-int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
+int LSelect::Select(GArray<GSocket*> &Results, bool Rd, bool Wr, int TimeoutMs)
 {
 	if (s.Length() == 0)
 		return 0;
@@ -42,8 +42,11 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	fds.Length(s.Length());
 	for (unsigned i=0; i<s.Length(); i++)
 	{
-		fds[i].fd = s[i];
-		fds[i].events = POLLIN | POLLRDHUP | POLLERR;
+		fds[i].fd = s[i]->Handle();
+		fds[i].events =	(Wr ? POLLOUT : 0) |
+						(Rd ? POLLIN : 0) |
+						POLLRDHUP |
+						POLLERR;
 		fds[i].revents = 0;
 	}
 
@@ -51,9 +54,21 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	int Signalled = 0;
 	if (r > 0)
 	{
-		for (auto &f : fds)
+		for (unsigned i=0; i<fds.Length(); i++)
+		{
+			auto &f = fds[i];
 			if (f.revents != 0)
+			{
 				Signalled++;
+								
+				if (f.fd == s[i]->Handle())
+				{
+					// printf("Poll[%i] = %x (flags=%x)\n", i, f.revents, Flags);
+					Results.Add(s[i]);
+				}
+				else LgiAssert(0);
+			}
+		}
 	}
 	
 	return Signalled;
@@ -74,9 +89,9 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 	}
 		
 	int v = select(	(int)Max+1,
-					Flags == O_READ ? &r : NULL,
-					Flags == O_WRITE ? &r : NULL,
-					NULL, &t);
+					Rd ? &r : NULL,
+					Wr ? &r : NULL,
+					NULL, TimeoutMs >= 0 ? &t : NULL);
 	if (v > 0)
 	{
 		for (auto Sock : s)
@@ -94,14 +109,14 @@ int LSelect::Select(GArray<GSocket*> &Results, int Flags, int TimeoutMs)
 GArray<GSocket*> LSelect::Readable(int TimeoutMs)
 {
 	GArray<GSocket*> r;
-	Select(r, O_READ, TimeoutMs);
+	Select(r, true, false, TimeoutMs);
 	return r;
 }
 
 GArray<GSocket*> LSelect::Writeable(int TimeoutMs)
 {
 	GArray<GSocket*> r;
-	Select(r, O_WRITE, TimeoutMs);
+	Select(r, false, true, TimeoutMs);
 	return r;
 }
 
@@ -363,7 +378,7 @@ bool LWebSocket::SendMessage(char *Data, uint64 Len)
 	{
 		// 126 + 2 bytes
 		*p.u8++ = Masked | 126;
-		*p.u16++ = htons(Len);
+		*p.u16++ = htons((u_short)Len);
 	}
 	else
 	{

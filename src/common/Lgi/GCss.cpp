@@ -1,5 +1,5 @@
 #include <ctype.h>
-#include "GCss.h"
+#include "Lgi.h"
 #include "LgiCommon.h"
 
 #define DEBUG_CSS_LOGGING		0
@@ -1239,7 +1239,7 @@ bool GCss::HasFontStyle()
 	if (Var != FontVariantInherit)
 		return true;
 	auto Wt = FontWeight();
-	if (Wt != FontWeightInherit)
+	if (Wt != FontWeightInherit && Wt != FontWeightNormal)
 		return true;
 	auto Dec = TextDecoration();
 	if (Dec != TextDecorInherit)
@@ -2190,6 +2190,12 @@ bool GCss::ColorDef::Parse(const char *&s)
 		return false;
 
 	return true;
+}
+
+GCss::ImageDef::~ImageDef()
+{
+	if (Type == ImageOwn)
+		DeleteObj(Img);
 }
 
 bool GCss::ImageDef::Parse(const char *&s)

@@ -614,7 +614,7 @@ bool IFtp::SetDir(const char *Dir)
 	}
 	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
+		LgiTrace("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 	}
 
 	return Status;
@@ -640,9 +640,9 @@ bool IFtp::CreateDir(const char *Dir)
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
@@ -688,9 +688,9 @@ bool IFtp::UpDir()
 			Status = true;
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
@@ -819,9 +819,9 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 		}
 		else printf("%s:%i - SetupData failed.\n", _FL);
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		d->Data.Reset();
 		d->Listen.Reset();
 	}
@@ -857,9 +857,9 @@ bool IFtp::RenameFile(const char *From, const char *To)
 			DeleteArray(t);
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
@@ -1115,11 +1115,11 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
 		if (IsOpen())
 		{
-			d->ErrBuf.Printf("%s:%i - TransferFile(%s) error: %i\n",
+			d->ErrBuf.Printf("%s:%i - TransferFile(%s) error: " LPrintfSSizeT "\n",
 				_FL,
 				Local,
 				Error);			
@@ -1253,13 +1253,9 @@ bool IFtp::SetupData(bool Binary)
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		LgiTrace("%s:%i - error: %i\n", _FL, Error);
-		/*
-		if (IsOpen())
-			LgiAssert(0);
-		*/
+		LgiTrace("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 	}
 
 	return Status;
@@ -1311,9 +1307,9 @@ bool IFtp::SetPerms(const char *File, LPermissions Perms)
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);

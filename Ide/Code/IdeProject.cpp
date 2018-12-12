@@ -134,6 +134,7 @@ class BuildThread : public LThread, public GStream
 	int WordSize;
 	GAutoPtr<GSubProcess> SubProc;
 	GString::Array BuildConfigs;
+	GString::Array PostBuild;
 
 	enum CompilerType
 	{
@@ -1198,6 +1199,10 @@ BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool rele
 	Arch = DefaultArch;
 	Compiler = DefaultCompiler;
 
+	GString Cmds = proj->d->Settings.GetStr(ProjPostBuildCommands, NULL);
+	if (ValidStr(Cmds))
+		PostBuild = Cmds.SplitDelimit("\r\n");
+
 	char *Ext = LgiGetExtension(Makefile);
 	if (Ext && !_stricmp(Ext, "py"))
 	{
@@ -1752,6 +1757,36 @@ int BuildThread::Main()
 					
 				uint32 ex = SubProc->Wait();
 				Print("Make exited with %i (0x%x)\n", ex, ex);
+
+				if (Compiler == IAR &&
+					ex == 0 &&
+					PostBuild.Length())
+				{
+					for (auto Cmd : PostBuild)
+					{
+						auto p = Cmd.Split(" ", 1);
+						if (p[0].Equals("cd"))
+						{
+							if (p.Length() > 1)
+								FileDev->SetCurrentFolder(p[1]);
+							else
+								LgiAssert(!"No folder for cd?");
+						}
+						else
+						{
+							GSubProcess PostCmd(p[0], p.Length() > 1 ? p[1] : NULL);
+							if (PostCmd.Start(true, false))
+							{
+								char Buf[256];
+								ssize_t rd;
+								while ( (rd = PostCmd.Read(Buf, sizeof(Buf))) > 0 )
+								{
+									Write(Buf, rd);
+								}
+							}
+						}
+					}
+				}
 			}
 			else
 			{
@@ -3566,7 +3601,6 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 			if (!stricmp(Formats.First(), LGI_FileDropFormat))
 			{
 				SelectDropTarget(Hit);
-				LgiTrace("File Drop\n");
 				return DROPEFFECT_LINK;
 			}
 			else
@@ -3580,7 +3614,6 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 					{
 						if (n == Src)
 						{
-							LgiTrace("No parent\n");
 							return DROPEFFECT_NONE;
 						}
 					}
@@ -3588,14 +3621,12 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 
 				// Valid target
 				SelectDropTarget(Hit);
-				LgiTrace("Node Drop\n");
 				return DROPEFFECT_MOVE;
 			}
 		}
 	}
 	else LgiTrace("%s:%i - No valid drop formats.\n", _FL);
 
-	LgiTrace("No Drop\n");
 	return DROPEFFECT_NONE;
 }
 

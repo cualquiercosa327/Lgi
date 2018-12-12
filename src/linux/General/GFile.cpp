@@ -552,6 +552,11 @@ public:
 			_Path = LGetSystemPath(LSP_DESKTOP);
 		}
 	}
+	
+	~GLinuxVolume()
+	{
+		_Sub.DeleteObjects();
+	}
 
 	bool IsMounted()
 	{
@@ -603,7 +608,7 @@ public:
 			if (f.Open("/etc/fstab", O_READ))
 			{
 				int Len = f.GetSize();
-				char *Buf = new char[Len+1];
+				GAutoString Buf(new char[Len+1]);
 				if (Buf)
 				{
 					f.Read(Buf, Len);

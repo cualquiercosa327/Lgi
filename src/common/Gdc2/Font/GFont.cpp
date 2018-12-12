@@ -138,7 +138,7 @@ class GTypeFacePrivate
 public:
 	// Type
 	char *_Face;			// type face
-	int _PtSize;			// point size
+	GCss::Len _Size;		// size
 	int _Weight;
 	bool _Italic;
 	bool _Underline;
@@ -164,7 +164,7 @@ public:
 		IsSymbol = false;
 		_Ascent = _Descent = _Leading = 0.0;
 		_Face = 0;
-		_PtSize = 8;
+		_Size = GCss::Len(GCss::LenPt, 8.0f);
 		_Weight = FW_NORMAL;
 		_Italic = false;
 		_Underline = false;
@@ -200,7 +200,7 @@ bool GTypeFace::operator ==(GTypeFace &t)
 		return false;
 	if (Face() && t.Face() && stricmp(Face(), t.Face()) != 0)
 		return false;
-	if (PointSize() != t.PointSize())
+	if (Size() != t.Size())
 		return false;
 	if (GetWeight() != t.GetWeight())
 		return false;
@@ -225,13 +225,18 @@ void GTypeFace::Face(const char *s)
 	}
 }
 
-void GTypeFace::PointSize(int i)
+void GTypeFace::Size(GCss::Len s)
 {
-	if (d->_PtSize != i)
+	if (d->_Size != s)
 	{
-		d->_PtSize = i;
+		d->_Size = s;
 		_OnPropChange(true);
 	}
+}
+
+void GTypeFace::PointSize(int i)
+{
+	Size(GCss::Len(GCss::LenPt, (float)i));
 }
 
 void GTypeFace::TabSize(int i)
@@ -352,9 +357,18 @@ char *GTypeFace::Face()
 	return d->_Face;
 }
 
+GCss::Len GTypeFace::Size()
+{
+	return d->_Size;
+}
+
 int GTypeFace::PointSize()
 {
-	return d->_PtSize;
+	if (d->_Size.Type == GCss::LenPt)
+		return (int)d->_Size.Value;
+	
+	LgiAssert(!"What now?");
+	return 0;
 }
 
 int GTypeFace::TabSize()
@@ -419,88 +433,18 @@ double GTypeFace::Leading()
 
 ////////////////////////////////////////////////////////////////////
 // GFont class, the implemention
-#if defined MAC && !defined COCOA
-typedef ATSUTextMeasurement OsTextSize;
-#else
-typedef double OsTextSize;
-#endif
-
-class GFontPrivate
-{
-public:
-	#ifdef WINDOWS
-	static GAutoPtr<GLibrary> Gdi32;
-	#endif
-
-	// Data
-	OsFont			hFont;
-	int				Height;
-	bool			Dirty;
-	char			*Cp;
-	GSurface		*pSurface;
-	bool			OwnerUnderline;
-
-	// Glyph substitution
-	uchar			*GlyphMap;
-	static class GlyphCache *Cache;
-
-	#ifdef BEOS
-	// Beos glyph sizes
-	uint16			CharX[128]; // Widths of ascii
-	LHashTbl<IntKey<int>,int> UnicodeX; // Widths of any other characters
-	#endif
-
-	#ifdef MAC
-	CFDictionaryRef Attributes;
-	#endif
-
-	#ifdef __GTK_H__
-	Gtk::PangoContext *PangoCtx;
-	#endif
-
-	GFontPrivate()
-	{
-		hFont = 0;
-		pSurface = NULL;
-		#if defined WIN32
-		OwnerUnderline = false;
-		#endif
-		#if defined(MAC)
-		Attributes = NULL;
-		#endif
-		#ifdef __GTK_H__
-		PangoCtx = NULL;
-		#endif
-
-		GlyphMap = 0;
-		Dirty = true;
-		Height = 0;
-		Cp = 0;
-	}
-	
-	~GFontPrivate()
-	{
-		#if defined(MAC)
-		if (Attributes)
-			CFRelease(Attributes);
-		#endif
-		#ifdef __GTK_H__
-		if (PangoCtx)
-			g_object_unref(PangoCtx);
-		#endif
-	}
-};
+#include "GFontPriv.h"
 
 #ifdef WINDOWS
 GAutoPtr<GLibrary> GFontPrivate::Gdi32;
 #endif
 
-GFont::GFont(const char *face, int point)
+GFont::GFont(const char *face, GCss::Len size)
 {
 	d = new GFontPrivate;
-	if (face && point > 0)
+	if (face && size.IsValid())
 	{
-		Create(face, point);
+		Create(face, size);
 	}
 }
 
@@ -552,10 +496,21 @@ bool GFont::CreateFromCss(GCss *Css)
 		Face(Fam[0]);
 
 	GCss::Len Sz = Css->FontSize();
-	if (Sz.Type == GCss::LenPt)
-		PointSize((int)(Sz.Value+0.5));
-	else if (Sz.IsValid())
-		LgiAssert(!"Impl me.");
+	switch (Sz.Type)
+	{
+		case GCss::SizeSmaller:
+			Size(GCss::Len(GCss::LenPt, (float)SysFont->PointSize()-1));
+			break;
+		case GCss::SizeLarger:
+			Size(GCss::Len(GCss::LenPt, (float)SysFont->PointSize()+1));
+			break;
+		case GCss::LenInherit:
+			Size(SysFont->Size());
+			break;
+		default:
+			Size(Sz);
+			break;
+	}
 
 	GCss::FontWeightType w = Css->FontWeight();
 	if (w == GCss::FontWeightBold)
@@ -698,12 +653,12 @@ bool GFont::IsValid()
 	#ifdef WIN32
 	if (!d->hFont)
 	{
-		Status = Create(Face(), PointSize());
+		Status = Create(Face(), Size());
 	}
 	#else
 	if (d->Dirty)
 	{
-		Status = Create(Face(), PointSize());
+		Status = Create(Face(), Size());
 		d->Dirty = false;
 	}
 	#endif
@@ -875,11 +830,11 @@ GSurface *GFont::GetSurface()
 	return d->pSurface;
 }
 
-bool GFont::Create(const char *face, int height, GSurface *pSurface)
+bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 {
 	bool FaceChanging = false;
 	bool SizeChanging = false;
-	bool ValidInitFaceSize = ValidStr(Face()) && PointSize() > 0;
+	bool ValidInitFaceSize = ValidStr(Face()) && Size().IsValid();
 
 	if (face)
 	{
@@ -891,10 +846,10 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		Face(face);
 	}
 	
-	if (height > 0)
+	if (size.IsValid())
 	{
-		SizeChanging = GTypeFace::d->_PtSize != height;
-		GTypeFace::d->_PtSize = height;
+		SizeChanging = GTypeFace::d->_Size != size;
+		GTypeFace::d->_Size = size;
 	}
 	
 	if ((SizeChanging || FaceChanging) && this == SysFont && ValidInitFaceSize)
@@ -991,7 +946,14 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 	
 	d->pSurface = pSurface;
 	HDC hDC = pSurface ? pSurface->Handle() : GetDC(0);
-	int Win32Height = WinPointToHeight(PointSize(), hDC);
+	auto Sz = Size();
+	int Win32Height = 0;
+	if (Sz.Type == GCss::LenPt)
+		Win32Height = WinPointToHeight((int)Sz.Value, hDC);
+	else if (Sz.Type == GCss::LenPx)
+		Win32Height = (int)(Sz.Value * 1.2);
+	else
+		LgiAssert(!"What now?");
 	
 	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
 								(
@@ -1000,13 +962,9 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 								);
 	int Cs;
 	if (GTypeFace::d->IsSymbol)
-	{
 		Cs = SYMBOL_CHARSET;
-	}
 	else
-	{
 		Cs = ANSI_CHARSET;
-	}
 
 	d->OwnerUnderline = Face() &&
 						stricmp(Face(), "Courier New") == 0 && 
@@ -1255,12 +1213,22 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 			_FL, Face(), PointSize(), Bold(), Italic());
 	else if (!ValidStr(Face()))
 		printf("%s:%i - No font face.\n", _FL);
-	else if (PointSize() < 2)
-		printf("%s:%i - Invalid point size: %i.\n", _FL, PointSize());
+	else if (!Size().IsValid())
+		printf("%s:%i - Invalid size.\n", _FL);
 	else
 	{
+		auto Sz = Size();
 		Gtk::pango_font_description_set_family(d->hFont, Face());
-		Gtk::pango_font_description_set_size(d->hFont, (double)PointSize() * PANGO_SCALE);
+		if (Sz.Type == GCss::LenPt)
+			Gtk::pango_font_description_set_size(d->hFont, Sz.Value * PANGO_SCALE);
+		else if (Sz.Type == GCss::LenPx)
+			Gtk::pango_font_description_set_absolute_size(d->hFont, Sz.Value * PANGO_SCALE);
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+			
 		if (Bold())
 			Gtk::pango_font_description_set_weight(d->hFont, Gtk::PANGO_WEIGHT_BOLD);
 		
@@ -1319,7 +1287,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 				if (d->Attributes)
 					CFRelease(d->Attributes);
 
-				CGFloat Size = PointSize();
+				auto Sz = Size();
 				GString sFamily(Face());
 				GString sBold("Bold");
 				int keys = 1;
@@ -1345,9 +1313,20 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 					CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(FontAttrD);
 					if (descriptor)
 					{
-						d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
+						float PtSz = 0.0;
+						if (Sz.Type == GCss::LenPt)
+							PtSz = Sz.Value;
+						else if (Sz.Type == GCss::LenPx)
+							PtSz = Sz.Value * 72.0f / LgiScreenDpi();
+						else
+							LgiAssert(!"Impl me.");
+						
+						d->hFont = CTFontCreateWithFontDescriptor(descriptor, PtSz, NULL);
+						CFRelease(descriptor);
 					}
 					else LgiAssert(0);
+					
+					CFRelease(FontAttrD);
 				}
 				else LgiAssert(0);
 				
@@ -1382,6 +1361,11 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 														&kCFTypeDictionaryValueCallBacks);
 					
 					return true;
+				}
+				
+				for (int i=0; i<CountOf(values); i++)
+				{
+					CFRelease(values[i]);
 				}
 			}
 
@@ -1523,7 +1507,8 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	if (LogFont)
 	{
-		return Create(LogFont->GetFace(), LogFont->GetPointSize(), pSurface);
+		GCss::Len Sz(GCss::LenPt, (float)LogFont->GetPointSize());
+		return Create(LogFont->GetFace(), Sz, pSurface);
 	}
 
 	return false;
@@ -1533,7 +1518,7 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 GFont &GFont::operator =(GFont &f)
 {
 	Face(f.Face());
-	PointSize(f.PointSize());
+	Size(f.Size());
 	TabSize(f.TabSize());
 	Quality(f.Quality());
 	Fore(f.Fore());

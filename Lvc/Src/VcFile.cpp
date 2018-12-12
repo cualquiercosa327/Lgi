@@ -3,6 +3,7 @@
 VcFile::VcFile(AppPriv *priv, VcFolder *owner, GString revision, bool working)
 {
 	d = priv;
+	LoadDiff = false;
 	Owner = owner;
 	Revision = revision;
 	Status = SUnknown;
@@ -31,6 +32,8 @@ VcFile::FileStatus VcFile::GetStatus()
 		else STATE("Modified", SModified);
 		else STATE("A", SAdded);
 		else STATE("M", SModified);
+		else STATE("C", SConflicted);
+		else STATE("!", SMissing);
 		else
 		{
 			LgiAssert(!"Impl state");
@@ -64,7 +67,18 @@ void VcFile::Select(bool b)
 	GetStatus();
 	LListItem::Select(b);
 	if (b)
-		d->Diff->Name(Diff);
+	{
+		if (!Diff)
+		{
+			if (!LoadDiff)
+			{
+				LoadDiff = true;
+				Owner->Diff(this);
+			}
+		}
+		else
+			d->Diff->Name(Diff);
+	}
 }
 
 void VcFile::OnMouseClick(GMouse &m)
@@ -93,6 +107,9 @@ void VcFile::OnMouseClick(GMouse &m)
 			{
 				case SModified:
 					s.AppendItem("Revert Changes", IDM_REVERT);
+					break;
+				case SConflicted:
+					s.AppendItem("Mark Resolved", IDM_RESOLVE);
 					break;
 				case SUntracked:
 					if (Owner->GetType() == VcCvs)
@@ -125,6 +142,11 @@ void VcFile::OnMouseClick(GMouse &m)
 			case IDM_REVERT:
 			{
 				Owner->Revert(p);
+				break;
+			}
+			case IDM_RESOLVE:
+			{
+				Owner->Resolve(p);
 				break;
 			}
 			case IDM_ADD_FILE:

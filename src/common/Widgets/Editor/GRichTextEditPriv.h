@@ -1144,6 +1144,9 @@ public:
 		GNamedStyle *Style;
 		int Scale;
 		GRect SourceValid;
+		GString FileName;
+		GString ContentId;
+		GString StreamMimeType;
 		GAutoString FileMimeType;
 
 		GArray<ScaleInf> Scales;
@@ -1292,10 +1295,20 @@ public:
 				}
 				else
 				{
+					#ifdef WINDOWS
+					ssize_t Len = s[0] && s[1] ? 4 : (s[0] ? 2 : 0);
+					Buf[Used++] = LgiUtf16To32((const uint16 *&)s, Len);
+					#else
 					Buf[Used++] = *s++;
+					#endif
 					while (s < e && !IsWhiteSpace(*s))
 					{
+						#ifdef WINDOWS
+						Len = s[0] && s[1] ? 4 : (s[0] ? 2 : 0);
+						Buf[Used++] = LgiUtf16To32((const uint16 *&)s, Len);
+						#else
 						Buf[Used++] = *s++;
+						#endif
 					}
 				}
 			}

@@ -14,7 +14,7 @@
 #include "GDragAndDrop.h"
 
 static int NextDndType = 600;
-static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
+static LHashTbl<ConstStrKey<char,false>, int> DndTypes(0, -1);
 
 class GDndSourcePriv
 {

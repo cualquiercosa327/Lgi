@@ -5,6 +5,7 @@
 
 #include "Mail.h"
 #include "Store3Defs.h"
+#undef GetObject
 
 /*
 	Handling of attachments in the Store3 API
@@ -59,7 +60,7 @@ typedef GAutoPtr<GStreamI> GAutoStreamI;
 void ParseIdList(char *In, List<char> &Out);
 
 /// A storage event
-///		a = (GDataStoreI*)Storage
+///		a = StoreId
 ///     b = (void*)UserParam
 /// \sa GDataEventsI::Post
 #define M_STORAGE_EVENT				(M_USER+0x500)
@@ -70,28 +71,28 @@ void ParseIdList(char *In, List<char> &Out);
 #define FIELD_PROFILE_IMAP_SELECT	-102
 
 #define GDATA_INT32_PROP(name, id) \
-	int32 Get##name() { LgiAssert(Object != NULL); return Object != NULL ? (int32)Object->GetInt(id) : 0; } \
-	bool Set##name(int32 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) >= Store3Delayed : false; }
+	int32 Get##name() { return GetObject() ? (int32)GetObject()->GetInt(id) : OnError(_FL); } \
+	bool Set##name(int32 val) { return GetObject() ? GetObject()->SetInt(id, val) >= Store3Delayed : OnError(_FL); }
 
 #define GDATA_INT64_PROP(name, id) \
-	int64 Get##name() { LgiAssert(Object != NULL); return Object != NULL ? Object->GetInt(id) : 0; } \
-	bool Set##name(int64 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) >= Store3Delayed : false; }
+	int64 Get##name() { return GetObject() ? GetObject()->GetInt(id) : OnError(_FL); } \
+	bool Set##name(int64 val) { return GetObject() ? GetObject()->SetInt(id, val) >= Store3Delayed : OnError(_FL); }
 
 #define GDATA_ENUM_PROP(name, id, type) \
-	type Get##name() { LgiAssert(Object != NULL); return (type) (Object != NULL ? Object->GetInt(id) : 0); } \
-	bool Set##name(type val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetInt(id, (int)val) >= Store3Delayed : false; }
+	type Get##name() { return (type) (GetObject() ? GetObject()->GetInt(id) : OnError(_FL)); } \
+	bool Set##name(type val) { return GetObject() ? GetObject()->SetInt(id, (int)val) >= Store3Delayed : OnError(_FL); }
 
 #define GDATA_STR_PROP(name, id) \
-	char *Get##name() { LgiAssert(Object != NULL); return Object != NULL ? Object->GetStr(id) : 0; } \
-	bool Set##name(const char *val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetStr(id, val) >= Store3Delayed : false; }
+	char *Get##name() { auto o = GetObject(); return o ? o->GetStr(id) : (char*)OnError(_FL); } \
+	bool Set##name(const char *val) { return GetObject() ? GetObject()->SetStr(id, val) >= Store3Delayed : OnError(_FL); }
 
 #define GDATA_DATE_PROP(name, id) \
-	LDateTime *Get##name() { LgiAssert(Object != NULL); return (Object != NULL ? Object->GetDate(id) : 0); } \
-	bool Set##name(LDateTime *val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetDate(id, val) >= Store3Delayed : false; }
+	LDateTime *Get##name() { return (GetObject() ? GetObject()->GetDate(id) : (LDateTime*)OnError(_FL)); } \
+	bool Set##name(LDateTime *val) { return GetObject() ? GetObject()->SetDate(id, val) >= Store3Delayed : OnError(_FL); }
 
 #define GDATA_PERM_PROP(name, id) \
-	ScribePerm Get##name() { LgiAssert(Object != NULL); return (ScribePerm) (Object != NULL ? Object->GetInt(id) : 0); } \
-	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetInt(id, val) >= Store3Delayed : false; }
+	ScribePerm Get##name() { return (ScribePerm) (GetObject() ? GetObject()->GetInt(id) : OnError(_FL)); } \
+	bool Set##name(ScribePerm val) { return GetObject() ? GetObject()->SetInt(id, val) >= Store3Delayed : OnError(_FL); }
 
 
 /// This class is an interface to a collection of objects (NOT thread-safe).
@@ -181,17 +182,35 @@ public:
 
 #pragma warning(default:4263)
 
+class GDataUserI
+{
+	friend class GDataI;
+	GDataI *Object;
+
+public:
+	GDataUserI();
+	virtual ~GDataUserI();
+
+	GDataI *GetObject();
+	virtual bool SetObject(GDataI *o);
+};
+
 /// This class is an interface between the UI and the backend for things
 /// like email, contacts, calendar events, groups and filters
 class GDataI : virtual public GDataPropI
 {
+	friend class GDataUserI;
 	virtual GDataI &operator =(GDataI &p) { return *this; }
 
 public:
-	void *UserData;
+	GDataUserI *UserData;
 
-	GDataI() { UserData = 0; }
-	virtual ~GDataI() { }
+	GDataI() { UserData = NULL; }
+	virtual ~GDataI()
+	{
+		if (UserData)
+			UserData->Object = NULL;
+	}
 
 	/// Returns the type of object
 	/// \sa MAGIC_MAIL and it's like
@@ -317,6 +336,9 @@ public:
 class GDataStoreI : virtual public GDataPropI
 {
 public:
+	static LHashTbl<IntKey<int>,GDataStoreI*> Map;
+	int Id;
+
 	class GDsTransaction
 	{
 	protected:
@@ -333,7 +355,20 @@ public:
 
 	typedef GAutoPtr<GDsTransaction> StoreTrans;
 
-	virtual ~GDataStoreI() {}
+	GDataStoreI()
+	{
+		LgiAssert(LgiApp->InThread());
+		while (Map.Find(Id = LgiRand(1000)))
+			;
+		Map.Add(Id, this);
+	}
+
+	virtual ~GDataStoreI()
+	{
+		LgiAssert(LgiApp->InThread());
+		if (!Map.Delete(Id))
+			LgiAssert(!"Delete failed.");
+	}
 
 	/// \returns size of object on disk
 	virtual uint64 Size() = 0;

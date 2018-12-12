@@ -109,6 +109,7 @@
 		3478B20A12E6F87200936EFA /* GEdit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3478B20912E6F87200936EFA /* GEdit.h */; };
 		3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */; };
 		347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 347CB5FF172A97D600AC3EA6 /* GTableLayout.h */; };
+		347D192721B1F5700008C4CB /* LUnicodeString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 347D192621B1F5700008C4CB /* LUnicodeString.cpp */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
 		348BFBE1202C0F0E00B87DD7 /* LListItemCheckBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 348BFBDF202C0F0E00B87DD7 /* LListItemCheckBox.h */; };
 		348BFBE2202C0F0E00B87DD7 /* LListItemRadioBtn.h in Headers */ = {isa = PBXBuildFile; fileRef = 348BFBE0202C0F0E00B87DD7 /* LListItemRadioBtn.h */; };
@@ -296,6 +297,7 @@
 		3478B20912E6F87200936EFA /* GEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEdit.h; path = ../../../include/common/GEdit.h; sourceTree = "<group>"; };
 		3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GWindowCommon.cpp; path = ../../common/Lgi/GWindowCommon.cpp; sourceTree = "<group>"; };
 		347CB5FF172A97D600AC3EA6 /* GTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTableLayout.h; path = ../../../include/common/GTableLayout.h; sourceTree = SOURCE_ROOT; };
+		347D192621B1F5700008C4CB /* LUnicodeString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LUnicodeString.cpp; path = ../../common/Text/LUnicodeString.cpp; sourceTree = "<group>"; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = ../../../include/common/GMru.h; sourceTree = "<group>"; };
 		348BFBDF202C0F0E00B87DD7 /* LListItemCheckBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LListItemCheckBox.h; path = ../../../include/common/LListItemCheckBox.h; sourceTree = "<group>"; };
 		348BFBE0202C0F0E00B87DD7 /* LListItemRadioBtn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LListItemRadioBtn.h; path = ../../../include/common/LListItemRadioBtn.h; sourceTree = "<group>"; };
@@ -641,6 +643,7 @@
 		344B738308D8409900D49457 /* Text */ = {
 			isa = PBXGroup;
 			children = (
+				347D192621B1F5700008C4CB /* LUnicodeString.cpp */,
 				34FB3A771B6C389100B32A56 /* GUnicode.h */,
 				34FB3A751B6C37FD00B32A56 /* GStringClass.h */,
 				34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */,
@@ -1079,6 +1082,7 @@
 				344D1B2D08F4A36300228075 /* GProgress.cpp in Sources */,
 				34FB3A791B6C3A8800B32A56 /* GUnicode.cpp in Sources */,
 				344D1B2E08F4A36300228075 /* GProgressDlg.cpp in Sources */,
+				347D192721B1F5700008C4CB /* LUnicodeString.cpp in Sources */,
 				344D1B2F08F4A36300228075 /* GSplitter.cpp in Sources */,
 				344D1B3008F4A36300228075 /* GStatusBar.cpp in Sources */,
 				344D1B3108F4A36300228075 /* GTableLayout.cpp in Sources */,

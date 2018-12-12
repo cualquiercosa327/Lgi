@@ -36,7 +36,8 @@ class LSerialize
 			uint16 u16;
 			uint32 u32;
 			uint64 u64;
-			double f;
+			float f;
+			double d;
 		};
 
 		bool IsValid()
@@ -263,6 +264,54 @@ public:
 		return Default;
 	}
 
+	float GetFloat(int Id, float Default = 0.0)
+	{
+		Field *f = GetField(Id);
+		if (!f || f->Type == LObject)
+			return Default;
+
+		switch (f->Type)
+		{
+			case LInt:
+				switch (f->Size)
+				{
+					case 1:
+						return (float)f->u8;
+					case 2:
+						return (float)f->u16;
+					case 4:
+						return (float)f->u32;
+					case 8:
+						return (float)f->u64;
+				}
+			case LFloat:
+				if (f->Size == sizeof(float))
+					return f->f;
+				else if (f->Size == sizeof(double))
+					return (float)f->d;
+				else
+					LgiAssert(!"Invalid size.");
+				break;
+			case LString:
+				if (f->Size == 1)
+					return (float)atof(f->s.u);
+				else if (f->Size == 2)
+				{
+					GString s(f->s.w);
+					return (float)s.Float();
+				}
+				else
+					LgiAssert(!"Invalid string size");
+				break;
+			default:
+				LgiAssert(!"Invalid type.");
+				break;
+		}
+
+		return Default;
+	}
+
+
 	const char *GetStr(int Id, const char *Default = NULL)
 	{
 		Field *f = GetField(Id);
@@ -332,6 +381,19 @@ public:
 			return false;
 
 		f->Type = LInt;
+		f->Size = sizeof(i);
+		memcpy(f->bytes, &i, sizeof(i));
+		return true;
+	}
+
+	template<typename T>
+	bool SetFloat(int Id, T i)
+	{
+		Field *f = Alloc(Id, 4 + sizeof(i));
+		if (!f)
+			return false;
+
+		f->Type = LFloat;
 		f->Size = sizeof(i);
 		memcpy(f->bytes, &i, sizeof(i));
 		return true;

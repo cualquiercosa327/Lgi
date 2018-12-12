@@ -119,9 +119,11 @@ class LJson
 					Key &k = Array[i];
 					if (i)
 						r += ", ";
+					/*
 					if (k.Obj.Length())
 						s = GString("{") + k.Print() + "}";
 					else
+					*/
 						s = k.Print();
 					r += s;
 				}
@@ -393,7 +395,7 @@ public:
 
 			GString Get(GString Addr)
 			{
-				auto Arr = *It->a;
+				auto &Arr = *It->a;
 				if (Pos >= Arr.Length())
 					return GString();
 				Key &k = Arr[Pos];

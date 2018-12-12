@@ -553,6 +553,9 @@ bool ResDialogCtrl::Serialize(FieldTree &Fields)
 		}
 	}
 
+	if (Dlg && Dlg->Item)
+		Dlg->Item->Update();
+
 	return true;
 }
 

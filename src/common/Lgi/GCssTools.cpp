@@ -93,6 +93,35 @@ GRect GCssTools::GetPadding(GRect &box)
 	return r;
 }
 
+GRect GCssTools::GetBorder(GRect &box)
+{
+	GRect r;
+	#define _(name, edge, dim) \
+		{ \
+			GCss::Len p = Css->Border##name(); \
+			r.edge = p.IsValid() ? p.ToPx(box.dim(), Font) : 0; \
+		}
+	_(Left, x1, X)
+	_(Top, y1, Y)
+	_(Right, x2, X)
+	_(Bottom, y2, Y)
+	#undef _
+	return r;
+}
+
+GRect GCssTools::ApplyBorder(GRect &in)
+{
+	if (!Css)
+		return in;
+
+	// Insert by the padding
+	GRect b = GetBorder(in);
+	return GRect(in.x1 + b.x1,
+				 in.y1 + b.y1,
+				 in.x2 - b.x2,
+				 in.y2 - b.y2);
+}
+
 GRect GCssTools::ApplyPadding(GRect &in)
 {
 	if (!Css)

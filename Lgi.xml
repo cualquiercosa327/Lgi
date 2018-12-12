@@ -201,15 +201,15 @@
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0" Id="44">
-				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDisplayString.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFont.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFont_W.cpp" Type="2" Platforms="1" />
+				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GFontCache.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFontCodePages.cpp" Type="2" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\GFontSystem.cpp" Type="2" Platforms="15" />
-				<Node File=".\src\common\Gdc2\Font\LStringLayout.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/LStringLayout.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/LStringLayout.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0" Id="45">
@@ -240,9 +240,9 @@
 					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Mac" Type="1" Platforms="15" Open="0" Id="51">
-					<Node File="./src/mac/carbon/Gdc2/GMemDC.cpp" Type="2" Platforms="4" />
-					<Node File="./src/mac/carbon/Gdc2/GPrintDC.cpp" Type="2" Platforms="4" />
-					<Node File="./src/mac/carbon/Gdc2/GScreenDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GMemDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GPrintDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/common/GScreenDC.cpp" Type="2" Platforms="4" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="52">
 					<Node File="./src/win32/Gdc2/GScreenDC.cpp" Type="2" Platforms="1" />
@@ -403,6 +403,7 @@
 			<Node File="./include/win32/LgiOsDefs.h" Type="3" Platforms="1" />
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LCancel.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LError.h" Type="3" Platforms="15" />
 		<Node File="./include/common/Lgi.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClass.h" Type="3" Platforms="15" />
@@ -571,7 +572,9 @@ textencoding</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
-			<PostBuildCommands />
+			<PostBuildCommands>
+				<Linux />
+			</PostBuildCommands>
 		</Advanced>
 	</Settings>
 </Project>

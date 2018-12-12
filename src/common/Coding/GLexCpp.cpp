@@ -211,7 +211,7 @@ char16 *LexCpp
         
         return Strdup(Context, Start, s-Start);
     }
-    else if (*s && strchr("-()*[]&,{};:=!<>?.\\+/%^|~", *s))
+    else if (*s && strchr("-()*[]&,{};:=!<>?.\\+/%^|~@", *s))
     {
         // Delimiter
         return Strdup(Context, s++, 1);

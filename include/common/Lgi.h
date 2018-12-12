@@ -243,6 +243,7 @@
 #include "Progress.h"						// Xp
 #include "GFile.h"							// Platform specific
 #include "Gdc2.h"							// Platform specific
+#include "GFont.h"
 
 // #include "LgiRes.h"						// Xp
 #include "LgiClasses.h" 					// Xp

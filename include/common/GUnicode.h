@@ -841,5 +841,4 @@ LgiFunc char *WideToUtf8
 	ptrdiff_t InLen = -1
 );
 
-
 #endif

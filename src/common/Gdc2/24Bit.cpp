@@ -98,7 +98,12 @@ public:
 		PalAlpha = NULL;
 	}
 
-	int GetVar(int Var) { LgiAssert(0); return 0; }
+	int GetVar(int Var)
+	{
+		LgiAssert(0)
+			;
+		return 0;
+	}
 	int SetVar(int Var, NativeInt Value)
 	{
 		switch (Var)

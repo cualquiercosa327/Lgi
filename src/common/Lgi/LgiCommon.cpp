@@ -1931,6 +1931,9 @@ char *LgiFindFile(const char *Name)
 			#else
 			"./Resources",
 			#endif
+			#ifndef WIN32
+			"./resources",
+			#endif
 			"../Code",
 			"../Resources",
 			#ifdef WIN32

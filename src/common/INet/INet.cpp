@@ -316,7 +316,7 @@ OsSocket GSocket::Handle(OsSocket Set)
 
 bool GSocket::IsOpen()
 {
-	if (ValidSocket(d->Socket))
+	if (ValidSocket(d->Socket) && !d->Cancel->IsCancelled())
 	{
 		return true;
 	}
@@ -341,7 +341,7 @@ bool GSocket::IsReadable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = d->Socket; 
-	if (ValidSocket(s))
+	if (ValidSocket(s) && !d->Cancel->IsCancelled())
 	{
 		#ifdef LINUX
 
@@ -396,7 +396,7 @@ bool GSocket::IsWritable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = d->Socket; 
-	if (ValidSocket(s))
+	if (ValidSocket(s) && !d->Cancel->IsCancelled())
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -504,7 +504,7 @@ bool GSocket::GetLocalIp(char *IpAddr)
 	return false;
 }
 
-bool GSocket::GetRemoteIp(char *IpAddr)
+bool GSocket::GetRemoteIp(uint32 *IpAddr)
 {
 	if (IpAddr)
 	{
@@ -512,17 +512,30 @@ bool GSocket::GetRemoteIp(char *IpAddr)
 		socklen_t addrlen = sizeof(a);
 		if (!getpeername(Handle(), (sockaddr*)&a, &addrlen))
 		{
-			uchar *addr = (uchar*)&a.sin_addr.s_addr;
-			sprintf_s(	IpAddr,
-						16,
-						"%u.%u.%u.%u",
-						addr[0],
-						addr[1],
-						addr[2],
-						addr[3]);
+			*IpAddr = ntohl(a.sin_addr.s_addr);
 			return true;
 		}
 	}
+
+	return false;
+}
+
+bool GSocket::GetRemoteIp(char *IpAddr)
+{
+	if (!IpAddr)
+		return false;
+
+	uint32 Ip = 0;
+	if (!GetRemoteIp(&Ip))
+		return false;
+
+	sprintf_s(	IpAddr,
+				16,
+				"%u.%u.%u.%u",
+				(Ip >> 24) & 0xff,
+				(Ip >> 16) & 0xff,
+				(Ip >> 8) & 0xff,
+				(Ip) & 0xff);
 
 	return false;
 }
@@ -986,7 +999,7 @@ void GSocket::Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len)
 
 ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
-	if (!ValidSocket(d->Socket) || !Data)
+	if (!ValidSocket(d->Socket) || !Data || d->Cancel->IsCancelled())
 		return -1;
 
 	int Status = 0;
@@ -1026,7 +1039,7 @@ ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 
 ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 {
-	if (!ValidSocket(d->Socket) || !Data)
+	if (!ValidSocket(d->Socket) || !Data || d->Cancel->IsCancelled())
 		return -1;
 
 	ssize_t Status = -1;
@@ -1326,8 +1339,7 @@ bool GSocket::CreateUdpSocket()
 				option_t enabled = d->Broadcast != 0;
 				auto r = setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 				if (r)
-					Error();
-			}
+					Error();			}
 		}
 	}
 
@@ -1359,7 +1371,25 @@ int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port
 		OnRead((char*)Buffer, (int)b);
 
 		if (Ip)
-			*Ip = a.sin_addr.OsAddr;
+		{
+			*Ip = ntohl(a.sin_addr.OsAddr);
+			
+			/*
+			printf("ip=%i.%i.%i.%i osaddr=%i.%i.%i.%i\n",
+			
+				((*Ip) >> 24) & 0xff,
+				((*Ip) >> 16) & 0xff,
+				((*Ip) >> 8) & 0xff,
+				((*Ip)) & 0xff,
+				
+				((a.sin_addr.OsAddr) >> 24) & 0xff,
+				((a.sin_addr.OsAddr) >> 16) & 0xff,
+				((a.sin_addr.OsAddr) >> 8) & 0xff,
+				((a.sin_addr.OsAddr)) & 0xff
+
+				);
+			*/
+		}
 		if (Port)
 			*Port = ntohs(a.sin_port);
 	}
@@ -1472,6 +1502,38 @@ bool HaveNetConnection()
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+GString LIpStr(uint32 ip)
+{
+	GString s;
+	s.Printf("%i.%i.%i.%i",
+			(ip>>24)&0xff,
+			(ip>>16)&0xff,
+			(ip>>8)&0xff,
+			(ip)&0xff);
+	return s;
+}
+
+uint32 LIpHostInt(GString str)
+{
+	auto p = str.Split(".");
+	if (p.Length() != 4)
+		return 0;
+	
+	uint32 ip = 0;
+	for (auto &s : p)
+	{
+		ip <<= 8;
+		auto n = s.Int();
+		if (n > 255)
+		{
+			LgiAssert(0);
+			return 0;
+		}
+		ip |= (uint8)s.Int();
+	}
+	return ip;
+}
+
 bool WhatsMyIp(GAutoString &Ip)
 {
 	bool Status = false;

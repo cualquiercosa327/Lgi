@@ -236,7 +236,8 @@ void GBox::OnPaint(GSurface *pDC)
 		pDC->Colour(GColour(255, 0, 255));
 		pDC->Rectangle(&cli);
 		#endif
-		
+		GRegion Painted(cli);
+
 		for (int i=0; i<d->Spacers.Length(); i++)
 		{
 			Spacer &s = d->Spacers[i];
@@ -245,6 +246,16 @@ void GBox::OnPaint(GSurface *pDC)
 			else
 				pDC->Colour(cBack);
 			pDC->Rectangle(&s.Pos);
+			Painted.Subtract(&s.Pos);
+		}
+
+		for (auto c : Children)
+			Painted.Subtract(&c->GetPos());
+
+		for (auto r = Painted.First(); r; r = Painted.Next())
+		{
+			pDC->Colour(cBack);
+			pDC->Rectangle(r);
 		}
 	}
 }
@@ -265,11 +276,16 @@ struct BoxRange
 void GBox::OnPosChange()
 {
 	GCssTools tools(GetCss(), GetFont());
-	GRect content = tools.ApplyMargin(GetClient());
+	GRect client = GetClient();
+	if (!client.Valid())
+		return;
+
+	GRect content = tools.ApplyBorder(client);
+	content = tools.ApplyPadding(content);
 	GetSpacer(0);
 
 	GAutoPtr<GViewIterator> views(IterateViews());
-	int Cur = 0, Idx = 0;
+	int Cur = content.x1, Idx = 0;
 	int AvailablePx = d->GetBox(content);
 	if (AvailablePx <= 0)
 		return;

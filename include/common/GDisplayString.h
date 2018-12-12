@@ -1,6 +1,8 @@
 #ifndef _GDISPLAY_STRING_H_
 #define _GDISPLAY_STRING_H_
 
+#include "GFont.h"
+
 #if defined(LGI_SDL)
 #elif defined(LINUX)
 	namespace Pango
@@ -87,6 +89,13 @@ protected:
 			X = 0;
 			FontId = 0;
 			SizeDelta = 0;
+		}
+
+		uint32 First()
+		{
+			auto s = (const uint16*)Str;
+			ssize_t l = Len * sizeof(*Str);
+			return LgiUtf16To32(s, l);
 		}
 	};
 	GArray<CharInfo> Info;

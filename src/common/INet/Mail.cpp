@@ -35,7 +35,6 @@ const char sMultipartRelated[] = "multipart/related";
 const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
 LogEntry::LogEntry(GColour col)
 {
 	c = col;
@@ -2342,6 +2341,10 @@ bool MailPop3::Open(GSocketI *S, const char *RemoteHost, int Port, const char *U
 		Error(_FL, "No remote POP host.\n");
 	else 
 	{
+		GXmlTag LocalStore;
+		if (!SettingStore)
+			SettingStore = &LocalStore;
+
 		if (Port < 1)
 		{
 			GVariant IsSsl;

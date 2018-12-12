@@ -11,6 +11,7 @@
 #include "GdiLeak.h"
 #include "GDisplayString.h"
 #include "GPixelRops.h"
+#include "LUnicodeString.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -73,6 +74,12 @@ bool StringConvert(Out *&out, ssize_t *OutLen, const In *in, ssize_t InLen)
 	{
 		if (!StrCache.Get())
 			return;
+
+		if (AttrStr)
+		{
+			CFRelease(AttrStr);
+			AttrStr = NULL;
+		}
 
 		wchar_t *w = StrCache.Get();
 		CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
@@ -539,6 +546,7 @@ void GDisplayString::Layout(bool Debug)
 
 			if (AttrStr)
 			{
+				LgiAssert(!Hnd);
 				Hnd = CTLineCreateWithAttributedString(AttrStr);
 				if (Hnd)
 				{
@@ -648,38 +656,34 @@ void GDisplayString::Layout(bool Debug)
 			f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
 			if (f && f != Font)
 			{
-				f->PointSize(Font->PointSize());
+				f->Size(Font->Size());
 				f->SetWeight(Font->GetWeight());
 				if (!f->Handle())
 					f->Create();
 			}
 
-			bool Debug = WasTab;
-			
-			const uint16 *u16;
+			bool Debug = WasTab;			
 			uint32 u32;
-			ssize_t Len = len << 1;
-			for (u16 = (const uint16*)Str; true;)
+			for (LUnicodeString<wchar_t> u(Str, len); true; u++)
 			{
-				OsChar *s = (OsChar*)u16;
-				u32 = LgiUtf16To32(u16, Len);
+				u32 = *u;
 				GFont *n = GlyphSub ? Sys->GetGlyph(u32, Font) : Font;
 				bool Change =	n != f ||						// The font changed
 								(IsTabChar(u32) ^ WasTab) ||	// Entering/leaving a run of tabs
 								!u32 ||							// Hit a NULL character
-								(s - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
+								(u.Get() - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
 				if (Change)
 				{
 					// End last segment
 					if (n && n != Font)
 					{
-						n->PointSize(Font->PointSize());
+						n->Size(Font->Size());
 						n->SetWeight(Font->GetWeight());
 						if (!n->Handle())
 							n->Create();
 					}
 
-					Info[i].Len = (int) (s - Info[i].Str);
+					Info[i].Len = (int) (u.Get() - Info[i].Str);
 					if (Info[i].Len)
 					{
 						if (WasTab)
@@ -721,7 +725,9 @@ void GDisplayString::Layout(bool Debug)
 							m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
 							x += Info[i].X = sx > 0xffff ? 0xffff : sx;
 						}
-						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
+
+						auto Ch = Info[i].First();
+						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Ch];
 
 						i++;
 					}
@@ -730,7 +736,7 @@ void GDisplayString::Layout(bool Debug)
 
 					// Start next segment
 					WasTab = IsTabChar(u32);
-					Info[i].Str = s;
+					Info[i].Str = u.Get();
 				}
 
 				if (!u32) break;
@@ -937,6 +943,7 @@ void GDisplayString::TruncateWithDots(int Width)
 					if (truncationToken)
 					{
 						CTLineRef TruncatedLine = CTLineCreateTruncatedLine(Hnd, Width, kCTLineTruncationEnd, truncationToken);
+						CFRelease(truncationToken);
 						if (TruncatedLine)
 						{
 							CFRelease(Hnd);
@@ -1104,7 +1111,7 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 					{
 						f = Sys->Font[Info[i].FontId];
 						f->Colour(Font->Fore(), Font->Back());
-						f->PointSize(Font->PointSize());
+						f->Size(Font->Size());
 						if (!f->Handle())
 						{
 							f->Create();
@@ -1664,7 +1671,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 
 				f->Colour(cFore, cBack);
 
-				f->PointSize(Font->PointSize() + Info[i].SizeDelta);
+				auto Sz = Font->Size();
+				Sz.Value += Info[i].SizeDelta;
+				f->Size(Sz);
 				f->Transparent(Font->Transparent());
 				f->Underline(Font->Underline());
 				if (!f->Handle())

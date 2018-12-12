@@ -82,7 +82,6 @@ void ResMenuItem::OnMouseClick(GMouse &m)
 					char *p = Clip;
 					while (*p && strchr(" \r\n\t", *p)) p++;
 					PasteData = *p == '<';
-					DeleteArray(Clip);
 				}
 			}
 

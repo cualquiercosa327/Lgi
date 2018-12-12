@@ -17,6 +17,7 @@
 		34186D7C214DC45000A44EB8 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34186D7B214DC45000A44EB8 /* PythonParser.cpp */; };
 		341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */ = {isa = PBXBuildFile; fileRef = 341B9A4E1DEACA060011CE44 /* cmds-32px.png */; };
 		341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */; };
+		341C7AC321A751440083C9CE /* GAbout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341C7AC221A751440083C9CE /* GAbout.cpp */; };
 		342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D773911FA48B6005BADBD /* GControlTree.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
 		3451844420F044AD00640325 /* IHttp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3451844320F044AD00640325 /* IHttp.cpp */; };
@@ -97,6 +98,7 @@
 		341B9A4E1DEACA060011CE44 /* cmds-32px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-32px.png"; path = "../Resources/cmds-32px.png"; sourceTree = "<group>"; };
 		341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleCppParser.cpp; path = ../Code/SimpleCppParser.cpp; sourceTree = "<group>"; };
 		341B9A511DEACA310011CE44 /* ParserCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParserCommon.h; path = ../Code/ParserCommon.h; sourceTree = "<group>"; };
+		341C7AC221A751440083C9CE /* GAbout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GAbout.cpp; path = ../../src/common/Lgi/GAbout.cpp; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
 		3451844320F044AD00640325 /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
@@ -298,6 +300,7 @@
 		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				341C7AC221A751440083C9CE /* GAbout.cpp */,
 				3451845420F0472600640325 /* OpenSSLSocket.cpp */,
 				3451844320F044AD00640325 /* IHttp.cpp */,
 				34BD359D20BE7F170001838A /* GExeCheck.cpp */,
@@ -442,6 +445,7 @@
 				3413EC04201891E700992012 /* levenshtein.c in Sources */,
 				349A25141A5E3D1D00F4263E /* GHistory.cpp in Sources */,
 				34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */,
+				341C7AC321A751440083C9CE /* GAbout.cpp in Sources */,
 				349A25151A5E3D1D00F4263E /* IdeDoc.cpp in Sources */,
 				349A25161A5E3D1D00F4263E /* IdeProject.cpp in Sources */,
 				349A25171A5E3D1D00F4263E /* IdeProjectSettings.cpp in Sources */,

@@ -369,6 +369,7 @@ public:
 		DesktopInfo *GetDesktopInfo();
 		bool SetApplicationIcon(const char *FileName);
 		bool PostEvent(GViewI *View, int Msg, GMessage::Param a = 0, GMessage::Param b = 0);
+		void OnDetach(GViewI *View);
 		
 	#endif
 };
@@ -479,8 +480,7 @@ public:
 		{
 			OpCreate,
 			OpDelete,
-			OpLock,
-			OpUnlock,
+			OpExists,
 		};
 	
 		static bool LockHandler(GViewI *v, LockOp Op);
@@ -1586,8 +1586,6 @@ public:
 	/// Set the bar size
 	void BarSize(int i);
 
-	bool Border();
-	void Border(bool i);
 	GViewI *FindControl(OsView hCtrl);
 
 	bool Attach(GViewI *p);

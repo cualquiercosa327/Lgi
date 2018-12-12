@@ -17,7 +17,7 @@ class ImageLoader : public GEventTargetThread, public Progress
 	GAutoPtr<GFilter> Filter;
 	bool SurfaceSent;
 	int64 Ts;
-	GAutoPtr<GFile> In;
+	GAutoPtr<GStream> In;
 
 public:
 	ImageLoader(GEventSinkI *s) : GEventTargetThread("ImageLoader")
@@ -153,8 +153,9 @@ public:
 					return PostSink(M_IMAGE_ERROR);
 				}
 				
-				GMemStream Mem(Stream, 0, -1);				
-				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem.GetBasePtr())))
+				GMemStream *Mem = new GMemStream(Stream, 0, -1);
+				In.Reset(Mem);
+				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem->GetBasePtr())))
 				{
 					#if LOADER_THREAD_LOGGING
 					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): no filter\n", _FL);
@@ -173,7 +174,7 @@ public:
 				Filter->SetProgress(this);
 
 				Ts = LgiCurrentTime();
-				GFilter::IoStatus Status = Filter->ReadImage(Img, &Mem);
+				GFilter::IoStatus Status = Filter->ReadImage(Img, Mem);
 				if (Status != GFilter::IoSuccess)
 				{
 					if (Status == GFilter::IoComponentMissing)
@@ -448,7 +449,6 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		Source = Src;
 
 	GAutoPtr<GStreamI> Stream;
-	GString FileName;
 	
 	GString::Array a = Source.Strip().Split(":", 1);
 	if (a.Length() > 1 &&
@@ -470,10 +470,14 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		GDocumentEnv::LoadType Result = Env->GetContent(j);
 		if (Result == GDocumentEnv::LoadImmediate)
 		{
+			StreamMimeType = j->MimeType;
+			ContentId = j->ContentId.Strip("<>");
+			FileName = j->Filename;
+
 			if (j->Stream)
+			{
 				Stream = j->Stream;
-			else if (j->Filename)
-				FileName = j->Filename;
+			}
 			else if (j->pDC)
 			{
 				SourceImg = j->pDC;
@@ -591,7 +595,9 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		GDocView::ContentMedia &Cm = Media->New();
 		
 		int Idx = LgiRand() % 10000;
-		Cm.Id.Printf("%u@memecode.com", Idx);
+		if (!ContentId)
+			ContentId.Printf("%u@memecode.com", Idx);
+		Cm.Id = ContentId;
 
 		GString Style;
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
@@ -601,7 +607,10 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			Si->Compressed->SetPos(0);
 			Cm.Stream.Reset(new GMemStream(Si->Compressed, 0, -1));
 			Cm.MimeType = Si->MimeType;
-			if (Cm.MimeType.Equals("image/jpeg"))
+
+			if (FileName)
+				Cm.FileName = FileName;
+			else if (Cm.MimeType.Equals("image/jpeg"))
 				Cm.FileName.Printf("img%u.jpg", Idx);
 			else if (Cm.MimeType.Equals("image/png"))
 				Cm.FileName.Printf("img%u.png", Idx);
@@ -1207,7 +1216,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_SET_SURFACE:
 		{
-			GAutoPtr<GFile> File((GFile*)Msg->B());
+			GAutoPtr<GStream> File((GStream*)Msg->B());
 
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_SET_SURFACE\n", _FL);
@@ -1228,7 +1237,12 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					{
 						ResizeIdx = i;
 						si.Compressed.Reset(File.Release());
-						if (FileMimeType)
+
+						if (StreamMimeType)
+						{
+							si.MimeType = StreamMimeType;
+						}
+						else if (FileMimeType)
 						{
 							si.MimeType = FileMimeType.Get();
 							FileMimeType.Reset();

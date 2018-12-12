@@ -182,6 +182,8 @@ struct GTabPagePriv
 			{
 				if ((f = new GFont))
 				{
+					*f = *SysFont;
+
 					if (f->CreateFromCss(s))
 						Tab->SetFont(f, true);
 					else
@@ -190,7 +192,7 @@ struct GTabPagePriv
 			}
 			else
 			{
-				Tab->SetFont(f = SysFont);
+				f = Tab->GetFont();
 			}
 		
 			if (f)
@@ -661,6 +663,8 @@ void GTabView::OnAttach()
 	GViewI *p = this;
 	while ((p = p->GetParent()))
 	{
+		if (p == (GViewI*)GetWindow())
+			break;
 		GTabView *tv = dynamic_cast<GTabView*>(p);
 		if (tv)
 			d->Depth++;
@@ -1390,7 +1394,15 @@ GColour GTabPage::GetBackground()
 
 void GTabPage::OnStyleChange()
 {
+	SetFont(SysFont, false);
+	GetParent()->Invalidate();
+}
+
+void GTabPage::SetFont(GFont *Font, bool OwnIt)
+{
 	d->Ds.Reset();
+	Invalidate();
+	return GView::SetFont(Font, OwnIt);
 }
 
 void GTabPage::OnPaint(GSurface *pDC)

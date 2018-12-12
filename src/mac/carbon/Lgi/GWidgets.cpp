@@ -219,7 +219,7 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 
 //////////////////////////////////////////////////////////////////////////////////
 // Slider control
-GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert) :	ResObject(Res_Slider)
+GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert) : ResObject(Res_Slider)
 {
 	SetId(id);
 	GRect r(x, y, x+cx, y+cy);
@@ -323,3 +323,17 @@ void GSlider::OnMouseMove(GMouse &m)
 		}
 	}
 }
+
+class GSliderFactory : public GViewFactory
+{
+	GView *NewView(const char *Class, GRect *Pos = 0, const char *Text = 0)
+	{
+		if (Class && stricmp(Class, "GSlider") == 0)
+		{
+			return new GSlider(-1);
+		}
+
+		return 0;
+	}
+
+} SliderFactory;

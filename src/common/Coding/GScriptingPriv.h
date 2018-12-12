@@ -51,8 +51,10 @@
 	_i(IArraySet,			74,					"ArraySet") \
 	_i(IRet,				75,					"Return") \
 	_i(IDomCall,			76,					"DomCall") \
-	_i(IBreak,				77,					"Break") \
+	/* Stop in the VM at instruction */ \
+	_i(IBreakPoint,			77,					"BreakPoint") \
 	_i(ICast,				78,					"Cast") \
+	/* Open the debugger */ \
 	_i(IDebug,				79,					"Debug") \
 
 enum GInstruction {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		341C7AC821A752DC0083C9CE /* GAbout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341C7AC721A752DC0083C9CE /* GAbout.cpp */; };
 		345B20D42179688E0079E3C9 /* LgiCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 345B20D1217968820079E3C9 /* LgiCocoa.framework */; };
 		345B2101217969700079E3C9 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345B20D52179696B0079E3C9 /* PythonParser.cpp */; };
 		345B2102217969700079E3C9 /* MemDumpViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345B20DA2179696B0079E3C9 /* MemDumpViewer.cpp */; };
@@ -66,6 +67,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		341C7AC721A752DC0083C9CE /* GAbout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GAbout.cpp; path = ../../src/common/Lgi/GAbout.cpp; sourceTree = "<group>"; };
 		345B206C217965E80079E3C9 /* LgiIde.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiIde.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		345B2077217965EA0079E3C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		345B207A217965EA0079E3C9 /* LgiIde.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LgiIde.entitlements; sourceTree = "<group>"; };
@@ -282,6 +284,7 @@
 		34D21CD621797809003D1EA6 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				341C7AC721A752DC0083C9CE /* GAbout.cpp */,
 				34D21CED21798240003D1EA6 /* Png.cpp */,
 				34D21CE9217978DA003D1EA6 /* Base64.cpp */,
 				34D21CE7217978C4003D1EA6 /* LgiMain.cpp */,
@@ -406,6 +409,7 @@
 				345B210B217969700079E3C9 /* SimpleCppParser.cpp in Sources */,
 				34D21CE8217978C4003D1EA6 /* LgiMain.cpp in Sources */,
 				345B2116217969700079E3C9 /* GDebugger.cpp in Sources */,
+				341C7AC821A752DC0083C9CE /* GAbout.cpp in Sources */,
 				345B210E217969700079E3C9 /* GHistory.cpp in Sources */,
 				345B2113217969700079E3C9 /* LgiIde.cpp in Sources */,
 				345B2112217969700079E3C9 /* LgiUtils.cpp in Sources */,
@@ -566,6 +570,7 @@
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_CFLAGS = "-DNCURSES_UNCTRL_H_incl=1";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DMAC",
@@ -598,6 +603,7 @@
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_CFLAGS = "-DNCURSES_UNCTRL_H_incl=1";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DMAC",

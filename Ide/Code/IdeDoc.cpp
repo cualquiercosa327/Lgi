@@ -92,26 +92,32 @@ void EditTray::OnCreate()
 {
 	AttachChildren();
 }
+
+int MeasureText(const char *s)
+{
+	GDisplayString Ds(SysFont, s);
+	return Ds.X();
+}
+
+#define HEADER_BTN_LABEL	"h"
+#define FUNCTION_BTN_LABEL	"{ }"
+#define SYMBOL_BTN_LABEL	"s"
 	
 void EditTray::OnPosChange()
 {
 	GLayoutRect c(this, 2);
 
-	c.Left(FileBtn, 20);
+	c.Left(FileBtn, MeasureText(HEADER_BTN_LABEL)+10);
 	if (FileSearch)
 		c.Left(FileSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
 
-	#ifdef LINUX
-	c.Left(FuncBtn, 28);
-	#else
-	c.Left(FuncBtn, 20);
-	#endif
+	c.Left(FuncBtn, MeasureText(FUNCTION_BTN_LABEL)+10);
 	if (FuncSearch)
 		c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
 
-	c.Left(SymBtn, 20);
+	c.Left(SymBtn, MeasureText(SYMBOL_BTN_LABEL)+10);
 	if (SymSearch)
 		c.Left(SymSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
@@ -144,28 +150,22 @@ void EditTray::OnPaint(GSurface *pDC)
 	GRect f = FileBtn;
 	LgiThinBorder(pDC, f, DefaultRaisedEdge);
 	{
-		GDisplayString ds(SysFont, "h");
-		ds.Draw(pDC, f.x1 + 6, f.y1);
+		GDisplayString ds(SysFont, HEADER_BTN_LABEL);
+		ds.Draw(pDC, f.x1 + 4, f.y1);
 	}
 
 	f = FuncBtn;
 	LgiThinBorder(pDC, f, DefaultRaisedEdge);
 	{
-		GDisplayString ds(SysFont,
-			#ifdef LINUX
-			"{}"
-			#else
-			"{ }"
-			#endif
-			);
-		ds.Draw(pDC, f.x1 + 3, f.y1);
+		GDisplayString ds(SysFont, FUNCTION_BTN_LABEL);
+		ds.Draw(pDC, f.x1 + 4, f.y1);
 	}
 
 	f = SymBtn;
 	LgiThinBorder(pDC, f, DefaultRaisedEdge);
 	{
-		GDisplayString ds(SysFont, "s");
-		ds.Draw(pDC, f.x1 + 6, f.y1);
+		GDisplayString ds(SysFont, SYMBOL_BTN_LABEL);
+		ds.Draw(pDC, f.x1 + 4, f.y1);
 	}
 }
 

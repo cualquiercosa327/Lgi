@@ -526,11 +526,7 @@ public:
 			*this = o;
 		}
 
-		~ImageDef()
-		{
-			if (Type == ImageOwn)
-				DeleteObj(Img);
-		}
+		~ImageDef();
 
 		bool Parse(const char *&s);
 		bool operator !=(const ImageDef &i);		
@@ -1193,6 +1189,7 @@ public:
 	GAutoString ToString();
 	const char *ToString(DisplayType dt);
 	bool HasFontStyle();
+	void FontBold(bool b) { FontWeight(b ? FontWeightBold : FontWeightNormal); }
 
 	// Parsing
 	virtual bool Parse(const char *&Defs, ParsingStyle Type = ParseStrict);

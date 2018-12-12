@@ -633,11 +633,26 @@ public:
 	}
 };
 
+void FontSz()
+{
+	for (int i=6; i<32; i++)
+	{
+		GFont f;
+		if (f.Create("verdana", GCss::Len(GCss::LenPx, i)))
+		{
+			double a = (double) f.GetHeight() / f.Ascent();
+			LgiTrace("%i: %i, ascent=%f, a=%f\n", i, f.GetHeight(), f.Ascent(), a);
+		}
+	}
+}
+
 int LgiMain(OsAppArguments &AppArgs)
 {
 	GApp a(AppArgs, "HtmlTestSuite");
 	if (a.IsOk())
 	{
+		//FontSz();
+
 		a.AppWnd = new AppWnd;
 		a.Run();
 	}

@@ -103,6 +103,7 @@ public:
 		Last = false;
 		Depth = 0;
 		Text.ZOff(-1, -1);
+		Icon.ZOff(-1, -1);
 	}
 
 	~GTreeItemPrivate()
@@ -165,6 +166,11 @@ GTreeNode::GTreeNode()
 
 GTreeNode::~GTreeNode()
 {
+}
+
+void GTreeNode::SetLayoutDirty()
+{
+	Tree->d->LayoutDirty = true;
 }
 
 void GTreeNode::_Visible(bool v)
@@ -601,7 +607,17 @@ void GTreeItem::_Remove()
 void GTreeItem::_PourText(GdcPt2 &Size)
 {
 	GFont *f = Tree ? Tree->GetFont() : SysFont;
-	GDisplayString ds(f, GetText());
+	auto *Txt = GetText();
+	
+	#if defined(_WIN64) && defined(_DEBUG)
+	if ((void*)Txt == (void*)0xfeeefeeefeeefeee ||
+		(void*)Txt == (void*)0xcdcdcdcdcdcdcdcd)
+	{
+		LgiAssert(!"Yeah nah...");
+	}
+	#endif
+	
+	GDisplayString ds(f, Txt);
 	Size.x = ds.X() + 4;
 	Size.y = 0;
 }

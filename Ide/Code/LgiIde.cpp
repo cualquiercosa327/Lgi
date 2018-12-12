@@ -26,6 +26,7 @@
 #include "ProjectNode.h"
 #include "GBox.h"
 #include "GSubProcess.h"
+#include "GAbout.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -546,7 +547,7 @@ public:
 		Registers = NULL;
 
 		Small = *SysFont;
-		Small.PointSize(Small.PointSize()-2);
+		Small.PointSize(Small.PointSize()-1);
 		Small.Create();
 		LgiAssert(Small.Handle());
 		
@@ -1461,7 +1462,8 @@ public:
 				char *Data = (char*)v.Value.Binary.Data;
 				for (char *s=Data; (NativeInt)s<(NativeInt)Data+v.Value.Binary.Length; s += strlen(s) + 1)
 				{
-					Lst->Insert(NewStr(s));
+					auto ns = NewStr(s);
+					Lst->Insert(ns);
 				}
 			}
 		}
@@ -1579,6 +1581,7 @@ Chk;
 			Tools->AppendSeparator();
 			Tools->AppendButton("Find In Files", IDM_FIND_IN_FILES, TBT_PUSH, true, CMD_FIND_IN_FILES);
 			
+			Tools->GetCss(true)->Padding("4px");
 			Tools->Attach(this);
 		}
 		else LgiTrace("%s:%i - No tools obj?", _FL);
@@ -1696,21 +1699,126 @@ public:
 		Run();
 	}
 
-	int Main()
+	bool DumpBin(GString Args, GStream *Str)
 	{
-		GString Args;
-		Args.Printf("/exports \"%s\"", InFile.Get());
-		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
-		if (!s.Start(true, false))
-			return -1;
-
 		char Buf[256];
 		ssize_t Rd;
+
+		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
+		if (!s.Start(true, false))
+			return false;
+
 		while ((Rd = s.Read(Buf, sizeof(Buf))) > 0)
+			Str->Write(Buf, Rd);
+
+		return true;
+	}
+
+	GString::Array Dependencies()
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/dependents \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+
+		auto Parts = p.NewGStr().Replace("\r", "").Split("\n\n");
+		auto Files = Parts[4].Strip().Split("\n");
+		auto Path = LGetPath();
+		for (auto &f : Files)
 		{
-			Out->Write(Buf, Rd);
+			f = f.Strip();
+
+			bool Found = false;
+			for (auto s : Path)
+			{
+				GFile::Path c(s);
+				c += f.Get();
+				if (c.IsFile())
+				{
+					f = c.GetFull();
+					Found = true;
+					break;
+				}
+			}
+
+			if (!Found)
+				f += " (not found in path)";
 		}
 
+		return Files;
+	}
+
+	GString GetArch()
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/headers \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+	
+		const char *Key = " machine ";
+		GString Arch;
+		auto Lines = p.NewGStr().SplitDelimit("\r\n");
+		int64 Machine = 0;
+		for (auto &Ln : Lines)
+		{
+			if (Ln.Find(Key) >= 0)
+			{
+				auto p = Ln.Strip().Split(Key);
+				if (p.Length() == 2)
+				{
+					Arch = p[1].Strip("()");
+					Machine = p[0].Int(16);
+				}
+			}
+		}
+
+		if (Machine == 0x14c)
+			Arch += " 32bit";
+		else if (Machine == 0x200)
+			Arch += " 64bit Itanium";
+		else if (Machine == 0x8664)
+			Arch += " 64bit";
+
+		return Arch;
+	}
+
+	GString GetExports()
+	{
+		GString Args;
+		GStringPipe p;
+		Args.Printf("/exports \"%s\"", InFile.Get());
+		DumpBin(Args, &p);
+	
+		GString Exp;
+		auto Sect = p.NewGStr().Replace("\r", "").Split("\n\n");
+		bool Ord = false;
+		for (auto &s : Sect)
+		{
+			if (s.Strip().Find("ordinal") == 0)
+				Ord = true;
+			else if (Ord)
+			{
+				Exp = s;
+				break;
+			}
+			else Ord = false;
+		}
+
+		return Exp;
+	}
+
+	int Main()
+	{
+		auto Deps = Dependencies();
+		Out->Print("Dependencies:\n\t%s\n\n", GString("\n\t").Join(Deps).Get());
+
+		auto Arch = GetArch();
+		if (Arch)
+			Out->Print("Arch: %s\n\n", Arch.Get());
+
+		auto Exp = GetExports();
+		if (Arch)
+			Out->Print("Exports:\n%s\n\n", Exp.Get());
 		return 0;
 	}
 };
@@ -2755,9 +2863,19 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			Options Dlg(this);
 			break;
 		}
+		case IDM_HELP:
+		{
+			LgiExecute(APP_URL);
+			break;
+		}
 		case IDM_ABOUT:
 		{
-			LgiMsg(this, "LGI Integrated Development Environment", AppName);
+			GAbout a(this,
+					AppName, APP_VER,
+					"\nLGI Integrated Development Environment",
+					"icon128.png",
+					APP_URL,
+					"fret@memecode.com");
 			break;
 		}
 		case IDM_NEW:
@@ -3682,7 +3800,7 @@ void Test()
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	printf("LgiIde v%s\n", LgiIdeVer);
+	printf("LgiIde v%s\n", APP_VER);
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{

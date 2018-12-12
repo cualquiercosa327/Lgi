@@ -27,7 +27,7 @@
 	Print("Both: ", n.DateAndTime, "\n");
 	
 	n = Now();
-	Print("DateInt64: ", n.DateInt64, "\n");
+	Print("DateTimestamp: ", n.Timestamp, "\n");
 
 Print("All tests passed.\n");
 return true;

@@ -15,7 +15,11 @@
 #include "LJson.h"
 
 #define DEBUG_OAUTH2				0
-#define DEBUG_FETCH					0
+#ifdef _DEBUG
+	#define DEBUG_FETCH				0
+#else
+	#define DEBUG_FETCH				0
+#endif
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
 
 
@@ -2417,7 +2421,7 @@ int MailIMap::Fetch(bool ByUid,
 		while (!Done && Socket->IsOpen())
 		{
 			ssize_t r;
-			do				
+			while (Socket->IsReadable(100))
 			{
 				// Extend the buffer if getting used up
 				if (Buf.Length()-Used <= 256)
@@ -2443,18 +2447,11 @@ int MailIMap::Fetch(bool ByUid,
 					
 					LastActivity = LgiCurrentTime();
 				}
-				else if (!Debug)
-				{
-					/*
-					if (LgiCurrentTime() - LastActivity > 10000)
-						Debug = true;
-					*/
-				}
+				else break;
 				
 				if (Debug)
 					LgiTrace("%s:%i - Recv=%i\n", _FL, r);
 			}
-			while (r > 0);
 			
 			// See if we can parse out a single response
 			GArray<StrRange> Ranges;
@@ -2544,7 +2541,7 @@ int MailIMap::Fetch(bool ByUid,
 
 			// Look for the end marker
 			#if DEBUG_FETCH
-			LgiTrace("%s:%i - Fetch: End, Used=%i, Buf=%.12s\n", _FL, Used, Buf);
+			LgiTrace("%s:%i - Fetch: End, Used=%i, Buf=%.12s\n", _FL, Used, Buf.AddressOf());
 			#endif
 			if (Used > 0 && Buf[0] != '*')
 			{

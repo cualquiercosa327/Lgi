@@ -93,7 +93,7 @@ class LgiClass GTabPage :
 {
 	friend class GTabView;
 	struct GTabPagePriv *d;
-	bool Attach(GViewI *parent);
+	bool Attach(GViewI *parent) override;
 
 	// Vars
 	GTabView *TabCtrl;
@@ -126,20 +126,21 @@ public:
 	GTabPage(const char *name);
 	~GTabPage();
 
-	const char *GetClass() { return "GTabPage"; }
+	const char *GetClass() override { return "GTabPage"; }
 	GColour GetBackground();
 
-	char *Name();
-	bool Name(const char *n);
+	char *Name() override;
+	bool Name(const char *n) override;
 	bool HasButton();
 	void HasButton(bool b);
 	GTabView *GetTabControl() { return TabCtrl; }
 
-	GMessage::Result OnEvent(GMessage *Msg);
-	void OnPaint(GSurface *pDC);
-	bool OnKey(GKey &k);
-	void OnFocus(bool b);
+	GMessage::Result OnEvent(GMessage *Msg) override;
+	void OnPaint(GSurface *pDC) override;
+	bool OnKey(GKey &k) override;
+	void OnFocus(bool b) override;
 	void OnStyleChange();
+	void SetFont(GFont *Font, bool OwnIt = false) override;
 
 	void Append(GViewI *Wnd);
 	bool Remove(GViewI *Wnd);

@@ -162,7 +162,7 @@ public:
 
 		nsw.contentView.needsLayout = YES;
 		
-		/*/
+		/*
 		GAutoPtr<GViewIterator> views(Wnd->IterateViews());
 		for (auto c = views->First(); c; c = views->Next())
 		{
@@ -183,14 +183,18 @@ public:
 
 - (id)init:(GWindowPrivate*)priv Frame:(NSRect)rc
 {
-	self.d = priv;
-	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+	NSUInteger windowStyleMask = NSTitledWindowMask | NSResizableWindowMask |
+								 NSClosableWindowMask | NSMiniaturizableWindowMask;
 	if ((self = [super initWithContentRect:rc
 					styleMask:windowStyleMask
 					backing:NSBackingStoreBuffered
 					defer:NO ]) != nil)
 	{
+		self.d = priv;
+		
+		#if 0
 		auto old = self.contentView.frame;
+		
 		self.content = new GWindowContent(priv->Wnd);
 		GRect r = old;
 		self.content->SetPos(r);
@@ -201,6 +205,7 @@ public:
 		*self.content = ctrl.view;
 		self.contentViewController = ctrl;
 		//[ctrl release];
+		#endif
 	}
 	return self;
 }
@@ -208,6 +213,7 @@ public:
 - (void)dealloc
 {
 	[super dealloc];
+	printf("LNsWindow dealloc...\n");
 }
 
 @end
@@ -233,7 +239,8 @@ public:
 	if (w && w.d)
 	{
 		w.d->OnResize();
-		[w.content->Handle().p layout];
+		if (w.content)
+			[w.content->Handle().p layout];
 	}
 }
 
@@ -272,6 +279,10 @@ public:
 ///////////////////////////////////////////////////////////////////////
 #define GWND_CREATE		0x0010000
 
+#if __has_feature(objc_arc)
+#error "NO ARC!"
+#endif
+
 GWindow::GWindow() : GView(NULL)
 {
 	d = new GWindowPrivate(this);
@@ -285,16 +296,21 @@ GWindow::GWindow() : GView(NULL)
 	
 	_Lock = new LMutex;
 	
-	GRect pos(0, 50, 200, 100);
+	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	
+	GRect pos(200, 200, 200, 200);
 	NSRect frame = pos;
 	Wnd.p = [[LNsWindow alloc] init:d Frame:frame];
 	if (Wnd)
 	{
+		[Wnd.p retain];
 		if (!Delegate)
 			Delegate = [[LWindowDelegate alloc] init];
 		[Wnd.p makeKeyAndOrderFront:NSApp];
 		Wnd.p.delegate = Delegate;
 	}
+	
+	[pool release];
 }
 
 GWindow::~GWindow()
@@ -1499,7 +1515,6 @@ GRect &GWindow::GetClient(bool ClientSpace)
 		r = Wnd.p.contentView.frame;
 		if (ClientSpace)
 			r.Offset(-r.x1, -r.y1);
-		//printf("GWindow client %s\n", r.GetStr());
 	}
 	else
 	{
@@ -1629,9 +1644,9 @@ void GWindow::OnPosChange()
 
 #define IsTool(v) \
 ( \
-dynamic_cast<GView*>(v) \
-&& \
-dynamic_cast<GView*>(v)->_IsToolBar \
+	dynamic_cast<GView*>(v) \
+	&& \
+	dynamic_cast<GView*>(v)->_IsToolBar \
 )
 
 void GWindow::PourAll()
@@ -1871,7 +1886,7 @@ bool GWindow::Obscured()
 {
 	if (!Wnd)
 		return false;
-	
+
 	auto s = [Wnd.p occlusionState];
 	return !(s & NSWindowOcclusionStateVisible);
 }

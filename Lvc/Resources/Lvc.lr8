@@ -36,6 +36,7 @@
 		<String Ref="37" Cid="37" Define="IDC_CVS_BROWSE" en="..." />
 		<String Ref="38" Cid="38" Define="IDC_UNTRACKED" en="Show untracked files" />
 		<String Ref="39" Cid="39" Define="IDC_PULL_ALL" en="*" />
+		<String Ref="40" Cid="40" Define="IDC_STATUS" en="Status" />
 		<String Ref="41" Cid="514" Define="IDC_PUSH_ALL" en="*" />
 	</string-group>
 	<Dialog pos="7,7,464,203" ref="9">
@@ -122,31 +123,34 @@
 			</tr>
 		</TableLayout>
 	</Dialog>
-	<Dialog pos="7,7,702,129" ref="1">
-		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.143,0.143,0.143,0.143,0.143,0.143,0.143" rows="1.000">
+	<Dialog pos="7,7,702,130" ref="1">
+		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" CellStyle="padding-left: 4px;&#10;padding-right: 1em;" cols="0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125" rows="1.000">
 			<tr>
 				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 1em;">
-					<Button pos="21,7,83,48" ref="18" />
+					<Button pos="7,7,76,34" ref="18" />
 				</td>
 				<td valign="Center" style="padding-right: 1em;">
-					<Button pos="105,14,139,41" ref="5" />
-					<Button pos="154,14,181,41" ref="39" />
+					<Button pos="93,14,127,41" ref="5" />
+					<Button pos="133,14,160,41" ref="39" />
 				</td>
 				<td valign="Center" style="padding-right: 1em;">
-					<Button pos="203,14,244,41" ref="6" />
-					<Button pos="252,14,279,41" ref="41" />
+					<Button pos="175,14,216,41" ref="6" />
+					<Button pos="220,14,247,41" ref="41" />
+				</td>
+				<td valign="Center" style="padding-right: 1em;">
+					<Button pos="259,14,321,41" ref="40" />
 				</td>
 				<td valign="Center">
-					<StaticText pos="302,21,364,41" ref="7" />
+					<StaticText pos="349,21,411,41" ref="7" />
 				</td>
 				<td>
-					<EditBox Pos="391,14,467,41" ref="8" />
+					<EditBox Pos="420,14,496,41" ref="8" />
 				</td>
 				<td style="padding-right: 1em;">
-					<Button pos="494,14,521,41" ref="17" />
+					<Button pos="517,14,544,41" ref="17" />
 				</td>
 				<td valign="Center">
-					<CheckBox pos="581,21,643,41" ref="38" />
+					<CheckBox pos="592,21,654,41" ref="38" />
 				</td>
 			</tr>
 		</TableLayout>

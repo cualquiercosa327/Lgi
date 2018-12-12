@@ -18,6 +18,7 @@
 
 #include "Lgi.h"
 #include "OpenSSLSocket.h"
+#include <openssl/rand.h>
 #ifdef WIN32
 #include <mmsystem.h>
 #endif
@@ -208,6 +209,8 @@ public:
 	DynFunc1(X509_NAME*, X509_get_subject_name, X509*, a);
 	DynFunc2(char*, ERR_error_string, unsigned long, e, char*, buf);
 	DynFunc0(unsigned long, ERR_get_error);
+
+	DynFunc2(int, RAND_bytes, unsigned char *, buf, int, num);
 };
 
 typedef GArray<int> SslVer;
@@ -753,7 +756,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 
 bool SslSocket::IsOpen()
 {
-	return Bio != 0;
+	return Bio != 0 && !d->Cancel->IsCancelled();
 }
 
 GString SslGetErrorAsString(OpenSSL *Library)
@@ -1028,9 +1031,11 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
+	bool Prev = d->Cancel->IsCancelled();
 	d->Cancel->Cancel();
 	LMutex::Auto Lck(&Lock, _FL);
 
+	bool Status = Library != NULL;
 	if (Library)
 	{
 		if (Ssl)
@@ -1061,12 +1066,13 @@ DebugTrace("%s:%i - BIO_free\n", _FL);
 			OnInformation("Connection closed.");
 		}
 
-		Ssl = 0;
-		Bio = 0;
+		Ssl = NULL;
+		Bio = NULL;
 	}
-	else return false;
 
-	return true;
+	d->Cancel->Cancel(Prev);
+
+	return Status;
 }
 
 bool SslSocket::Listen(int Port)
@@ -1095,7 +1101,7 @@ bool SslSocket::IsReadable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = Handle();
-	if (ValidSocket(s))
+	if (!d->Cancel->IsCancelled() && ValidSocket(s))
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -1125,7 +1131,7 @@ bool SslSocket::IsWritable(int TimeoutMs)
 	// Which is important because a socket value of -1
 	// (ie invalid) will crash the FD_SET macro.
 	OsSocket s = Handle();
-	if (ValidSocket(s))
+	if (!d->Cancel->IsCancelled() && ValidSocket(s))
 	{
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
@@ -1188,11 +1194,8 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
 	LMutex::Auto Lck(&Lock, _FL);
 
-	if (!Library)
-	{
-		DebugTrace("%s:%i - Library is NULL\n", _FL);
+	if (!Library || d->Cancel->IsCancelled())
 		return -1;
-	}
 
 	if (!Bio)
 	{
@@ -1211,9 +1214,11 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 			while (HasntTimedOut())
 			{
 				r = Library->SSL_write(Ssl, Data, (int)Len);
-				if (r < 0)
+				if (r <= 0)
 				{
-					LgiSleep(10);
+					if (!Library->BIO_should_retry(Bio))
+						break;
+					LgiSleep(1);
 				}
 				else
 				{
@@ -1221,14 +1226,6 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 					OnWrite((const char*)Data, r);
 					break;
 				}
-			}
-
-			if (r < 0)
-			{
-				DebugTrace("%s:%i - SSL_write failed (timeout=%i, %ims)\n",
-							_FL,
-							To,
-							(int) (LgiCurrentTime() - Start));
 			}
 		}
 		else
@@ -1247,9 +1244,11 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 				break;
 			r = Library->BIO_write(Bio, Data, (int)Len);
 			DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
-			if (r < 0)
+			if (r <= 0)
 			{
-				LgiSleep(10);
+				if (!Library->BIO_should_retry(Bio))
+					break;
+				LgiSleep(1);
 			}
 			else
 			{
@@ -1257,14 +1256,6 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 				break;
 			}
 		}			
-
-		if (r < 0)
-		{
-			DebugTrace("%s:%i - BIO_write failed (timeout=%i, %ims)\n",
-						_FL,
-						To,
-						(int) (LgiCurrentTime() - Start));
-		}
 	}
 	
 	if (r > 0)
@@ -1273,32 +1264,20 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 		if (l)
 			l->Write(Data, r);
 	}
-	
-	if (Ssl)
-	{
-		if (r < 0)
+	else if (Ssl)
+	{	
+		auto Err = Library->SSL_get_error(Ssl, r);
+		if (Err == SSL_ERROR_ZERO_RETURN)
 		{
-			int Err = Library->SSL_get_error(Ssl, r);
+			DebugTrace("%s:%i - ::Write closing %i\n", _FL, r);
+			Close();
+		}
+		else
+		{
 			char Buf[256] = "";
 			char *e = Library->ERR_error_string(Err, Buf);
-
-			DebugTrace("%s:%i - ::Write error %i, %s\n",
-						_FL,
-						Err,
-						e);
-
-			if (e)
-			{
-				OnError(Err, e);
-			}
-		}
-		
-		if (r <= 0)
-		{
-			DebugTrace("%s:%i - ::Write closing %i\n",
-						_FL,
-						r);
-			Close();
+			DebugTrace("%s:%i - ::Write error %i, %s\n", _FL, Err, e);
+			OnError(Err, e ? e : "ERR_error_string failed");
 		}
 	}
 
@@ -1309,7 +1288,7 @@ ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 {
 	LMutex::Auto Lck(&Lock, _FL);
 
-	if (!Library)
+	if (!Library || d->Cancel->IsCancelled())
 		return -1;
 
 	if (Bio)
@@ -1326,7 +1305,14 @@ ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 					r = Library->SSL_read(Ssl, Data, (int)Len);
 DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					if (r < 0)
-						LgiSleep(10);
+					{
+						if (!Library->BIO_should_retry(Bio))
+						{
+DebugTrace("%s:%i - BIO_should_retry is false\n", _FL);
+							break;
+						}
+						LgiSleep(1);
+					}
 					else
 					{
 						OnRead((char*)Data, r);
@@ -1336,6 +1322,7 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			}
 			else
 			{
+DebugTrace("%s:%i - Ssl is NULL\n", _FL);
 				r = -1;
 			}
 		}
@@ -1346,16 +1333,17 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			while (HasntTimedOut())
 			{
 				r = Library->BIO_read(Bio, Data, (int)Len);
+DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 				if (r < 0)
 				{
-					if (d->IsBlocking)
-						LgiSleep(10);
-					else
+					auto Retry = Library->BIO_should_retry(Bio);
+DebugTrace("%s:%i - BIO_should_retry = %i\n", _FL, Retry);
+					if (!Retry)
 						break;
+					LgiSleep(1);
 				}
 				else
 				{
-DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					OnRead((char*)Data, r);
 					break;
 				}
@@ -1368,24 +1356,20 @@ DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			if (l)
 				l->Write(Data, r);
 		}
-
-		if (Ssl && d->IsBlocking)
+		else if (Ssl)
 		{
-			if (r < 0)
+			int Err = Library->SSL_get_error(Ssl, r);
+DebugTrace("%s:%i - SSL_get_error = %i\n", _FL, Err);
+			if (Err == SSL_ERROR_ZERO_RETURN)
 			{
-				int Err = Library->SSL_get_error(Ssl, r);
-				char Buf[256];
-				char *e = Library->ERR_error_string(Err, Buf);
-				if (e)
-				{
-					OnError(Err, e);
-				}
+				DebugTrace("%s:%i - ::Read closing %i\n", _FL, r);
 				Close();
 			}
-			
-			if (r <= 0)
+			else
 			{
-				Close();
+				char Buf[256];
+				char *e = Library->ERR_error_string(Err, Buf);
+				OnError(Err, e ? e : "ERR_error_string failed");
 			}
 		}
 		return r;
@@ -1414,8 +1398,11 @@ void SslSocket::DebugTrace(const char *fmt, ...)
 		
 		if (Ch > 0)
 		{
-			// LgiTrace("SSL:%p: %s", this, Buffer);
+			#if 1
+			LgiTrace("SSL:%p: %s", this, Buffer);
+			#else
 			OnInformation(Buffer);
+			#endif
 		}
 	}
 }
@@ -1445,4 +1432,12 @@ void SslSocket::OnInformation(const char *Str)
 		
 		Str = *nl ? nl + 1 : nl;
 	}
+}
+
+GString SslSocket::Random(int Len)
+{
+	GString s;
+	s.Length(Len);
+	auto r = Library ? Library->RAND_bytes((uint8*) s.Get(), Len) : 0;
+	return r ? s : NULL;
 }

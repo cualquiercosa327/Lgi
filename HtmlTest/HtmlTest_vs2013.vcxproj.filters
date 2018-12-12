@@ -123,5 +123,14 @@
     <None Include="Files\Test.html">
       <Filter>Test cases</Filter>
     </None>
+    <None Include="Files\spacex.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\ebay11.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\ebay2.html">
+      <Filter>Test cases</Filter>
+    </None>
   </ItemGroup>
 </Project>

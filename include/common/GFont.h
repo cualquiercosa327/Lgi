@@ -9,6 +9,7 @@
 #include "LgiOsClasses.h"
 #include "GColour.h"
 #include "GCapabilities.h"
+#include "GCss.h"
 
 //////////////////////////////////////////////////////////////
 // Defines
@@ -72,8 +73,8 @@
 
 #endif
 
-#define LGI_WHITESPACE_WEIGHT			0.15f // amount of foreground colour in visible whitespace
-#define MAX_UNICODE						0xffff // maximum unicode char I can handle
+#define LGI_WHITESPACE_WEIGHT			0.15f		// amount of foreground colour in visible whitespace
+#define MAX_UNICODE						0x10FFFF	// maximum unicode char I can handle
 #define _HasUnicodeGlyph(map, u)		( (map[(u)>>3] & (1 << ((u) & 7))) != 0  )
 
 enum LgiPxToIndexType
@@ -101,6 +102,8 @@ public:
 
 	/// Sets the font face name
 	void Face(const char *s);
+	/// Sets the font size
+	void Size(GCss::Len);
 	/// Sets the point size
 	void PointSize(int i);
 	/// Sets the tab size in device units (pixels)
@@ -139,8 +142,10 @@ public:
 
 	/// \returns the font face
 	char *Face();
-	/// \returns the point size
+	/// \returns the point size (avoid, use 'Size' instead)
 	int PointSize();
+	/// \returns the size
+	GCss::Len Size();
 	/// \returns the tabsize in pixels
 	int TabSize();
 	/// \returns the quality setting
@@ -184,7 +189,9 @@ class LgiClass GFont :
 	public GTypeFace
 {
 	friend class GFontSystem;
+	friend class GDisplayString;
 
+protected:
 	class GFontPrivate *d;
 
 	// Methods
@@ -193,13 +200,9 @@ class LgiClass GFont :
 	char16 *_ToUnicode(char *In, ssize_t &Len);
 	bool GetOwnerUnderline();
 
-	#if defined(WINNATIVE)
-	friend class GDisplayString;
-
-	void _Measure(int &x, int &y, OsChar *Str, int Len);
-	int _CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type);
-	void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
-	#endif
+	virtual void _Measure(int &x, int &y, OsChar *Str, int Len);
+	virtual int _CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type);
+	virtual void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
 
 public:
 	/// Construct from face/pt size.
@@ -207,8 +210,8 @@ public:
 	(
 		/// Font face name
 		const char *face = 0,
-		/// Point size of the font
-		int point = -1
+		/// Size of the font
+		GCss::Len size = GCss::LenInherit
 	);
 	/// Construct from OS font handle
 	GFont(OsFont Handle);
@@ -216,15 +219,15 @@ public:
 	GFont(GFontType &Type);
 	/// Copy constructor
 	GFont(GFont &Fnt);
-	~GFont();
+	virtual ~GFont();
 
 	/// Creates a new font handle with the specified face / pt size
-	bool Create
+	virtual bool Create
 	(
 		/// The new font face
 		const char *Face = 0,
 		/// The pt size
-		int PtSize = -1,
+		GCss::Len Size = GCss::LenInherit,
 		/// Creating a font for a particular surface (e.g. printing).
 		GSurface *pSurface = 0
 	);
@@ -239,16 +242,16 @@ public:
 	bool CreateFromCss(GCss *Css);
 
 	/// Clears any handles and memory associated with the object.
-	bool Destroy();
+	virtual bool Destroy();
 
 	/// Returns the OS font handle
-	OsFont Handle();
+	virtual OsFont Handle();
 
 	/// Copies the font
-	GFont &operator =(GFont &f);
+	virtual GFont &operator =(GFont &f);
 
 	/// Returns the pixel height of the font
-	int GetHeight();
+	virtual int GetHeight();
 
 	/// Gets the creation parameter passed in (0 by default).
 	GSurface *GetSurface();
@@ -407,8 +410,8 @@ class LgiClass GFontSystem : public GCapabilityClient
 
 private:
 	// System Font List
-	List<const char> AllFonts;
-	List<const char> SubFonts; // Fonts yet to be scanned for substitution
+	GString::Array AllFonts;
+	GString::Array SubFonts; // Fonts yet to be scanned for substitution
 
 	// Missing Glyph Substitution
 	uchar Lut[MAX_UNICODE+1];
@@ -424,7 +427,7 @@ public:
 	~GFontSystem();
 
 	/// Enumerate all installed fonts
-	bool EnumerateFonts(List<const char> &Fonts);
+	bool EnumerateFonts(GString::Array &Fonts);
 
 	/// Returns whether the current Lgi implementation supports glyph sub
 	bool GetGlyphSubSupport();
@@ -436,7 +439,7 @@ public:
 	GFont *GetGlyph
 	(
 		/// A utf-32 character
-		int u,
+		uint32 u,
 		/// The base font used for rendering
 		GFont *UserFont
 	);
@@ -444,6 +447,8 @@ public:
 	/// ideally it can render the whole thing. But the next best alternative is returned
 	/// when no font matches all characters in the string.
 	GFont *GetBestFont(char *Str);
+	/// Add a custom font to the glyph lookup table
+	bool AddFont(GAutoPtr<GFont> Fnt);
 
 	#ifdef __GTK_H__
 	

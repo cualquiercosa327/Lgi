@@ -33,6 +33,7 @@ class SslSocket :
 
 public:
 	static bool DebugLogging;
+	static GString Random(int Len);
 
 	SslSocket(GStreamI *logger = NULL, GCapabilityClient *caps = NULL, bool SslOnConnect = false, bool RawLFCheck = false);
 	~SslSocket();

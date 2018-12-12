@@ -1309,8 +1309,11 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 		return false;
 	}
 	
+	GString t = Root->Tag;
+	Root->SetTag(NULL);	
 	GAutoRefPtr<GXmlAlloc> Allocator(new XmlPoolAlloc);
 	Root->Allocator = Allocator;
+	Root->SetTag(t);
 
 	int64 Len = File->GetSize();
 	if (Len <= 0)

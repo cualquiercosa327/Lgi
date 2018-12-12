@@ -485,6 +485,9 @@
     <ClCompile Include="src\common\Lgi\LgiCommon.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Text\LUnicodeString.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">

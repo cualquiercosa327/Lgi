@@ -91,7 +91,6 @@ public:
 				GRect r = v->GetPos();
 				r.Offset(-r.x1, -r.y1);
 				r.x2++;
-				printf("pos=%s\n", r.GetStr());
 				v->SetPos(r);
 				
 				v->OnPosChange();
@@ -294,6 +293,9 @@ public:
 		MoveToCenter();
 		SetQuitOnClose(true);
 
+		Opts.SerializeFile(false);
+		SerializeState(&Opts, "WndPos", true);
+
 		#ifdef WINDOWS
 		SetIcon(MAKEINTRESOURCEA(IDI_ICON1));
 		#else
@@ -385,7 +387,6 @@ public:
 			Visible(true);
 		}
 
-		Opts.SerializeFile(false);
 		GXmlTag *f = Opts.LockTag(OPT_Folders, _FL);
 		if (!f)
 		{
@@ -394,17 +395,33 @@ public:
 		}
 		if (f)
 		{
+			bool Req[VcMax] = {0};
+			
 			for (GXmlTag *c = f->Children.First(); c; c = f->Children.Next())
+			{
 				if (c->IsTag(OPT_Folder))
-					Tree->Insert(new VcFolder(this, c));
+				{
+					auto f = new VcFolder(this, c);
+				
+					Tree->Insert(f);
+					
+					if (!Req[f->GetType()])
+					{
+						Req[f->GetType()] = true;
+						f->GetVersion();
+					}
+				}
+			}
 			Opts.Unlock();
 		}
-
+		
 		SetPulse(200);
 	}
 
 	~App()
 	{
+		SerializeState(&Opts, "WndPos", false);
+
 		GXmlTag *f = Opts.LockTag(OPT_Folders, _FL);
 		if (f)
 		{
@@ -583,7 +600,17 @@ public:
 				Tree->GetAll(Folders);
 				for (auto f : Folders)
 				{
-					f->Pull();
+					f->Pull(LogSilo);
+				}
+				break;
+			}
+			case IDC_STATUS:
+			{
+				GArray<VcFolder*> Folders;
+				Tree->GetAll(Folders);
+				for (auto f : Folders)
+				{
+					f->FolderStatus();
 				}
 				break;
 			}
