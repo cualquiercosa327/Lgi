@@ -1689,6 +1689,7 @@ struct DumpBinThread : public LThread
 {
 	GStream *Out;
 	GString InFile;
+	bool IsLib;
 
 public:
 	DumpBinThread(GStream *out, GString file) : LThread("DumpBin.Thread")
@@ -1696,6 +1697,10 @@ public:
 		Out = out;
 		InFile = file;
 		DeleteOnExit = true;
+
+		auto Ext = LgiGetExtension(InFile);
+		IsLib = Ext && !stricmp(Ext, "lib");
+
 		Run();
 	}
 
@@ -1786,22 +1791,58 @@ public:
 	{
 		GString Args;
 		GStringPipe p;
-		Args.Printf("/exports \"%s\"", InFile.Get());
+
+		if (IsLib)
+			Args.Printf("/symbols \"%s\"", InFile.Get());
+		else
+			Args.Printf("/exports \"%s\"", InFile.Get());
 		DumpBin(Args, &p);
 	
 		GString Exp;
+
 		auto Sect = p.NewGStr().Replace("\r", "").Split("\n\n");
-		bool Ord = false;
-		for (auto &s : Sect)
+
+		if (IsLib)
 		{
-			if (s.Strip().Find("ordinal") == 0)
-				Ord = true;
-			else if (Ord)
+			GString::Array Lines, Funcs;
+			for (auto &s : Sect)
 			{
-				Exp = s;
-				break;
+				if (s.Find("COFF", 0, 100) == 0)
+				{
+					Lines = s.Split("\n");
+					break;
+				}
 			}
-			else Ord = false;
+
+			Funcs.SetFixedLength(false);
+			for (auto &l : Lines)
+			{
+				if (l.Length() < 34) continue;
+				const char *Type = l.Get() + 33;
+				if (!Strnicmp(Type, "External", 8))
+				{
+					auto Nm = l.RSplit("|",1).Last().Strip();
+					if (!strchr("@$.?", Nm(0)))
+						Funcs.New() = Nm;
+				}
+			}
+
+			Exp = GString("\n").Join(Funcs);
+		}
+		else
+		{
+			bool Ord = false;
+			for (auto &s : Sect)
+			{
+				if (s.Strip().Find("ordinal") == 0)
+					Ord = true;
+				else if (Ord)
+				{
+					Exp = s;
+					break;
+				}
+				else Ord = false;
+			}
 		}
 
 		return Exp;
@@ -1809,8 +1850,11 @@ public:
 
 	int Main()
 	{
-		auto Deps = Dependencies();
-		Out->Print("Dependencies:\n\t%s\n\n", GString("\n\t").Join(Deps).Get());
+		if (!IsLib)
+		{
+			auto Deps = Dependencies();
+			Out->Print("Dependencies:\n\t%s\n\n", GString("\n\t").Join(Deps).Get());
+		}
 
 		auto Arch = GetArch();
 		if (Arch)
@@ -1844,15 +1888,8 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		else if
 		(
 			LgiIsFileNameExecutable(Files[i])
-			/*
-			ext
-			&&
-			(
-				!stricmp(ext, "dll")
-				||
-				!stricmp(ext, "node")
-			)
-			*/
+			||
+			!stricmp(ext, "lib")
 		)
 		{
 			// dumpbin /exports csp.dll
