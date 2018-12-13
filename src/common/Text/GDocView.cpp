@@ -25,6 +25,17 @@ GDocumentEnv::~GDocumentEnv()
 	}
 }
 
+int GDocumentEnv::NextUid()
+{
+	if (!Lock(_FL))
+		return -1;
+	int Uid = 0;
+	for (auto v : Viewers)
+		Uid = MAX(Uid, v->GetDocumentUid() + 1);
+	Unlock();
+	return Uid;
+}
+
 void GDocumentEnv::OnDone(GAutoPtr<LThreadJob> j)
 {
 	LoadJob *ld = dynamic_cast<LoadJob*>(j.Get());
@@ -35,7 +46,8 @@ void GDocumentEnv::OnDone(GAutoPtr<LThreadJob> j)
 			GDocView *View = NULL;
 			for (unsigned i=0; i<Viewers.Length(); i++)
 			{
-				if (Viewers[i]->GetDocumentUid() == ld->UserUid)
+				auto Uid = Viewers[i]->GetDocumentUid();
+				if (Uid == ld->UserUid)
 				{
 					View = Viewers[i];
 					break;

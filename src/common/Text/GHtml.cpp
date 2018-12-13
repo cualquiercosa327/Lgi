@@ -7082,7 +7082,12 @@ char16 *GHtml::NameW()
 
 bool GHtml::Name(const char *s)
 {
-	SetDocumentUid(GetDocumentUid()+1);
+	int Uid = -1;
+	if (Environment)
+		Uid = Environment->NextUid();
+	if (Uid < 0)
+		Uid = GetDocumentUid() + 1;
+	SetDocumentUid(Uid);
 
 	_Delete();
 	_New();
@@ -7201,6 +7206,13 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 									}
 								}
 							}
+						}
+						else
+						{
+							Html1::GTag *p = ToTag(r->Parent);
+							while (p->Parent)
+								p = ToTag(p->Parent);
+							int asd=0;
 						}
 					}
 					// else it's from another (historical) HTML control, ignore
