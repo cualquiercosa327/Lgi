@@ -2421,7 +2421,12 @@ int MailIMap::Fetch(bool ByUid,
 		while (!Done && Socket->IsOpen())
 		{
 			ssize_t r;
-			while (Socket->IsReadable(100))
+
+			// We don't wait for 'readable' with select here because
+			// a) The socket is in non-blocking mode and
+			// b) For OpenSSL connections 'readable' on the socket != can get bytes from 'read'.
+			//    Just try the read first and see if it gives you bytes, if not then 'select' on the socket.
+			while (true)
 			{
 				// Extend the buffer if getting used up
 				if (Buf.Length()-Used <= 256)
@@ -2433,7 +2438,7 @@ int MailIMap::Fetch(bool ByUid,
 				}
 
 				// Try and read bytes from server.
-				r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
+				r = Socket->Read(Buf.AddressOf(Used), Buf.Length()-Used-1); // -1 for NULL terminator
 				#if DEBUG_FETCH
 				LgiTrace("%s:%i - Fetch: r=%i, used=%i, buf=%i\n", _FL, r, Used, Buf.Length());
 				#endif
@@ -2447,7 +2452,11 @@ int MailIMap::Fetch(bool ByUid,
 					
 					LastActivity = LgiCurrentTime();
 				}
-				else break;
+				else
+				{
+					LgiSleep(1); // Don't eat the whole CPU...
+					break;
+				}
 				
 				if (Debug)
 					LgiTrace("%s:%i - Recv=%i\n", _FL, r);
@@ -2581,6 +2590,9 @@ int MailIMap::Fetch(bool ByUid,
 
 		Socket->IsBlocking(Blocking);			
 		CommandFinished();
+		#if DEBUG_FETCH
+		LgiTrace("%s:%i - Fetch finished, status=%i\n", _FL, Status);
+		#endif
 	}
 		
 	Unlock();
@@ -3465,21 +3477,10 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 
 	if (Lock(_FL))
 	{
-		#ifdef _DEBUG
-		uint64 Start = LgiCurrentTime();
-		#endif
-		bool Readable = Socket->IsReadable(Timeout);
-		#ifdef _DEBUG
-		uint64 End = LgiCurrentTime();
-		if (!Readable && (End - Start) < (Timeout * 0.8))
-		{
-			// LgiAssert(!"IsReadable is broken.");
-		}
-		#endif
-		if (Readable)
-		{
-			Read();
-		}
+		auto Blk = Socket->IsBlocking();
+		Socket->IsBlocking(false);
+		Read();
+		Socket->IsBlocking(Blk);
 
 		char *Dlg;
 		while ((Dlg = Dialog.First()))

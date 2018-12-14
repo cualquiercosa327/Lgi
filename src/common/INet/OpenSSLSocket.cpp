@@ -1218,7 +1218,10 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 				{
 					if (!Library->BIO_should_retry(Bio))
 						break;
-					LgiSleep(1);
+					if (d->IsBlocking)
+						LgiSleep(1);
+					else
+						break;
 				}
 				else
 				{
@@ -1248,7 +1251,10 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 			{
 				if (!Library->BIO_should_retry(Bio))
 					break;
-				LgiSleep(1);
+				if (d->IsBlocking)
+					LgiSleep(1);
+				else
+					break;
 			}
 			else
 			{
@@ -1272,7 +1278,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 			DebugTrace("%s:%i - ::Write closing %i\n", _FL, r);
 			Close();
 		}
-		else
+		else if (Err != SSL_ERROR_WANT_WRITE)
 		{
 			char Buf[256] = "";
 			char *e = Library->ERR_error_string(Err, Buf);
@@ -1311,7 +1317,10 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 DebugTrace("%s:%i - BIO_should_retry is false\n", _FL);
 							break;
 						}
-						LgiSleep(1);
+						if (d->IsBlocking)
+							LgiSleep(1);
+						else
+							break;
 					}
 					else
 					{
@@ -1340,7 +1349,10 @@ DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 DebugTrace("%s:%i - BIO_should_retry = %i\n", _FL, Retry);
 					if (!Retry)
 						break;
-					LgiSleep(1);
+					if (d->IsBlocking)
+						LgiSleep(1);
+					else
+						break;
 				}
 				else
 				{
@@ -1365,7 +1377,7 @@ DebugTrace("%s:%i - SSL_get_error = %i\n", _FL, Err);
 				DebugTrace("%s:%i - ::Read closing %i\n", _FL, r);
 				Close();
 			}
-			else
+			else if (Err != SSL_ERROR_WANT_READ)
 			{
 				char Buf[256];
 				char *e = Library->ERR_error_string(Err, Buf);
