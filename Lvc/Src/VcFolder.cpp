@@ -1579,7 +1579,7 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	if (Result)
 		return false;
 
-	if (Result == 0)
+	if (Result == 0 && GTreeItem::Select())
 	{
 		d->ClearFiles();
 
