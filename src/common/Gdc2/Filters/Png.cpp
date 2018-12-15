@@ -60,6 +60,8 @@ const char sLibrary[] =
 	#if defined(LINUX)
 		"libpng12"
 	#elif defined(MAC) || defined(BEOS)
+		"libpng15.15.4.0"
+	#elif defined(MAC)
 		"libpng"
 	#else
 		#if defined(__CYGWIN__)

@@ -1278,7 +1278,8 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 			DebugTrace("%s:%i - ::Write closing %i\n", _FL, r);
 			Close();
 		}
-		else if (Err != SSL_ERROR_WANT_WRITE)
+		else if (Err != SSL_ERROR_WANT_WRITE &&
+				 Err != SSL_ERROR_SYSCALL)
 		{
 			char Buf[256] = "";
 			char *e = Library->ERR_error_string(Err, Buf);
@@ -1377,7 +1378,8 @@ DebugTrace("%s:%i - SSL_get_error = %i\n", _FL, Err);
 				DebugTrace("%s:%i - ::Read closing %i\n", _FL, r);
 				Close();
 			}
-			else if (Err != SSL_ERROR_WANT_READ)
+			else if (Err != SSL_ERROR_WANT_READ &&
+					 Err != SSL_ERROR_SYSCALL)
 			{
 				char Buf[256];
 				char *e = Library->ERR_error_string(Err, Buf);

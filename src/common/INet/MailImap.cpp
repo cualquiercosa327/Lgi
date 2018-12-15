@@ -856,13 +856,24 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer, bool Continuation)
 	return false;
 }
 
-bool MailIMap::Read(GStreamI *Out)
+bool MailIMap::Read(GStreamI *Out, int Timeout)
 {
 	int Lines = 0;
 
 	while (!Lines && Socket)
 	{
 		ssize_t r = Socket->Read(Buffer, sizeof(Buffer));
+
+		if (Timeout > 0 && Socket->IsOpen() && r <= 0)
+		{
+			if (Socket->IsReadable(Timeout))
+			{
+				r = Socket->Read(Buffer, sizeof(Buffer));
+			}
+			else return false;
+		}
+
+
 		if (r > 0)
 		{
 			ReadBuf.Push(Buffer, r);
@@ -3479,7 +3490,7 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 	{
 		auto Blk = Socket->IsBlocking();
 		Socket->IsBlocking(false);
-		Read();
+		Read(NULL, Timeout);
 		Socket->IsBlocking(Blk);
 
 		char *Dlg;

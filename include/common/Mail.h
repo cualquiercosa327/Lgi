@@ -787,7 +787,7 @@ protected:
 	bool FillUidList();
 	bool WriteBuf(bool ObsurePass = false, const char *Buffer = 0, bool Continuation = false);
 	bool ReadResponse(int Cmd = -1, bool Plus = false);
-	bool Read(GStreamI *Out = 0);
+	bool Read(GStreamI *Out = 0, int Timeout = -1);
 	bool ReadLine();
 	bool IsResponse(const char *Buf, int Cmd, bool &Ok);
 	void CommandFinished();
