@@ -1743,7 +1743,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 					if (HasSelection())
 					{
-						d->DeleteSelection(Trans, NULL);
+						Changed = d->DeleteSelection(Trans, NULL);
 					}
 					else if (d->Cursor &&
 							 (b = d->Cursor->Blk))

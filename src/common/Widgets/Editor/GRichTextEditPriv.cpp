@@ -431,6 +431,11 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			MultiState->Copy(i++);
 			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
 		}
+		else
+		{
+			LgiAssert(0);
+			return Error(_FL, "Cursor outside start block.");
+		}
 
 		// 2) Delete any blocks between 'Start' and 'End'
 		if (i >= 0)
@@ -439,6 +444,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			{
 				GRichTextPriv::Block *b = Blocks[i];
 				b->CopyAt(0, -1, DelTxt);
+				printf("%s:%i - inter, %i\n", _FL, (int)i);
 				MultiState->Cut(i);
 				e--;
 			}
@@ -453,6 +459,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 		{
 			// 3) Delete any text up to the Cursor in the 'End' block
 			MultiState->Copy(i);
+			printf("%s:%i - end, %i-%i, %i\n", _FL, (int)0, (int)End->Offset, (int)End->Blk->Length());
 			End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
 		}
 
