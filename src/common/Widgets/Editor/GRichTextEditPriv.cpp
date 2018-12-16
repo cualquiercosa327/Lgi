@@ -431,6 +431,16 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			MultiState->Copy(i++);
 			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
 		}
+		else if (Start->Offset == StartLen)
+		{
+			// This can happen because there is an implied '\n' at the end of each block. The
+			// next block always starts on a new line. We just increment the index 'i' to avoid
+			// the next loop deleting the start block.
+			i++;
+
+			// If the start and end blocks can be merged, the new line will eventually get removed
+			// then. If not, then... well whatevs.
+		}
 		else
 		{
 			LgiAssert(0);
