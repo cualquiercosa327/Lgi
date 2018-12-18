@@ -599,9 +599,10 @@ int GSocket::Open(const char *HostAddr, int Port)
 					return 0;
 				}
 				
+				/* This seems complete unnecessary? -fret Dec 2018
 				#if defined(WIN32) || defined(BEOS)
 
-				Host = gethostbyaddr((const char*) &IpAddress, 4, AF_INET);
+				Host = c((const char*) &IpAddress, 4, AF_INET);
 				if (!Host)
 					Error();
 
@@ -619,6 +620,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 				);
 
 				#endif
+				*/
 			}
 			else
 			{
