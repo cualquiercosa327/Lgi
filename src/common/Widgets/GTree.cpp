@@ -1131,6 +1131,8 @@ List<GTreeItem>	*GTree::GetSelLst()
 
 void GTree::_Update(GRect *r, bool Now)
 {
+	if (!Lock(_FL))
+		return;
 	if (r)
 	{
 		GRect u = *r;
@@ -1143,36 +1145,42 @@ void GTree::_Update(GRect *r, bool Now)
 	{
 		Invalidate((GRect*)0, Now && !d->InPour);
 	}
+	Unlock();
 }
 
 void GTree::_UpdateBelow(int y, bool Now)
 {
-	GdcPt2 s = _ScrollPos();
-	GRect c = GetClient();
-	GRect u(c.x1, y - s.y + c.y1, X()-1, Y()-1);
-	Invalidate(&u, Now);
+	if (Lock(_FL))
+	{
+		GdcPt2 s = _ScrollPos();
+		GRect c = GetClient();
+		GRect u(c.x1, y - s.y + c.y1, X()-1, Y()-1);
+		Invalidate(&u, Now);
+		Unlock();
+	}
 }
 
 void GTree::ClearDs(int Col)
 {
-	// GTreeItem *n;
-	List<GTreeItem>::I it = Items.begin();
-	for (GTreeItem *i=*it; i; i=*++it)
+	if (Lock(_FL))
 	{
-		i->_ClearDs(Col);
+		List<GTreeItem>::I it = Items.begin();
+		for (GTreeItem *i=*it; i; i=*++it)
+			i->_ClearDs(Col);
+		Unlock();
 	}
 }
 
 GdcPt2 GTree::_ScrollPos()
 {
-	/*
-	int All = _Limit.y / TREE_BLOCK - 1;
-	int Visible = Y() / TREE_BLOCK;
-	*/
-	GdcPt2 Status;
+	GdcPt2 Status(0, 0);
 
-	Status.x = (HScroll) ? (int)HScroll->Value() : 0;
-	Status.y = (VScroll) ? (int)VScroll->Value() * TREE_BLOCK : 0;
+	if (Lock(_FL))
+	{
+		Status.x = (HScroll) ? (int)HScroll->Value() : 0;
+		Status.y = (VScroll) ? (int)VScroll->Value() * TREE_BLOCK : 0;
+		Unlock();
+	}
 
 	return Status;
 }
@@ -1183,51 +1191,56 @@ void GTree::_UpdateScrollBars()
 	if (!Processing)
 	{
 		Processing = true;
-
-		GdcPt2 Old = _ScrollPos();
 		
-		GRect Client = GetClient();
-		bool x = d->Limit.x > Client.X();
-		bool y = d->Limit.y > Client.Y();
-		SetScrollBars(x, y);
-		Client = GetClient();
-
-		// x scroll... in pixels
-		if (HScroll)
+		if (Lock(_FL))
 		{
-			HScroll->SetLimits(0, d->Limit.x-1);
-			HScroll->SetPage(Client.X());
+			GdcPt2 Old = _ScrollPos();
+			
+			GRect Client = GetClient();
+			bool x = d->Limit.x > Client.X();
+			bool y = d->Limit.y > Client.Y();
+			SetScrollBars(x, y);
+			Client = GetClient();
 
-			int Max = d->Limit.x - Client.X();
-			if (HScroll->Value() > Max)
+			// x scroll... in pixels
+			if (HScroll)
 			{
-				HScroll->Value(Max+1);
+				HScroll->SetLimits(0, d->Limit.x-1);
+				HScroll->SetPage(Client.X());
+
+				int Max = d->Limit.x - Client.X();
+				if (HScroll->Value() > Max)
+				{
+					HScroll->Value(Max+1);
+				}
 			}
-		}
 
-		// y scroll... in items
-		if (VScroll)
-		{
-			int All = d->Limit.y / TREE_BLOCK;
-			int Visible = Client.Y() / TREE_BLOCK;
-
-			VScroll->SetLimits(0, All - 1);
-			VScroll->SetPage(Visible);
-
-			/*
-			int Max = All - Visible + 1;
-			if (VScroll->Value() > Max)
+			// y scroll... in items
+			if (VScroll)
 			{
-				VScroll->Value(Max);
-			}
-			*/
-		}
+				int All = d->Limit.y / TREE_BLOCK;
+				int Visible = Client.Y() / TREE_BLOCK;
 
-		GdcPt2 New = _ScrollPos();
-		if (Old.x != New.x ||
-			Old.y != New.y)
-		{
-			Invalidate();
+				VScroll->SetLimits(0, All - 1);
+				VScroll->SetPage(Visible);
+
+				/* Why is this commented out? -fret Dec2018
+				
+				int Max = All - Visible + 1;
+				if (VScroll->Value() > Max)
+				{
+					VScroll->Value(Max);
+				}
+				*/
+			}
+
+			GdcPt2 New = _ScrollPos();
+			if (Old.x != New.x ||
+				Old.y != New.y)
+			{
+				Invalidate();
+			}
+			Unlock();
 		}
 
 		Processing = false;
@@ -1236,6 +1249,9 @@ void GTree::_UpdateScrollBars()
 
 void GTree::_OnSelect(GTreeItem *Item)
 {
+	if (!Lock(_FL))
+		return;
+
 	if
 	(
 		!MultiSelect()
@@ -1265,10 +1281,14 @@ void GTree::_OnSelect(GTreeItem *Item)
 	}
 
 	d->Selection.Insert(Item);
+	Unlock();
 }
 
 void GTree::_Pour()
 {
+	if (!Lock(_FL))
+		return;
+
 	d->InPour = true;
 	d->Limit.x = rItems.x1;
 	d->Limit.y = rItems.y1;
@@ -1301,28 +1321,40 @@ void GTree::_Pour()
 	_UpdateScrollBars();
 	d->LayoutDirty = false;
 	d->InPour = false;
+
+	Unlock();
 }
 
 // External methods and events
 void GTree::OnItemSelect(GTreeItem *Item)
 {
-	if (Item)
-	{
-		Item->OnSelect();
-		SendNotify(GNotifyItem_Select);
-	}
+	if (!Item)
+		return;
+
+	if (!Lock(_FL))
+		return NULL;
+
+	Item->OnSelect();
+	SendNotify(GNotifyItem_Select);
+
+	Unlock();
 }
 
 void GTree::OnItemExpand(GTreeItem *Item, bool Expand)
 {
+	if (!Lock(_FL))
+		return NULL;
 	if (Item)
-	{
 		Item->OnExpand(Expand);
-	}
+	Unlock();
 }
 
 GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 {
+	if (!Lock(_FL))
+		return NULL;
+	
+	GTreeItem *Ret = NULL;
 	if (i)
 	{
 		if (Down)
@@ -1356,7 +1388,7 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 				}
 			}
 
-			return n;
+			Ret = n;
 		}
 		else
 		{
@@ -1375,10 +1407,7 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 					}
 				}
 
-				if (n)
-				{
-					return n;
-				}
+				Ret = n;
 			}
 			else if (Index > 0)
 			{
@@ -1392,26 +1421,28 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 					}
 					else break;
 				}
-				return p;
+				
+				Ret = p;
 			}
 		}
 	}
 	
-	return 0;
+	Unlock();
+	return Ret;
 }
 
 bool GTree::OnKey(GKey &k)
 {
-	bool Status = false;
+	if (!Lock(_FL))
+		return false;
 	
+	bool Status = false;
 	GTreeItem *i = d->Selection.First();
 	if (!i)
 	{
 		i = Items.First();
 		if (i)
-		{
 			i->Select();
-		}
 	}
 
 	if (k.Down())
@@ -1530,6 +1561,7 @@ bool GTree::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
+					Unlock(); // before potentially being deleted...?
 					SendNotify(GNotify_DeleteKey);
 					// This might delete the item... so just return here.
 					return true;
@@ -1579,38 +1611,47 @@ bool GTree::OnKey(GKey &k)
 		i->OnKey(k);
 	}
 
+	Unlock();
 	return Status;
 }
 
 GTreeItem *GTree::ItemAtPoint(int x, int y, bool Debug)
 {
+	if (!Lock(_FL))
+		return NULL;
+
 	GdcPt2 s = _ScrollPos();
 
 	List<GTreeItem>::I it = Items.begin();
+	GTreeItem *Hit = NULL;
 	for (GTreeItem *i = *it; i; i=*++it)
 	{
-		GTreeItem *Hit = i->_HitTest(s.x + x, s.y + y, Debug);
+		Hit = i->_HitTest(s.x + x, s.y + y, Debug);
 		if (Hit)
-		{
-			return Hit;
-		}
+			break;
 	}
 
-	return 0;
+	Unlock();
+	return Hit;
 }
 
 bool GTree::OnMouseWheel(double Lines)
 {
+	if (!Lock(_FL))
+		return;
+
 	if (VScroll)
-	{
 		VScroll->Value(VScroll->Value() + (int)Lines);
-	}
 	
+	Unlock();
 	return true;
 }
 
 void GTree::OnMouseClick(GMouse &m)
 {
+	if (!Lock(_FL))
+		return;
+
 	d->CurrentClick = &m;
 
 	if (m.Down())
@@ -1698,12 +1739,16 @@ void GTree::OnMouseClick(GMouse &m)
 		}
 	}
 
-	d->CurrentClick = NULL;
+	d->CurrentClick = NULL;	
+	Unlock();
 }
 
 void GTree::OnMouseMove(GMouse &m)
 {
 	if (!IsCapturing())
+		return;
+
+	if (!Lock(_FL))
 		return;
 
 	switch (DragMode)
@@ -1758,19 +1803,29 @@ void GTree::OnMouseMove(GMouse &m)
 			break;
 		}
 	}
+
+	Unlock();
 }
 
 void GTree::OnPosChange()
 {
+	if (!Lock(_FL))
+		return;
+		
 	if (Columns.Length() == 0 &&
 		d->LastLayoutPx != GetClient().X())
 		d->LayoutDirty = true;
 	GLayout::OnPosChange();
 	_UpdateScrollBars();
+	
+	Unlock();
 }
 
 void GTree::OnPaint(GSurface *pDC)
 {
+	if (!Lock(_FL))
+		return;
+
 	#if 0 // coverage testing...
 	pDC->Colour(GColour(255, 0, 255));
 	pDC->Rectangle();
@@ -1879,6 +1934,8 @@ void GTree::OnPaint(GSurface *pDC)
 		pDC->Colour(LC_WORKSPACE, 24);
 		pDC->Rectangle(rItems.x1, d->Limit.y - s.y, rItems.x2, rItems.y2);
 	}
+	
+	Unlock();
 }
 
 int GTree::OnNotify(GViewI *Ctrl, int Flags)
@@ -1888,10 +1945,14 @@ int GTree::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_HSCROLL:
 		case IDC_VSCROLL:
 		{
-			if (Flags == GNotifyScrollBar_Create)
-				_UpdateScrollBars();
+			if (Lock(_FL))
+			{
+				if (Flags == GNotifyScrollBar_Create)
+					_UpdateScrollBars();
 
-			Invalidate();
+				Invalidate();
+				Unlock();
+			}
 			break;
 		}
 	}
@@ -1906,28 +1967,41 @@ GMessage::Result GTree::OnEvent(GMessage *Msg)
 
 GTreeItem *GTree::Insert(GTreeItem *Obj, int Pos)
 {
+	if (!Lock(_FL))
+		return NULL;
+		
 	GTreeItem *NewObj = GTreeNode::Insert(Obj, Pos);
 	if (NewObj)
 	{
 		NewObj->_SetTreePtr(this);
 	}
+	
+	Unlock();
 
 	return NewObj;
 }
 
 bool GTree::Remove(GTreeItem *Obj)
 {
-	if (Obj &&
-		Obj->Tree == this)
+	if (!Lock(_FL))
+		return false;
+		
+	bool Status = false;
+	if (Obj && Obj->Tree == this)
 	{
 		Obj->Remove();
-		return true;
+		Status = true;
 	}
-	return false;
+	
+	Unlock();
+	return Status;
 }
 
 void GTree::RemoveAll()
 {
+	if (!Lock(_FL))
+		return;
+		
 	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=*++it)
 	{
@@ -1935,21 +2009,31 @@ void GTree::RemoveAll()
 	}
 
 	Invalidate();
+	
+	Unlock();
 }
 
 void GTree::Empty()
 {
+	if (!Lock(_FL))
+		return NULL;
+		
 	GTreeItem *i;
 	while ((i = Items.First()))
 	{
 		Delete(i);
 	}
+	
+	Unlock();	
 }
 
 bool GTree::Delete(GTreeItem *Obj)
 {
 	bool Status = false;
 	
+	if (!Lock(_FL))
+		return false;
+		
 	if (Obj)
 	{
 		GTreeItem *i;
@@ -1963,11 +2047,15 @@ bool GTree::Delete(GTreeItem *Obj)
 		Status = true;
 	}
 	
+	Unlock();
 	return Status;
 }
 
 void GTree::OnPulse()
 {
+	if (!Lock(_FL))
+		return false;
+
 	if (d->DropTarget)
 	{
 		int64 p = LgiCurrentTime() - d->DropSelectTime;
@@ -2018,10 +2106,15 @@ void GTree::OnPulse()
 			}
 		}
 	}
+	
+	Unlock();
 }
 
 int GTree::GetContentSize(int ColumnIdx)
 {
+	if (!Lock(_FL))
+		return false;
+
 	int MaxPx = 0;
 	
 	List<GTreeItem>::I it = Items.begin();
@@ -2030,35 +2123,52 @@ int GTree::GetContentSize(int ColumnIdx)
 		int ItemPx = i->GetColumnSize(ColumnIdx);
 		MaxPx = MAX(ItemPx, MaxPx);
 	}
+
+	Unlock();
 	
 	return MaxPx;
 }
 
 LgiCursor GTree::GetCursor(int x, int y)
 {
-	GItemColumn *Resize, *Over;
+	if (!Lock(_FL))
+		return LCUR_Normal;
+
+	GItemColumn *Resize = NULL, *Over = NULL;
 	HitColumn(x, y, Resize, Over);
-	if (Resize)
-		return LCUR_SizeHor;
-	
-	return LCUR_Normal;
+
+	Unlock();
+	return (Resize) ? LCUR_SizeHor : LCUR_Normal;
 }
 
 void GTree::OnDragEnter()
 {
+	if (!Lock(_FL))
+		return;
+
 	InsideDragOp(true);
 	SetPulse(120);
+
+	Unlock();
 }
 
 void GTree::OnDragExit()
 {
+	if (!Lock(_FL))
+		return;
+
 	InsideDragOp(false);
 	SetPulse();
 	SelectDropTarget(0);
+
+	Unlock();
 }
 
 void GTree::SelectDropTarget(GTreeItem *Item)
 {
+	if (!Lock(_FL))
+		return;
+
 	if (Item != d->DropTarget)
 	{
 		bool Update = (d->DropTarget != 0) ^ (Item != 0);
@@ -2081,10 +2191,15 @@ void GTree::SelectDropTarget(GTreeItem *Item)
 			OnFocus(true);
 		}
 	}
+
+	Unlock();
 }
 
 bool GTree::Select(GTreeItem *Obj)
 {
+	if (!Lock(_FL))
+		return;
+
 	bool Status = false;
 	if (Obj && IsAttached())
 	{
@@ -2097,54 +2212,79 @@ bool GTree::Select(GTreeItem *Obj)
 		OnItemSelect(0);
 		Status = true;
 	}
+
+	Unlock();
 	return Status;
 }
 
 GTreeItem *GTree::Selection()
 {
-	return d->Selection.First();
+	if (!Lock(_FL))
+		return NULL;
+
+	auto s = d->Selection.First();
+	Unlock();
+	return s;
 }
 
 bool GTree::ForAllItems(std::function<void(GTreeItem*)> Callback)
 {
-	return ForEach(Callback) > 0;
+	if (!Lock(_FL))
+		return;
+
+	auto r = ForEach(Callback) > 0;
+	Unlock();
+	return r;
 }
 
 void GTree::OnItemClick(GTreeItem *Item, GMouse &m)
 {
-	if (Item)
-	{
-		Item->OnMouseClick(m);
-		if (!m.Ctrl() && !m.Shift())
-			SendNotify(GNotifyItem_Click);
-	}
+	if (!Item)
+		return;
+
+	if (!Lock(_FL))
+		return;
+
+	Item->OnMouseClick(m);
+	if (!m.Ctrl() && !m.Shift())
+		SendNotify(GNotifyItem_Click);
+
+	Unlock();
 }
 
 void GTree::OnItemBeginDrag(GTreeItem *Item, int Flags)
 {
-	if (Item)
-	{
-		GMouse m;
-		m.x = m.y = 0;
-		m.Target = NULL;
-		m.ViewCoords = false;
-		m.Flags = Flags;
-		Item->OnBeginDrag(m);
-	}
+	if (!Item)
+		return;
+
+	if (!Lock(_FL))
+		return;
+
+	GMouse m;
+	m.x = m.y = 0;
+	m.Target = NULL;
+	m.ViewCoords = false;
+	m.Flags = Flags;
+	Item->OnBeginDrag(m);
+
+	Unlock();
 }
 
 void GTree::OnFocus(bool b)
 {
+	if (!Lock(_FL))
+		return;
+
 	// errors during deletion of the control can cause 
 	// this to be called after the destructor
 	if (d)
 	{
 		List<GTreeItem>::I it = d->Selection.begin();
 		for (GTreeItem *i=*it; i; i=*++it)
-		{
 			i->Update();
-		}
 	}
+
+	Unlock();
 }
 
 static void GTreeItemUpdateAll(GTreeNode *n)
@@ -2158,14 +2298,24 @@ static void GTreeItemUpdateAll(GTreeNode *n)
 
 void GTree::UpdateAllItems()
 {
+	if (!Lock(_FL))
+		return;
+
 	d->LayoutDirty = true;
 	GTreeItemUpdateAll(this);
+
+	Unlock();
 }
 
 void GTree::SetVisualStyle(ThumbStyle Btns, bool JoiningLines)
 {
+	if (!Lock(_FL))
+		return;
+
 	d->Btns = Btns;
 	d->JoiningLines = JoiningLines;
 	Invalidate();
+
+	Unlock();
 }
 

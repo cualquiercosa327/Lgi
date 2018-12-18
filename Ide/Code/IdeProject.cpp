@@ -3420,6 +3420,9 @@ struct Dependency
 
 bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
+	if (!GetTree()->Lock(_FL))
+		return false;
+		
 	LHashTbl<StrKey<char>, Dependency*> Deps;
 	GAutoString Base = GetBasePath();
 	
@@ -3499,6 +3502,8 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	}
 	
 	Deps.DeleteObjects();
+	GetTree()->Unlock();
+	
 	return true;
 }
 
