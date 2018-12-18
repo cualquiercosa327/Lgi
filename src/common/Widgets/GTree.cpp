@@ -1332,7 +1332,7 @@ void GTree::OnItemSelect(GTreeItem *Item)
 		return;
 
 	if (!Lock(_FL))
-		return NULL;
+		return;
 
 	Item->OnSelect();
 	SendNotify(GNotifyItem_Select);
@@ -1343,7 +1343,7 @@ void GTree::OnItemSelect(GTreeItem *Item)
 void GTree::OnItemExpand(GTreeItem *Item, bool Expand)
 {
 	if (!Lock(_FL))
-		return NULL;
+		return;
 	if (Item)
 		Item->OnExpand(Expand);
 	Unlock();
@@ -1638,7 +1638,7 @@ GTreeItem *GTree::ItemAtPoint(int x, int y, bool Debug)
 bool GTree::OnMouseWheel(double Lines)
 {
 	if (!Lock(_FL))
-		return;
+		return false;
 
 	if (VScroll)
 		VScroll->Value(VScroll->Value() + (int)Lines);
@@ -2016,7 +2016,7 @@ void GTree::RemoveAll()
 void GTree::Empty()
 {
 	if (!Lock(_FL))
-		return NULL;
+		return;
 		
 	GTreeItem *i;
 	while ((i = Items.First()))
@@ -2054,7 +2054,7 @@ bool GTree::Delete(GTreeItem *Obj)
 void GTree::OnPulse()
 {
 	if (!Lock(_FL))
-		return false;
+		return;
 
 	if (d->DropTarget)
 	{
@@ -2198,7 +2198,7 @@ void GTree::SelectDropTarget(GTreeItem *Item)
 bool GTree::Select(GTreeItem *Obj)
 {
 	if (!Lock(_FL))
-		return;
+		return false;
 
 	bool Status = false;
 	if (Obj && IsAttached())
@@ -2230,7 +2230,7 @@ GTreeItem *GTree::Selection()
 bool GTree::ForAllItems(std::function<void(GTreeItem*)> Callback)
 {
 	if (!Lock(_FL))
-		return;
+		return false;
 
 	auto r = ForEach(Callback) > 0;
 	Unlock();
