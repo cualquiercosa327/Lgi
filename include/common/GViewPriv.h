@@ -76,14 +76,23 @@ public:
 	
 	int Main()
 	{
+		// auto ts = LgiCurrentTime();
+		
 		while (Loop && LgiApp)
 		{
 			auto s = Event.Wait(Length);
 			if (!Loop || s == LThreadEvent::WaitError)
 				break;
 			
-			if (View && !View->PostEvent(M_PULSE))
-				Loop = false;
+			if (View)
+			{
+				// auto now = LgiCurrentTime();
+				// printf("pulse %i of %i\n", (int)(now - ts), (int)Length);
+				if (!View->PostEvent(M_PULSE))
+					Loop = false;
+					
+				// ts = now;
+			}
 		}
 		
 		return 0;

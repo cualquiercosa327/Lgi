@@ -3490,7 +3490,19 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 	{
 		auto Blk = Socket->IsBlocking();
 		Socket->IsBlocking(false);
+		
+		#if 0 // def _DEBUG
+		auto Start = LgiCurrentTime();
+		#endif
 		Read(NULL, Timeout);
+		#if 0 // def _DEBUG
+		auto Time = LgiCurrentTime() - Start;
+		if (Timeout > 0 && Time < (uint64)(Timeout * 0.9))
+		{
+			printf("Short rd " LPrintfInt64 " of %i\n", Time, Timeout);
+		}
+		#endif
+		
 		Socket->IsBlocking(Blk);
 
 		char *Dlg;
