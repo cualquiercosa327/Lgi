@@ -231,6 +231,8 @@ public:
 	void OnPulse();
 	int GetContentSize(int ColumnIdx);
 	LgiCursor GetCursor(int x, int y);
+	bool Lock(const char *file, int line, int TimeOut = -1) override;
+	void Unlock() override;
 
 	/// Add a item to the tree
 	GTreeItem *Insert(GTreeItem *Obj = 0, int Pos = -1);
