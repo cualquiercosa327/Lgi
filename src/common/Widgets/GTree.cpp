@@ -1169,7 +1169,6 @@ void GTree::_UpdateBelow(int y, bool Now)
 	GRect c = GetClient();
 	GRect u(c.x1, y - s.y + c.y1, X()-1, Y()-1);
 	Invalidate(&u, Now);
-	Unlock();
 }
 
 void GTree::ClearDs(int Col)
