@@ -84,7 +84,7 @@ LgiExtern GLanguage *GFindLang
 
 /// Finds a language by it's OldId.
 /// \deprecated Use ::GFindLang in any new code.
-LgiExtern GLanguage *GFindOldLang(int OldId);
+LgiExtern GLanguage *GFindOldLang(int OldId) DEPRECATED_POST;
 
 ////////////////////////////////////////////////////////////////////
 // All the names of the controls as strings

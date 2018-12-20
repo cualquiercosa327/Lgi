@@ -826,6 +826,8 @@ struct IdleGluePtrs
 	void *Param;
 };
 
+#define CUSTOM_LOOP		0
+
 #if 0
 void IdleGlue(EventLoopTimerRef inTimer, void *inUserData)
 {
@@ -844,7 +846,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	if (Loop)
 	{
-		#if 1
+		#if CUSTOM_LOOP
 		// This impl allows for us to exit gracefully.
 		// NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		int Depth = ++d->RunDepth;
@@ -935,14 +937,23 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 void GApp::Exit(int Code)
 {
-	if (Code)
+	#if CUSTOM_LOOP
+	if (!Code)
+	{
+		if (d->RunDepth > 0)
+			d->RunDepth--;
+	}
+	#else
+	if (!Code)
+	{
+		DeleteObj(AppWnd);
+		[NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
+	}
+	else
+	#endif
 	{
 		// hard exit
 		::exit(Code);
-	}
-	else if (d->RunDepth > 0)
-	{
-		d->RunDepth--;
 	}
 }
 
