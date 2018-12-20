@@ -614,6 +614,8 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		}
 	}
 	
+	LgiSleep(1);
+	
 	return TRUE;
 }
 

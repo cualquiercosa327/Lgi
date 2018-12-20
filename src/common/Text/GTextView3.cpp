@@ -32,7 +32,7 @@
 #define PROFILE_PAINT				0
 #define DRAW_LINE_BOXES				0
 #define WRAP_POUR_TIMEOUT			90 // ms
-#define PULSE_TIMEOUT				100 // ms
+#define PULSE_TIMEOUT				250 // ms
 #define CURSOR_BLINK				1000 // ms
 
 #define ALLOC_BLOCK					64

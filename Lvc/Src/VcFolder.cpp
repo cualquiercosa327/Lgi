@@ -1410,6 +1410,11 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 				if (Ln.Lower().Find("error:") >= 0)
 				{
 				}
+				else if (Ln.Find("client is too old") >= 0)
+				{
+					OnCmdError(s, "Client too old.");
+					return false;
+				}
 				else if (Strchr(" \t", Type) ||
 						Ln.Find("Summary of conflicts") >= 0)
 				{

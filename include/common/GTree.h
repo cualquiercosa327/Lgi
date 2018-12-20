@@ -201,13 +201,13 @@ protected:
 	GTreeItem *GetAdjacent(GTreeItem *From, bool Down);
 	void OnDragEnter();
 	void OnDragExit();
-	void ClearDs(int Col);
+	void ClearDs(int Col) override;
 	
 public:
 	GTree(int id, int x = 0, int y = 0, int cx = 100, int cy = 100, const char *name = NULL);
 	~GTree();
 
-	const char *GetClass() { return "GTree"; }
+	const char *GetClass() override { return "GTree"; }
 
 	/// Called when an item is clicked
 	virtual void OnItemClick(GTreeItem *Item, GMouse &m);
@@ -219,18 +219,20 @@ public:
 	virtual void OnItemSelect(GTreeItem *Item);
 	
 	// Implementation
-	void OnMouseClick(GMouse &m);
-	void OnMouseMove(GMouse &m);
-	bool OnMouseWheel(double Lines);
-	void OnPaint(GSurface *pDC);
-	void OnFocus(bool b);
-	void OnPosChange();
-	bool OnKey(GKey &k);
-	int OnNotify(GViewI *Ctrl, int Flags);
-	GMessage::Result OnEvent(GMessage *Msg);
-	void OnPulse();
-	int GetContentSize(int ColumnIdx);
-	LgiCursor GetCursor(int x, int y);
+	void OnMouseClick(GMouse &m) override;
+	void OnMouseMove(GMouse &m) override;
+	bool OnMouseWheel(double Lines) override;
+	void OnPaint(GSurface *pDC) override;
+	void OnFocus(bool b) override;
+	void OnPosChange() override;
+	bool OnKey(GKey &k) override;
+	int OnNotify(GViewI *Ctrl, int Flags) override;
+	GMessage::Result OnEvent(GMessage *Msg) override;
+	void OnPulse() override;
+	int GetContentSize(int ColumnIdx) override;
+	LgiCursor GetCursor(int x, int y) override;
+	bool Lock(const char *file, int line, int TimeOut = -1) override;
+	void Unlock() override;
 
 	/// Add a item to the tree
 	GTreeItem *Insert(GTreeItem *Obj = 0, int Pos = -1);
@@ -288,7 +290,7 @@ public:
 	/// Remove reference to items (doesn't free the items)
 	void RemoveAll();
 	/// Call 'Update' on all tree items
-	void UpdateAllItems();
+	void UpdateAllItems() override;
 	
 	// Visual style
 	enum ThumbStyle
