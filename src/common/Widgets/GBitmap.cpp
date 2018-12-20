@@ -81,7 +81,7 @@ GBitmap::GBitmap(int id, int x, int y, char *FileName, bool Async)
 		if (!Async)
 		{
 		#endif
-			pDC = LoadDC(FileName);
+			pDC = GdcD->Load(FileName);
 			if (pDC)
 			{
 				r.Dimension(pDC->X()+4, pDC->Y()+4);

@@ -1276,11 +1276,11 @@ LgiFunc GSurface *ConvertDC
 
 /// Wrapper around GdcDevice::Load
 /// \deprecated Use GdcDevice::Load directly in new code.
-LgiFunc GSurface *LoadDC(const char *Name, bool UseOSLoader = true);
+LgiFunc GSurface *LoadDC(const char *Name, bool UseOSLoader = true) DEPRECATED_POST;
 
 /// Wrapper around GdcDevice::Save
 /// \deprecated Use GdcDevice::Save directly in new code.
-LgiFunc bool WriteDC(const char *Name, GSurface *pDC);
+LgiFunc bool WriteDC(const char *Name, GSurface *pDC) DEPRECATED_POST;
 
 /// Converts a colour to a different bit depth
 LgiFunc COLOUR CBit(int DstBits, COLOUR c, int SrcBits = 24, GPalette *Pal = 0);

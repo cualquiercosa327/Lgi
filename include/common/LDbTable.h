@@ -73,7 +73,7 @@ public:
 
 	// Fields
 	size_t GetFields();
-	LDbField &GetField(int Idx);
+	LDbField &GetField(size_t Idx);
 
 	// Row level op
 	bool Delete();

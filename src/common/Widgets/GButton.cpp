@@ -166,7 +166,7 @@ bool GButton::SetImage(const char *FileName)
 {
 	if (d->OwnImage)
 		DeleteObj(d->Image);
-	d->Image = LoadDC(FileName);
+	d->Image = GdcD->Load(FileName);
 	Invalidate();
 	return d->OwnImage = d->Image != NULL;
 }

@@ -150,7 +150,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 		
 		if (stristr(Mt, "image/"))
 		{
-			j->pDC.Reset(LoadDC(p));
+			j->pDC.Reset(GdcD->Load(p));
 			return LoadImmediate;
 		}
 		

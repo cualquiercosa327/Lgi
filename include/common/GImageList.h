@@ -88,7 +88,7 @@ public:
 	
 	bool LoadImageList(char *File, int x, int y)
 	{
-		GSurface *pDC = LoadDC(File);
+		GSurface *pDC = GdcD->Load(File);
 		if (pDC)
 		{
 			ImageList = new GImageList(x, y, pDC);

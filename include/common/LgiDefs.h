@@ -612,24 +612,25 @@ enum LgiSystemPath
 };
 
 // Deprecated method defines
-#ifdef __GNUC__
-#define DEPRECATED_PRE
-#define DEPRECATED_POST	__attribute__((deprecated))
+#if defined(__GNUC__) || defined(__clang__)
+	#define DEPRECATED_PRE
+	#define DEPRECATED_POST	__attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define DEPRECATED_PRE	__declspec(deprecated)
-#define DEPRECATED_POST 
+	#define DEPRECATED_PRE	__declspec(deprecated)
+	#define DEPRECATED_POST
 #else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define DEPRECATED_PRE
-#define DEPRECATED_POST
+	#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+	#define DEPRECATED_PRE
+	#define DEPRECATED_POST
 #endif
+
 //
 #ifdef _DEBUG
-#define DeclDebugArgs				, const char *_file, int _line
-#define PassDebugArgs				, __FILE__, __LINE__
+	#define DeclDebugArgs				, const char *_file, int _line
+	#define PassDebugArgs				, __FILE__, __LINE__
 #else
-#define DeclDebugArgs
-#define PassDebugArgs
+	#define DeclDebugArgs
+	#define PassDebugArgs
 #endif
 
 #define _FL							__FILE__, __LINE__
