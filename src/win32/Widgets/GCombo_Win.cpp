@@ -358,7 +358,7 @@ int GCombo::SysOnNotify(int Msg, int Code)
 			{
 				uint64 Old = d->Value;
 				if (Value() != Old)
-					SendNotify((int)d->Value);
+					SendNotify(GNotifyValueChanged);
 				break;
 			}
 			case CBN_DROPDOWN:
