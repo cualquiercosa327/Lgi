@@ -192,7 +192,7 @@ public:
 	{
 		self.d = priv;
 		
-		#if 0
+		#if 1
 		auto old = self.contentView.frame;
 		
 		self.content = new GWindowContent(priv->Wnd);
@@ -204,7 +204,7 @@ public:
 		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 		*self.content = ctrl.view;
 		self.contentViewController = ctrl;
-		//[ctrl release];
+		[ctrl release];
 		#endif
 	}
 	return self;
@@ -212,6 +212,7 @@ public:
 
 - (void)dealloc
 {
+	delete self.content;
 	[super dealloc];
 	printf("LNsWindow dealloc...\n");
 }
@@ -326,8 +327,8 @@ GWindow::~GWindow()
 		LNsWindow *w = objc_dynamic_cast(LNsWindow, Wnd.p);
 		if (w)
 			w.d = NULL;
-		auto c = Wnd.p.retainCount;
-		printf("~GWindow %i\n", (int)c);
+		// auto c = Wnd.p.retainCount;
+		// printf("~GWindow %i\n", (int)c);
 		[Wnd.p release];
 		Wnd.p = nil;
 	}
@@ -1736,8 +1737,6 @@ void GWindow::PourAll()
 			
 			if (v->Pour(Client))
 			{
-				// GRect p = v->GetPos();
-				
 				if (!v->Visible())
 				{
 					v->Visible(true);

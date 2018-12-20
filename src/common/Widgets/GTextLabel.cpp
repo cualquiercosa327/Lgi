@@ -217,6 +217,8 @@ void GTextLabel::OnPosChange()
 {
 	if (d->PrevX != X())
 		d->Layout(GetFont(), X());
+	
+	printf("%s %s %i\n", GetClass(), GetPos().GetStr(), Visible());
 }
 
 bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)

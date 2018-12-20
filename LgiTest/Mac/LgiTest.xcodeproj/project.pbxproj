@@ -88,7 +88,7 @@
 				347417C52178B76D0097AD99 /* Lgi */,
 				347417A22178B50B0097AD99 /* Supporting Files */,
 			);
-			path = LgiTest;
+			name = LgiTest;
 			sourceTree = "<group>";
 		};
 		347417A22178B50B0097AD99 /* Supporting Files */ = {
