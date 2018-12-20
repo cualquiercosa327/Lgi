@@ -71,7 +71,7 @@ GImageList *LgiLoadImageList(const char *File, int x, int y)
 	char *Path = FileExists(File) ? NewStr(File) : LgiFindFile(File);
 	if (Path)
 	{
-		GSurface *pDC = LoadDC(Path);
+		GSurface *pDC = GdcD->Load(Path);
 		if (pDC)
 		{
 			ImgList = new GImageList(x, y, pDC);
@@ -1427,7 +1427,7 @@ bool GToolBar::SetBitmap(char *File, int bx, int by)
 {
 	bool Status = false;
 
-	GSurface *pDC = LoadDC(File);
+	GSurface *pDC = GdcD->Load(File);
 	if (pDC)
 	{
 		Status = SetDC(pDC, bx, by);

@@ -188,7 +188,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	GAutoString File(LgiFindFile(Str));
 	if (File)
 	{
-		GSurface *i = LoadDC(File);
+		GSurface *i = GdcD->Load(File);
 		if (i)
 		{
 			if (GdcD->GetBits() != i->GetBits())

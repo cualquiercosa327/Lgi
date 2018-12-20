@@ -194,12 +194,13 @@ public:
 			tab->GetCss(true)->Color("red");
 			t->OnStyleChange();
 
-			#elif 0
+			#elif 1
 
 			AddView(Tbl = new GTableLayout(100));
 			GLayoutCell *c = Tbl->GetCell(0, 0);
 
-			c->Add(Txt = new GTextLabel(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
+			c->Add(Txt = new GTextLabel(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. "
+																"It has multiple\nlines to test wrapping."));
 			Txt->SetWrap(true);
 			//Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
 			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);
@@ -224,18 +225,6 @@ public:
 			AttachChildren();
 			Visible(true);
 		}
-	}
-
-	void OnPosChange()
-	{
-		if (Tbl)
-		{
-			GRect c = GetClient();
-			c.Size(10, 10);
-			Tbl->SetPos(c);
-		}
-		
-		GWindow::OnPosChange();
 	}
 
 	void OnPaint(GSurface *pDC)

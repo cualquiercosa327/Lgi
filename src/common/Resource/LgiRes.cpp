@@ -214,6 +214,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 				{
 					Res->AddLang(Name);
 				}
+				/*
 				else if (	Name[0] == 'T' &&
 							Name[1] == 'e' && 
 							Name[2] == 'x' && 
@@ -231,6 +232,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 						}
 					}
 				}
+				*/
 			}
 		}
 

@@ -56,9 +56,6 @@ public:
 #define IDC_FR_REPLACE				21007
 
 /// Replace dialog
-/// 
-/// \returns DoModal will return one of #IDC_FR_FIND, 
-/// #IDC_FR_REPLACE, #IDCANCEL or #IDOK (which means 'Replace All', the default action)
 class LgiClass GReplaceDlg : public GFindReplaceCommon
 {
 	class GReplaceDlgPrivate *d;
@@ -84,6 +81,9 @@ public:
 
 	void OnCreate();
 	void OnPosChange();
+
+	/// \returns DoModal will return one of #IDC_FR_FIND,
+	/// #IDC_FR_REPLACE, #IDCANCEL or #IDOK (which means 'Replace All', the default action)
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
 

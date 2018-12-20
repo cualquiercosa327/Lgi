@@ -192,7 +192,7 @@ public:
 	{
 		self.d = priv;
 		
-		#if 0
+		#if 1
 		auto old = self.contentView.frame;
 		
 		self.content = new GWindowContent(priv->Wnd);
@@ -204,7 +204,7 @@ public:
 		ctrl.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 		*self.content = ctrl.view;
 		self.contentViewController = ctrl;
-		//[ctrl release];
+		[ctrl release];
 		#endif
 	}
 	return self;
@@ -212,6 +212,7 @@ public:
 
 - (void)dealloc
 {
+	delete self.content;
 	[super dealloc];
 	printf("LNsWindow dealloc...\n");
 }
@@ -296,7 +297,7 @@ GWindow::GWindow() : GView(NULL)
 	
 	_Lock = new LMutex;
 	
-	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	LAutoPool Pool;
 	
 	GRect pos(200, 200, 200, 200);
 	NSRect frame = pos;
@@ -309,12 +310,11 @@ GWindow::GWindow() : GView(NULL)
 		[Wnd.p makeKeyAndOrderFront:NSApp];
 		Wnd.p.delegate = Delegate;
 	}
-	
-	[pool release];
 }
 
 GWindow::~GWindow()
 {
+	LAutoPool Pool;
 	if (LgiApp->AppWnd == this)
 	{
 		LgiApp->AppWnd = 0;
@@ -327,8 +327,8 @@ GWindow::~GWindow()
 		LNsWindow *w = objc_dynamic_cast(LNsWindow, Wnd.p);
 		if (w)
 			w.d = NULL;
-		auto c = Wnd.p.retainCount;
-		printf("~GWindow %i\n", (int)c);
+		// auto c = Wnd.p.retainCount;
+		// printf("~GWindow %i\n", (int)c);
 		[Wnd.p release];
 		Wnd.p = nil;
 	}
@@ -496,6 +496,7 @@ static void _ClearChildHandles(GViewI *v)
 
 void GWindow::Quit(bool DontDelete)
 {
+	LAutoPool Pool;
 	if (_QuitOnClose)
 	{
 		LgiCloseApp();
@@ -554,6 +555,7 @@ void GWindow::OnFrontSwitch(bool b)
 
 bool GWindow::Visible()
 {
+	LAutoPool Pool;
 	if (!Wnd)
 		return false;
 	
@@ -562,6 +564,7 @@ bool GWindow::Visible()
 
 void GWindow::Visible(bool i)
 {
+	LAutoPool Pool;
 	if (!Wnd)
 		return;
 
@@ -1490,13 +1493,14 @@ void GWindow::SetDefault(GViewI *v)
 
 bool GWindow::Name(const char *n)
 {
+	LAutoPool Pool;
 	bool Status = GBase::Name(n);
 	
 	if (Wnd)
 	{
 		NSString *ns = [NSString stringWithCString:n encoding:NSUTF8StringEncoding];
 		Wnd.p.title = ns;
-		[ns release];
+		//[ns release];
 	}
 	
 	return Status;
@@ -1509,6 +1513,7 @@ char *GWindow::Name()
 
 GRect &GWindow::GetClient(bool ClientSpace)
 {
+	LAutoPool Pool;
 	static GRect r;
 	if (Wnd)
 	{
@@ -1580,6 +1585,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 
 GRect &GWindow::GetPos()
 {
+	LAutoPool Pool;
 	if (Wnd)
 		Pos = [Wnd.p frame];
 	
@@ -1588,6 +1594,7 @@ GRect &GWindow::GetPos()
 
 bool GWindow::SetPos(GRect &p, bool Repaint)
 {
+	LAutoPool Pool;
 	int x = GdcD->X();
 	int y = GdcD->Y();
 	
@@ -1730,8 +1737,6 @@ void GWindow::PourAll()
 			
 			if (v->Pour(Client))
 			{
-				// GRect p = v->GetPos();
-				
 				if (!v->Visible())
 				{
 					v->Visible(true);
@@ -1884,6 +1889,7 @@ void GWindow::OnTrayClick(GMouse &m)
 
 bool GWindow::Obscured()
 {
+	LAutoPool Pool;
 	if (!Wnd)
 		return false;
 

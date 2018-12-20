@@ -176,6 +176,7 @@ const char *GView::GetClass()
 
 void GView::_Delete()
 {
+	LAutoPool Pool;
 	if (_Over == this) _Over = 0;
 	if (_Capturing == this) _Capturing = 0;
 
@@ -206,7 +207,6 @@ void GView::_Delete()
 
 	if (_View)
 	{
-		printf("%s::_Delete %i\n", GetClass(), (int)_View.p.retainCount);
 		[_View.p release];
 		_View.p = nil;
 	}
@@ -395,6 +395,7 @@ GRect GView::Flip(GRect p)
 
 void GView::OnCocoaLayout()
 {
+	LAutoPool Pool;
 	GRect f = Flip(Pos);
 	GRect r = _View.p.frame;
 	if (f != r)
@@ -434,6 +435,7 @@ void GView::OnCocoaLayout()
 
 bool GView::SetPos(GRect &p, bool Repaint)
 {
+	LAutoPool Pool;
 	Pos = p;
 
 	if (_View)
@@ -463,6 +465,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 
 bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 {
+	LAutoPool Pool;
 	for (GViewI *v = this; v; v = v->GetParent())
 	{
 		if (!v->Visible())
@@ -606,16 +609,9 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 void GView::SetPulse(int Length)
 {
-	if (d->Pulse)
-	{
-		d->Pulse->Delete();
-		d->Pulse = 0;
-	}
-	
+	DeleteObj(d->Pulse);
 	if (Length > 0)
-	{
 		d->Pulse = new GPulseThread(this, Length);
-	}
 }
 
 LgiCursor GView::GetCursor(int x, int y)
@@ -736,6 +732,7 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 
 bool GView::IsAttached()
 {
+	LAutoPool Pool;
 	if (GetWindow() == this)
 		return WindowHandle() != 0;
 
@@ -931,6 +928,7 @@ static int GetIsChar(GKey &k, int mods)
 
 bool GView::_Attach(GViewI *parent)
 {
+	LAutoPool Pool;
 	if (!parent)
 	{
 		LgiAssert(0);
@@ -970,6 +968,8 @@ bool GView::_Attach(GViewI *parent)
 			GRect f = Flip(Pos);
 			[_View.p setFrame:f];
 			[ph addSubview:_View.p];
+			
+			OnCreate();
 		}
 	}
 	else
@@ -1005,6 +1005,7 @@ bool GView::Attach(GViewI *parent)
 
 bool GView::Detach()
 {
+	LAutoPool Pool;
 	bool Status = false;
 
 	// Detach view

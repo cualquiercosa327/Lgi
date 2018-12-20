@@ -1193,6 +1193,7 @@ void GView::Visible(bool v)
 		
 		#elif defined(COCOA)
 
+			LAutoPool Pool;
 			[_View.p setHidden:!v];
 
 		#elif defined(LGI_CARBON)
@@ -1237,6 +1238,7 @@ bool GView::Focus()
 	if (w)
 	{
 		#if COCOA
+		LAutoPool Pool;
 		if (_View)
 			Has = [NSView focusView] == _View.p;
 		#else
@@ -1307,6 +1309,7 @@ void GView::Focus(bool i)
 
 		#elif defined COCOA
 		
+			LAutoPool Pool;
 			GWindow *w = GetWindow();
 			if (w)
 			{

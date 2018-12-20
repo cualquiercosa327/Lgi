@@ -462,7 +462,7 @@ size_t LDbRow::GetFields()
 	return d->Fields.Length();
 }
 
-LDbField &LDbRow::GetField(int Idx)
+LDbField &LDbRow::GetField(size_t Idx)
 {
 	return d->Fields[Idx];
 }
@@ -584,7 +584,7 @@ bool LDbRow::CopyProps(GDataPropI &p)
 	for (size_t i=0; i<GetFields(); i++)
 	{
 		LDbField &f = GetField(i);
-		Store3Status Status;
+		Store3Status Status = Store3Error;
 		if (f.Type == GV_INT32)
 			Status = SetInt(f.Id, p.GetInt(f.Id));
 		else if (f.Type == GV_STRING)

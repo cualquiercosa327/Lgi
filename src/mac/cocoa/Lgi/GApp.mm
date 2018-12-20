@@ -348,190 +348,6 @@ public:
 	}
 };
 
-#if 0
-pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
-{
-	OSStatus result = eventNotHandledErr;
-	
-	GApp *a = (GApp*)inUserData;
-	if (!a) return result;
-	
-	UInt32 eventClass = GetEventClass( inEvent );
-	UInt32 eventKind = GetEventKind( inEvent );
-	
-#if 0
-	UInt32 ec = LgiSwap32(eventClass);
-	UInt32 ek = LgiSwap32(eventKind);
-	printf("AppProc %4.4s - %u\n", (char*)&ec, (unsigned)eventKind);
-#endif
-	
-	switch (eventClass)
-	{
-		case kEventClassCommand:
-		{
-			switch (eventKind)
-			{
-				case kEventCommandProcess:
-				{
-					HICommand command;
-					result = GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
-					if (result)
-						printf("%s:%i - GetEventParameter failed with %i\n", _FL, (int)result);
-					else if (a->AppWnd)
-					{
-						a->AppWnd->OnTrayMenuResult(command.commandID);
-					}
-				}
-			}
-			break;
-		}
-		case kEventClassApplication:
-		{
-			switch (eventKind)
-			{
-				case kEventAppGetDockTileMenu:
-				{
-					if (a->AppWnd)
-					{
-						GSubMenu s;
-						a->AppWnd->OnTrayMenu(s);
-						MenuRef gDockMenu = s.Release();
-						CFRetain(gDockMenu);
-						SetEventParameter(	inEvent,
-										  kEventParamMenuRef,
-										  typeMenuRef,
-										  sizeof(MenuRef),
-										  &gDockMenu);
-						result = noErr;
-					}
-					break;
-				}
-				case kEventAppActivated:
-				case kEventAppFrontSwitched:
-				{
-					if (eventKind == kEventAppFrontSwitched)
-					{
-						ProcessSerialNumber frontProcess, ourProcess;
-						
-						GetCurrentProcess(&ourProcess);
-						
-						// Get the new process ID out
-						if (GetEventParameter(inEvent,
-											  kEventParamProcessID,
-											  typeProcessSerialNumber,
-											  NULL,
-											  sizeof(ProcessSerialNumber),
-											  NULL,
-											  &frontProcess) == noErr)
-						{
-							if (frontProcess.highLongOfPSN != ourProcess.highLongOfPSN ||
-								frontProcess.lowLongOfPSN != ourProcess.lowLongOfPSN)
-								break;
-						}
-					}
-					
-					GWindow *a = LgiApp->AppWnd;
-					if (a)
-					{
-						/*
-						 printf("%s:%i - onfrontswitch(true) %x act=%i switch=%i\n", _FL,
-							eventKind,
-							eventKind == kEventAppActivated,
-							eventKind == kEventAppFrontSwitched);
-						 */
-						a->OnFrontSwitch(true);
-					}
-					
-					result = noErr;
-					break;
-				}
-			}
-			break;
-		}
-	}
-	
-	return result;
-}
-
-pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
-{
-	OSErr err = eventNotHandledErr;
-	GApp *App = (GApp*) handlerRefcon;
-	
-	printf("********** AppleEventProc called ***************\n");
-#if 0
-	LgiTrace("AppleEvent received\n");
-	
-	OSType aeID = typeWildCard;
-	OSType aeClass = typeWildCard;
-	
-	AEGetAttributePtr(ae, keyEventClassAttr, typeType, 0, &aeClass, sizeof(aeClass), 0);
-	AEGetAttributePtr(ae, keyEventIDAttr,    typeType, 0, &aeID,    sizeof(aeID), 0);
-	
-	uint32 id = LgiSwap32(aeID), cls = LgiSwap32(aeClass);
-	
-	if (aeClass == kInternetEventClass &&
-		aeID    == kAEGetURL)
-	{
-		DescType type;
-		Size dataSize = 0, size = 0;
-		
-		err = AESizeOfParam(ae, keyDirectObject, &type, &dataSize);
-		if (err != noErr)
-			return err;
-		
-		GAutoString Url(new char[dataSize + 1]);
-		
-		err = AEGetParamPtr(ae, keyDirectObject, typeChar, &type, Url, dataSize, &size);
-		if (err != noErr)
-			return err;
-		
-		Url[size] = 0;
-		App->OnUrl(Url);
-	}
-	else if (aeClass == kCoreEventClass &&
-			 aeID    == kAEOpenApplication)
-	{
-		AEDescList docs;
-		err = AEGetParamDesc(ae, keyDirectObject, typeAEList, &docs);
-		LgiTrace("%s:%i - AEGetParamDesc = %i\n", _FL, err);
-		if (err == noErr)
-		{
-			long n = 0;
-			AECountItems(&docs, &n);
-			LgiTrace("%s:%i - n = %i\n", _FL, n);
-			
-			UInt8 strBuffer[256];
-			GArray<char*> Files;
-			GArray<GAutoString> Mem;
-			for (int i = 0; i < n; i++)
-			{
-				FSRef ref;
-				
-				err = AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0);
-				LgiTrace("%s:%i - AEGetNthPtr = %i\n", _FL, err);
-				if (err != noErr)
-					continue;
-				
-				err = FSRefMakePath(&ref, strBuffer, 256);
-				LgiTrace("%s:%i - FSRefMakePath = %i\n", _FL, err);
-				if (err == noErr)
-				{
-					Mem[i].Reset(NewStr((char*)strBuffer));
-					Files[i] = Mem[i].Get();
-				}
-			}
-			
-			if (Files.Length())
-				App->OnReceiveFiles(Files);
-		}
-	}
-#endif
-	
-	return err;
-}
-#endif
-
 /////////////////////////////////////////////////////////////////////////////
 GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
@@ -826,6 +642,8 @@ struct IdleGluePtrs
 	void *Param;
 };
 
+#define CUSTOM_LOOP		0
+
 #if 0
 void IdleGlue(EventLoopTimerRef inTimer, void *inUserData)
 {
@@ -844,7 +662,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	if (Loop)
 	{
-		#if 1
+		#if CUSTOM_LOOP
 		// This impl allows for us to exit gracefully.
 		// NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		int Depth = ++d->RunDepth;
@@ -935,14 +753,23 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 void GApp::Exit(int Code)
 {
-	if (Code)
+	#if CUSTOM_LOOP
+	if (!Code)
+	{
+		if (d->RunDepth > 0)
+			d->RunDepth--;
+	}
+	#else
+	if (!Code)
+	{
+		DeleteObj(AppWnd);
+		[NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
+	}
+	else
+	#endif
 	{
 		// hard exit
 		::exit(Code);
-	}
-	else if (d->RunDepth > 0)
-	{
-		d->RunDepth--;
 	}
 }
 

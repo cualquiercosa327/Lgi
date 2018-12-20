@@ -22,4 +22,25 @@ public:
 
 extern OsView DefaultOsView(class GView *v);
 
+#ifdef __OBJC__
+
+class LAutoPool
+{
+	NSAutoreleasePool * pool;
+	
+public:
+	LAutoPool()
+	{
+		pool = [[NSAutoreleasePool alloc] init];
+	}
+	
+	~LAutoPool()
+	{
+		[pool release];
+	}
+};
+
+#endif
+
+
 #endif

@@ -595,7 +595,9 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			else
 			{
 				// Blt mem->screen
+				#if !COCOA
 				OSStatus err = noErr;
+				#endif
 				GMemDC *Mem = dynamic_cast<GMemDC*>(Src);
 				if (Mem)
 				{
