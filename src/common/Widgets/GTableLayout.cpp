@@ -34,7 +34,7 @@ enum CellFlag
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		100
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	1
+#define DEBUG_DRAW_CELLS	0
 
 int GTableLayout::CellSpacing = 4;
 
