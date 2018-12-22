@@ -112,8 +112,6 @@ bool GTextLabel::Name(const char *n)
 	if (!d->Lock(_FL))
 		return false;
 
-	d->Debug = stristr(n, "These options help Scribe") != NULL;
-
 	if (InThread())
 	{
 		GView::Name(n);
@@ -221,11 +219,6 @@ bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)
 	}
 	else
 	{
-		if (d->Debug)
-		{
-			int asd = 3;
-		}
-
 		d->Layout(GetFont(), Inf.Width.Max);
 		Inf.Height.Min = d->GetMin().y;
 		Inf.Height.Max = d->GetMax().y;

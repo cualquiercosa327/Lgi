@@ -2,7 +2,7 @@
 #include "LStringLayout.h"
 
 #define DEBUG_PROFILE_LAYOUT	0
-#define DEBUG_LAYOUT			1
+#define DEBUG_LAYOUT			0
 
 static char White[] = " \t\r\n";
 
@@ -381,7 +381,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool DebugLog)
 								{
 									// Add just the part till the break
 									if (Broken.Reset(new LLayoutString(Ls, b.Run->Text.Get() + Ls->Offset, b.Bytes - Ls->Offset)))
-										FixX += Broken->X();
+										FixX += Broken->FX();
 									break;
 								}
 								else
