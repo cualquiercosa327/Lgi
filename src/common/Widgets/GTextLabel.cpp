@@ -19,14 +19,12 @@ public:
 	/// to load it into the ctrl.
 	GString ThreadName;
 	int PrevX;
-	bool Debug;
 
 	GTextPrivate(GTextLabel *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
 		PrevX = -1;
 		AmpersandToUnderline = true;
-		Debug = false;
 	}
 
 	bool PreLayout(int32 &Min, int32 &Max)

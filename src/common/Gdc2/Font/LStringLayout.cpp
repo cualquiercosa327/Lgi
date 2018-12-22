@@ -1,7 +1,8 @@
 #include "Lgi.h"
 #include "LStringLayout.h"
 
-#define DEBUG_PROFILE_LAYOUT		0
+#define DEBUG_PROFILE_LAYOUT	0
+#define DEBUG_LAYOUT			1
 
 static char White[] = " \t\r\n";
 
@@ -31,6 +32,7 @@ LStringLayout::LStringLayout(GFontCache *fc)
 	FontCache = fc;
 	Wrap = false;
 	AmpersandToUnderline = false;
+	Debug = false;
 	Empty();
 }
 	
@@ -234,7 +236,7 @@ struct Break
 	Breaks.Empty();
 
 // Create the lines from text
-bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
+bool LStringLayout::DoLayout(int Width, int MinYSize, bool DebugLog)
 {
 	#if DEBUG_PROFILE_LAYOUT
 	GProfile Prof("LStringLayout::DoLayout");
@@ -271,13 +273,17 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 	/// There is alway one line of text... even if it's empty
 	MinLines = 1;
 
-	// LgiTrace("Text.Len=%i\n", Text.Length());
+	#if DEBUG_LAYOUT
+	if (Debug) LgiTrace("Text.Len=%i\n", Text.Length());
+	#endif
 	for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 	{
 		char *Start = (*Run)->Text;
 		GUtf8Ptr s(Start);
 
-		// LgiTrace("    Run='%s' %p\n", s.GetPtr(), *Run);
+		#if DEBUG_LAYOUT
+		if (Debug) LgiTrace("    Run='%s' %p\n", s.GetPtr(), *Run);
+		#endif
 		#if DEBUG_PROFILE_LAYOUT
 		GString Pm;
 		Pm.Printf("[%i] Run = '%.*s'\n", (int) (Run - Text.AddressOf()), max(20, (*Run)->Text.Length()), s.GetPtr());
@@ -288,6 +294,9 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 		{
 			GUtf8Ptr e(s);
 			ssize_t StartOffset = (char*)s.GetPtr() - Start;
+			#if DEBUG_LAYOUT
+			if (Debug) LgiTrace("    Breaks: ");
+			#endif
 			for (uint32 Ch; (Ch = e); e++)
 			{
 				if (Ch == '\n')
@@ -295,8 +304,17 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 
 				if ((char*)e.GetPtr() > Start &&
 					LGI_BreakableChar(Ch))
-					Breaks.New().Set(*Run, (char*)e.GetPtr() - Start);
+				{
+					ssize_t Pos = (char*)e.GetPtr() - Start;
+					#if DEBUG_LAYOUT
+					if (Debug) LgiTrace("%i, ", (int)Pos);
+					#endif
+					Breaks.New().Set(*Run, Pos);
+				}
 			}
+			#if DEBUG_LAYOUT
+			if (Debug) LgiTrace("\n");
+			#endif
 
 			ssize_t Bytes = e - s;
 
@@ -324,7 +342,12 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 				if (Wrap && (LineFX >> Shift) > Width)
 				{
 					// If wrapping, work out the split point and the text is too long
-					ssize_t Chars = n->CharAt(Width - (n->Fx >> Shift));
+					int PosPx = Width - (n->Fx >> Shift);
+					ssize_t Chars = n->CharAt(PosPx);
+
+					#if DEBUG_LAYOUT
+					if (Debug) LgiTrace("    CharAt(%i)=%i\n", PosPx, (int)Chars);
+					#endif
 
 					if (Breaks.Length() > 0)
 					{
@@ -340,7 +363,9 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 						{
 							Break &b = Breaks[i];
 
-							// LgiTrace("        Testing Break %i: %p %i\n", i, b.Run, b.Bytes);
+							#if DEBUG_LAYOUT
+							if (Debug) LgiTrace("        Testing Break %i: %p %i\n", i, b.Run, b.Bytes);
+							#endif
 
 							// Calc line width from 'StartLine' to 'Break[i]'
 							int FixX = 0;
@@ -364,13 +389,18 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 									FixX += Ls->FX();
 							}
 
-							// LgiTrace("        Len=%i of %i\n", FixX, Width);
+							#if DEBUG_LAYOUT
+							if (Debug) LgiTrace("        Len=%i of %i\n", FixX, Width);
+							#endif
 
 							if ((FixX >> Shift) <= Width ||
 								i == 0)
 							{
 								// Found a good fit...
-								// LgiTrace("        Found a fit\n");
+								#if DEBUG_LAYOUT
+								if (Debug)
+									LgiTrace("        Found a fit\n");
+								#endif
 
 								// So we want to keep 'StartLine' to 'k-1' as is...
 								while (Strs.Length() > k)
@@ -402,7 +432,6 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 						}
 
 						// Start pouring from the break pos...
-						// s = BreakRun->Text.Get() + BreakBytes;
 						while (s && strchr(White, s))
 							s++;
 
@@ -473,7 +502,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 	if (Max.y < MinYSize)
 		Max.y = MinYSize;
 	
-	if (Debug)
+	if (DebugLog)
 		LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
 			Width,
 			Min.x, Min.y,
