@@ -8247,45 +8247,11 @@ void GHtml::OnMouseClick(GMouse &m)
 						{
 							int64 WideChars = Ex.GetSize() / sizeof(char16);
 							GAutoWString w(Ex.NewStrW());
-							bool Only8Bit = true;
-							for (char16 *c = w; *c; c++)
-							{
-								if (*c > 0xff)
-								{
-									Only8Bit = false;
-									break;
-								}
-							}
 							
-							if (Only8Bit)
-							{
-								GAutoString Final;
-								
-								// Convert to 8bit chars
-								if (!Final.Reset(new char[(size_t)WideChars+1]))
-									break;
-
-								char *o = Final;
-								for (char16 *i = w; *i; i++)
-								{
-									*o++ = (char)*i;
-								}
-								*o = 0;
-								F.Write(Final, o - Final);
-								F.Close();
-							}
-							else
-							{
-								// Write a byte order mark and then unicode...
-								union {
-									uint16 ByteOrderMark;
-									uint8 Chars[2];
-								};
-								ByteOrderMark = 0xfeff;
-								F.Write(&ByteOrderMark, sizeof(ByteOrderMark));
-								F.Write(w, (int)WideChars * sizeof(char16));
-								F.Close();
-							}
+							GAutoString u(WideToUtf8(w, WideChars));
+							if (u)
+								F.Write(u, strlen(u));
+							F.Close();
 							
 							GAutoString Err;
 							if (!LgiExecute(Path, NULL, NULL, &Err))

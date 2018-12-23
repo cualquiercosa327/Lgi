@@ -43,6 +43,7 @@ public:
 	bool FontTableLoaded;
 	bool SubSupport;
 	bool CheckedConfig;
+	bool LibCheck;
 	
 	#ifdef __GTK_H__
 	Gtk::PangoFontMap *Map;
@@ -123,6 +124,7 @@ GFontSystem::GFontSystem()
 						// because Lut[Char] == 0 means no font
 						// available
 	d->Refs = 0;
+	d->LibCheck = false;
 	ZeroObj(Lut);		// Clear the table to 'no font'
 	ZeroObj(Font);		// Initialize the list of fonts to empty
 }
@@ -302,19 +304,26 @@ bool GFontSystem::HasIconv(bool Quiet)
 	if (d->IsLoaded())
 		return true;
 
-	bool Status = d->Load("libiconv-1.9.1." LGI_LIBRARY_EXT);
-	if (!Status && !Quiet)
+	bool Status = false;
+	if (!d->LibCheck)
 	{
-	    if (!NeedsCapability("libiconv"))
-	    {
-	        static bool Warn = true;
-	        if (Warn)
-	        {
-	            Warn = false;
-	            LgiAssert(!"Iconv is not available");
-	        }
-	    }
+		d->LibCheck = true;
+		
+		Status = d->Load("libiconv." LGI_LIBRARY_EXT);
+		if (!Status && !Quiet)
+		{
+			if (!NeedsCapability("libiconv"))
+			{
+				static bool Warn = true;
+				if (Warn)
+				{
+					Warn = false;
+					LgiAssert(!"Iconv is not available");
+				}
+			}
+		}
 	}
+	
 	return Status;
 }
 
