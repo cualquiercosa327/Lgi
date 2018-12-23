@@ -109,33 +109,24 @@ void GTextLabel::SetWrap(bool b)
 
 bool GTextLabel::Name(const char *n)
 {
-	// GProfile Prof("GTextLabel::Name");
-
 	if (!d->Lock(_FL))
 		return false;
 
 	if (InThread())
 	{
-		// Prof.Add("GView.Name");
 		GView::Name(n);
 
-		// Prof.Add("d.Empty");
 		d->Empty();
-		// Prof.Add("d.Add");
 		d->Add(n, GetCss());
 		int Wid = X();
-		// Prof.Add("d.Layout");
 		d->Layout(GetFont(), Wid ? Wid : GdcD->X());
 
-		// Prof.Add("Inval");
 		Invalidate();
-		// Prof.Add("Notify");
 		SendNotify(GNotifyTableLayout_Refresh);
 	}
 	else if (IsAttached())
 	{
 		d->ThreadName = n;
-		// Prof.Add("PostEv");
 		PostEvent(M_TEXT_UPDATE_NAME);
 	}
 	else
@@ -143,9 +134,7 @@ bool GTextLabel::Name(const char *n)
 		GView::Name(n);
 	}
 
-	// Prof.Add("unlock");
 	d->Unlock();
-
 	return true;
 }
 
@@ -187,11 +176,7 @@ void GTextLabel::SetFont(GFont *Fnt, bool OwnIt)
 int64 GTextLabel::Value()
 {
 	char *n = Name();
-	#ifdef _MSC_VER
-	return (n) ? _atoi64(n) : 0;
-	#else
-	return (n) ? atoll(n) : 0;
-	#endif
+	return (n) ? Atoi(n) : 0;
 }
 
 void GTextLabel::Value(int64 i)
@@ -216,7 +201,13 @@ void GTextLabel::OnStyleChange()
 void GTextLabel::OnPosChange()
 {
 	if (d->PrevX != X())
+	{
+		if (d->Debug)
+			printf("Layout %i, %i\n", d->PrevX, X());
 		d->Layout(GetFont(), X());
+	}
+	else if (d->Debug)
+			printf("No Layout %i, %i\n", d->PrevX, X());
 }
 
 bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)

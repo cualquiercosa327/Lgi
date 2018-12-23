@@ -78,6 +78,8 @@ protected:
 	GRect Bounds;
 
 public:
+	bool Debug;
+
 	LStringLayout(GFontCache *fc);	
 	~LStringLayout();
 
