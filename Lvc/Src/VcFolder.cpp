@@ -1741,31 +1741,33 @@ void VcFolder::Push()
 
 bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 {
+	bool Status = false;
+	
 	if (Result)
 	{
 		OnCmdError(s, "Push failed.");
-		return false;
 	}
-	else ClearError();
-
-	switch (GetType())
+	else
 	{
-		case VcGit:
-			break;
-		case VcSvn:
-			break;
-		default:
-			break;
-	}
+		ClearError();
 
-	if (Result == 0)
-	{
+		switch (GetType())
+		{
+			case VcGit:
+				break;
+			case VcSvn:
+				break;
+			default:
+				break;
+		}
+
 		Unpushed = 0;
 		Update();
+		Status = true;
 	}
 
 	GetTree()->SendNotify(LvcCommandEnd);
-	return false; // no reselect
+	return Status; // no reselect
 }
 
 void VcFolder::Pull(LoggingType Logging)
