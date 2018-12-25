@@ -22,6 +22,7 @@
 #include "GDocView.h"
 #include "Store3Defs.h"
 #include "LgiRes.h"
+#include "../Hash/md5/md5.h"
 
 const char *sTextPlain = "text/plain";
 const char *sTextHtml = "text/html";
@@ -1243,6 +1244,19 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 	}											\
 }
 
+void Reorder(GArray<GString> &a, const char *s)
+{
+	for (unsigned i=0; i<a.Length(); i++)
+	{
+		if (a[i].Equals(s) && i > 0)
+		{
+			a.DeleteAt(i, true);
+			a.AddAt(0, s);
+			break;
+		}
+	}
+}
+
 MailSmtp::MailSmtp()
 {
 }
@@ -1315,7 +1329,7 @@ bool MailSmtp::Open(GSocketI *S,
 				bool Authed = false;
 				bool NoAuthTypes = false;
 				bool SupportsStartTLS = false;
-				LHashTbl<ConstStrKey<char,false>, bool> TheirAuthTypes;
+				GArray<GString> AuthTypes;
 
 				// Look through the response for the auth line
 				char *Response = Str.NewStr();
@@ -1332,7 +1346,7 @@ bool MailSmtp::Open(GSocketI *S,
 							GToken Types(AuthStr + 4, " ,;");
 							for (uint32 a=0; a<Types.Length(); a++)
 							{
-								TheirAuthTypes.Add(Types[a], true);
+								AuthTypes.Add(Types[a]);
 							}
 						}
 						if (stristr(l, "STARTTLS"))
@@ -1358,6 +1372,7 @@ bool MailSmtp::Open(GSocketI *S,
 					else
 					{
 						// SSL init failed... what to do here?
+						return false;
 					}
 				}
 
@@ -1365,34 +1380,26 @@ bool MailSmtp::Open(GSocketI *S,
 				if (ValidStr(UserName) &&
 					ValidStr(Password))
 				{
-					LHashTbl<ConstStrKey<char,false>, bool> MyAuthTypes(16);
-					MyAuthTypes.Add("PLAIN", true);
-					MyAuthTypes.Add("LOGIN", true);
-
-					if (TheirAuthTypes.Length() == 0)
+					if (AuthTypes.Length() == 0)
 					{
 						// No auth types? huh?
 						if (TestFlag(Flags, MAIL_USE_AUTH))
 						{
 							if (TestFlag(Flags, MAIL_USE_PLAIN))
-							{
 								// Force plain type
-								TheirAuthTypes.Add("PLAIN", true);
-							}
+								AuthTypes.Add("PLAIN");
 							else if (TestFlag(Flags, MAIL_USE_LOGIN))
-							{
 								// Force login type
-								TheirAuthTypes.Add("LOGIN", true);
-							}
+								AuthTypes.Add("LOGIN");
+							else if (TestFlag(Flags, MAIL_USE_CRAM_MD5))
+								// Force CRAM MD5 type
+								AuthTypes.Add("CRAM-MD5");
 							else
 							{
-								// Oh well, we'll just try all types
-								// const char *a;
-								// for (bool b=MyAuthTypes.First(&a); b; b=MyAuthTypes.Next(&a))
-								for (auto i : MyAuthTypes)
-								{
-									TheirAuthTypes.Add(i.key, true);
-								}
+								// Try all
+								AuthTypes.Add("PLAIN");
+								AuthTypes.Add("LOGIN");
+								AuthTypes.Add("CRAM-MD5");
 							}
 						}
 						else
@@ -1400,48 +1407,124 @@ bool MailSmtp::Open(GSocketI *S,
 							NoAuthTypes = true;
 						}
 					}
-
-					// Try all their auth types against our internally support types
-					if (TheirAuthTypes.Find("LOGIN"))
+					else
 					{
-						VERIFY_RET_VAL(Write("AUTH LOGIN\r\n", true));
-						VERIFY_RET_VAL(ReadReply("334"));
-
-						ZeroObj(Buffer);
-						ConvertBinaryToBase64(Buffer, sizeof(Buffer), (uchar*)UserName, strlen(UserName));
-						strcat(Buffer, "\r\n");
-						VERIFY_RET_VAL(Write(0, true));
-						if (ReadReply("334"))
+						if (TestFlag(Flags, MAIL_USE_AUTH))
 						{
+							// Force user preference
+							if (TestFlag(Flags, MAIL_USE_PLAIN))
+								Reorder(AuthTypes, "PLAIN");
+							else if (TestFlag(Flags, MAIL_USE_LOGIN))
+								Reorder(AuthTypes, "LOGIN");
+							else if (TestFlag(Flags, MAIL_USE_CRAM_MD5))
+								Reorder(AuthTypes, "CRAM-MD5");
+						}
+					}
+
+					for (auto Auth : AuthTypes)
+					{
+						// Try all their auth types against our internally support types
+						if (Auth.Equals("LOGIN"))
+						{
+							VERIFY_RET_VAL(Write("AUTH LOGIN\r\n", true));
+							VERIFY_RET_VAL(ReadReply("334"));
+
 							ZeroObj(Buffer);
-							ConvertBinaryToBase64(Buffer, sizeof(Buffer), (uchar*)Password, strlen(Password));
+							ConvertBinaryToBase64(Buffer, sizeof(Buffer), (uchar*)UserName, strlen(UserName));
 							strcat(Buffer, "\r\n");
+							VERIFY_RET_VAL(Write(0, true));
+							if (ReadReply("334"))
+							{
+								ZeroObj(Buffer);
+								ConvertBinaryToBase64(Buffer, sizeof(Buffer), (uchar*)Password, strlen(Password));
+								strcat(Buffer, "\r\n");
+								VERIFY_RET_VAL(Write(0, true));
+								if (ReadReply("235"))
+								{
+									Authed = true;
+								}
+							}
+						}
+						else if (Auth.Equals("PLAIN"))
+						{
+							char Tmp[256];
+							ZeroObj(Tmp);
+							int ch = 1;
+							ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", UserName) + 1;
+							ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", Password) + 1;
+
+							char B64[256];
+							ZeroObj(B64);
+							ConvertBinaryToBase64(B64, sizeof(B64), (uint8*)Tmp, ch);
+
+							sprintf_s(Buffer, sizeof(Buffer), "AUTH PLAIN %s\r\n", B64);
 							VERIFY_RET_VAL(Write(0, true));
 							if (ReadReply("235"))
 							{
 								Authed = true;
 							}
 						}
-					}
-					
-					if (!Authed && TheirAuthTypes.Find("PLAIN"))
-					{
-						char Tmp[256];
-						ZeroObj(Tmp);
-						int ch = 1;
-						ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", UserName) + 1;
-						ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", Password) + 1;
-
-						char B64[256];
-						ZeroObj(B64);
-						ConvertBinaryToBase64(B64, sizeof(B64), (uint8*)Tmp, ch);
-
-						sprintf_s(Buffer, sizeof(Buffer), "AUTH PLAIN %s\r\n", B64);
-						VERIFY_RET_VAL(Write(0, true));
-						if (ReadReply("235"))
+						else if (Auth.Equals("CRAM-MD5"))
 						{
-							Authed = true;
+							sprintf_s(Buffer, sizeof(Buffer), "AUTH CRAM-MD5\r\n");
+							VERIFY_RET_VAL(Write(0, true));
+							if (ReadReply("334"))
+							{
+								auto Sp = strchr(Buffer, ' ');
+								if (Sp)
+								{
+									Sp++;
+
+									// Decode the server response:
+									uint8 Txt[128];
+									int InLen = strlen(Sp);
+									ssize_t TxtLen = ConvertBase64ToBinary(Txt, sizeof(Txt), Sp, InLen);
+
+									// Calc the hash:
+									// https://tools.ietf.org/html/rfc2104
+									char Key[64] = {0};
+									memcpy(Key, Password, MIN(strlen(Password), sizeof(Key)));
+									uint8 iKey[256];
+									char oKey[256];
+									for (unsigned i=0; i<64; i++)
+									{
+										iKey[i] = Key[i] ^ 0x36;
+										oKey[i] = Key[i] ^ 0x5c;
+									}
+									memcpy(iKey+64, Txt, TxtLen);
+									md5_state_t md5;
+									md5_init(&md5);
+									md5_append(&md5, iKey, 64 + TxtLen);
+									md5_finish(&md5, oKey + 64);
+
+									md5_init(&md5);
+									md5_append(&md5, (uint8*)oKey, 64 + 16);
+									char digest[16];
+									md5_finish(&md5, digest);
+
+									char r[256];
+									int ch = sprintf_s(r, sizeof(r), "%s ", UserName);
+									for (unsigned i=0; i<16; i++)
+										ch += sprintf_s(r+ch, sizeof(r)-ch, "%02x", (uint8)digest[i]);
+
+									// Base64 encode
+									ssize_t Len = ConvertBinaryToBase64(Buffer, sizeof(Buffer), (uint8*)r, ch);
+									Buffer[Len++] = '\r';
+									Buffer[Len++] = '\n';
+									Buffer[Len++] = 0;
+									VERIFY_RET_VAL(Write(0, true));
+									if (ReadReply("235"))
+										Authed = true;
+								}
+							}
 						}
+						else
+						{
+							LgiTrace("%s:%i - Unsupported auth type '%s'\n", _FL, Auth.Get());
+						}
+
+						if (Authed)
+							break;
 					}
 
 					if (!Authed)
@@ -1451,13 +1534,11 @@ bool MailSmtp::Open(GSocketI *S,
 						else
 						{
 							GString p;
-							// const char *a;
-							// for (bool b = TheirAuthTypes.First(&a); b; b = TheirAuthTypes.Next(&a))
-							for (auto i : TheirAuthTypes)
+							for (auto i : AuthTypes)
 							{
 								if (p.Get())
 									p += ", ";
-								p += i.key;
+								p += i;
 							}
 
 							SetError(L_ERROR_UNSUPPORTED_AUTH, "Authentication failed, types available:\n\t%s", p);

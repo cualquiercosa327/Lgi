@@ -339,6 +339,8 @@ public:
 #define MAIL_SSL					0x40
 /// OAUTH2
 #define MAIL_USE_OAUTH2				0x80
+/// CRAM-MD5
+#define MAIL_USE_CRAM_MD5			0x100
 
 /// Mail sending protocol
 class MailSink : public MailProtocol
