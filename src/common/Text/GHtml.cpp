@@ -76,6 +76,7 @@
 #endif
 
 #define IsTableCell(id)				( ((id) == TAG_TD) || ((id) == TAG_TH) )
+#define IsTableTag()				(TagId == TAG_TABLE || TagId == TAG_TR || TagId == TAG_TD || TagId == TAG_TH)
 #define GetCssLen(a, b)				a().Type == GCss::LenInherit ? b() : a()
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
@@ -436,6 +437,7 @@ public:
 	int cx;						// Current insertion point
 	int my;						// How much of the area above y2 was just margin
 	GdcPt2 MAX;					// Max dimensions
+	int Inline;
 
 	int InBody;
 
@@ -443,6 +445,7 @@ public:
 	{
 		Html = html;
 		x1 = x2 = y1 = y2 = cx = my = 0;
+		Inline = 0;
 		InBody = inbody;
 	}
 
@@ -453,6 +456,7 @@ public:
 		MAX.y = y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
+		Inline = 0;
 		InBody = inbody;
 	}
 
@@ -465,6 +469,7 @@ public:
 		MAX.x = cx = r.cx;
 		MAX.y = y2 = r.y2;
 		my = r.my;
+		Inline = r.Inline;
 		InBody = r.InBody; 
 	}
 
@@ -4929,8 +4934,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 				Text++;
 		}
 
-		Tag->Size.x = MAX(Tag->Size.x, Tr->x2);
-		Tag->Size.y = MAX(Tag->Size.y, Tr->y2);
+		Tag->Size.x = MAX(Tag->Size.x, Tr->x2 + 1);
+		Tag->Size.y = MAX(Tag->Size.y, Tr->y2 + 1);
 		Flow->MAX.x = MAX(Flow->MAX.x, Tr->x2);
 		Flow->MAX.y = MAX(Flow->MAX.y, Tr->y2);
 
@@ -5143,11 +5148,10 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		return;
 
 	GFont *f = GetFont();
-	GFlowRegion Local(Html, true);
+	GFlowRegion Local(*Flow);
 	bool Restart = true;
 	int BlockFlowWidth = 0;
 	const char *ImgAltText = NULL;
-	int BlockInlineX[3];
 
 	Size.x = 0;
 	Size.y = 0;
@@ -5155,6 +5159,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	GCssTools Tools(this, f);
 	GRect rc(Flow->X(), Html->Y());
 	PadPx = Tools.GetPadding(rc);
+
+	if (Debug)
+	{
+		int asd=0;
+	}
 
 	switch (TagId)
 	{
@@ -5186,6 +5195,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 			BoundParents();
 			return;
+			break;
+		}
+		case TAG_TR:
+		{
+			Size.x = Flow->X();
 			break;
 		}
 		case TAG_IMG:
@@ -5359,7 +5373,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 	}
 
-	// int OldFlowMy = Flow->my;
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
 		// This is a block level element, so end the previous non-block elements
@@ -5370,17 +5383,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		
 		BlockFlowWidth = Flow->X();
 		
-		/*	This code breaks the 'staysz.html' test case.
-			What was its original purpose?
-		if (TagId == TAG_P)
-		{
-			if (!OldFlowMy && Text())
-			{
-				Flow->FinishLine(true);
-			}
-		}
-		*/
-
 		// Indent the margin...
 		GCss::Len left = GetCssLen(MarginLeft, Margin);
 		GCss::Len top = GetCssLen(MarginTop, Margin);
@@ -5395,7 +5397,12 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			if (!IsTableCell(TagId) && Wid.IsValid())
 				Size.x = Flow->ResolveX(Wid, f, false);
 			else if (TagId != TAG_IMG)
-				Size.x = Flow->X();
+			{
+				if (Flow->Inline)
+					Size.x = 0; // block inside inline-block default to fit the content
+				else
+					Size.x = Flow->X();
+			}
 
 			if (MaxWidth().IsValid())
 			{
@@ -5408,7 +5415,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 		else
 		{
-			Size.x = Flow->X(); // Not correct but give maximum space
+			Size.x = 0; // Child content should expand this to fit
 			Pos.x = Flow->cx;
 		}
 		Pos.y = Flow->y1;
@@ -5427,18 +5434,15 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 		else
 		{
-			BlockInlineX[0] = Flow->x1;
-			BlockInlineX[1] = Flow->cx;
-			BlockInlineX[2] = Flow->x2;
-			Flow->x1 = 0;
-			Flow->x2 = Size.x;
-			Flow->cx = 0;
+			Flow->x2 = Flow->X();
+			Flow->x1 =	Flow->ResolveX(BorderLeft(), GetFont(), true) +
+						Flow->ResolveX(PaddingLeft(), GetFont(), true);
+			Flow->cx = Flow->x1;
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), true) +
+						Flow->ResolveY(PaddingTop(), GetFont(), true);
 			
-			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), true);
-			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), true);
-			
-			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), true);
-			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), true);
+			if (!IsTableTag())
+				Flow->Inline++;
 		}
 	}
 	else
@@ -5635,21 +5639,23 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		else
 		{
 			GCss::Len Wid = Width();
-			int WidPx = Wid.IsValid() ? Flow->ResolveX(Wid, GetFont(), false) : 0;
+			int WidPx = Wid.IsValid() ? Flow->ResolveX(Wid, GetFont(), true) : 0;
 			
-			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), true);
-			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), true);
-			Size.x = MAX(WidPx, Flow->cx);
-			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
-			Flow->x1 = BlockInlineX[0] - Pos.x;
-			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
-			Flow->x2 = BlockInlineX[2] - Pos.x;
+			Size.x = MAX(WidPx, Size.x);
+			Size.x += Flow->ResolveX(PaddingRight(), GetFont(), true);
+			Size.x += Flow->ResolveX(BorderRight(), GetFont(), true);
+
+			int MarginR = Flow->ResolveX(MarginRight(), GetFont(), true);
+			int MarginB = Flow->ResolveX(MarginBottom(), GetFont(), true);
+
+			Flow->x1 = Local.x1 - Pos.x;
+			Flow->cx = Local.cx + Size.x + MarginR - Pos.x;
+			Flow->x2 = Local.x2 - Pos.x;
 
 			if (Height().IsValid())
 			{
 				Size.y = Flow->ResolveY(Height(), GetFont(), false);
-				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont(), true);
-				Flow->y2 = MAX(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
+				Flow->y2 = MAX(Flow->y1 + Size.y + MarginB - 1, Flow->y2);
 			}
 			else
 			{
@@ -5657,7 +5663,12 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), true);
 				Size.y = Flow->y2;
 			}
+
+			Flow->y1 = Local.y1;
+			Flow->y2 = MAX(Local.y2, Local.y1 + Size.y);
 			
+			if (!IsTableTag())
+				Flow->Inline--;
 			CenterText();
 		}
 	}
@@ -5696,11 +5707,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			{
 				Flow->cx += Size.x;
 				Flow->y2 = MAX(Flow->y2, Flow->y1 + Size.y - 1);
-				break;
-			}
-			case TAG_TR:
-			{
-				Flow->x2 = Flow->x1 + Local.X();
 				break;
 			}
 			case TAG_BR:
