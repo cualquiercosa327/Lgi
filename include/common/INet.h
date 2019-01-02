@@ -508,6 +508,7 @@ public:
 			SelectIf = 0;
 		}
 		
+		/*
 		uint32 Netmask = 0xffffff00;
 		Interface *Cur = NULL;
 		for (auto &i : Intf)
@@ -519,8 +520,9 @@ public:
 				break;
 			}
 		}
+		*/
 		
-		uint32 BroadcastIp = Ip /*| ~Netmask*/;
+		uint32 BroadcastIp = Ip;
 		#if 0
 		printf("Broadcast %i.%i.%i.%i\n", 
 			(BroadcastIp >> 24) & 0xff,
