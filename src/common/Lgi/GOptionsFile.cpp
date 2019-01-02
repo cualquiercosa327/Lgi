@@ -31,7 +31,7 @@ GOptionsFile::GOptionsFile(const char *FileName) : LMutex("GOptionsFile")
 		bool Desktop = a.Length() > 0 && a[0].Equals("Applications");
 		#elif defined(WINDOWS)
 		bool Desktop = a.Length() > 1 &&
-						(a[1].Equals("Program Files") || a[1].Equals("Program Files (x86)");
+						(a[1].Equals("Program Files") || a[1].Equals("Program Files (x86)"));
 		#else
 		bool Desktop = false;
 		#endif
