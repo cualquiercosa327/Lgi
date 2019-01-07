@@ -215,10 +215,7 @@
     <Manifest Include="..\src\win32\General\Lgi.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\ebay11.html" />
-    <None Include="Files\ebay2.html" />
-    <None Include="Files\spacex.html" />
-    <None Include="Files\Test.html" />
+    <None Include="Files\Evite.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
