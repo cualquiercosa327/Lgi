@@ -59,7 +59,7 @@ enum TabViewStyle
 
 #endif
 
-#define TAB_MARGIN_X		6
+#define TAB_MARGIN_X		12 // Px each side of the text label on the tab
 #define CLOSE_BTN_SIZE		8
 #define CLOSE_BTN_GAP		8
 #define cFocusFore			GColour(LC_FOCUS_SEL_FORE, 24)
@@ -799,7 +799,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			bool Last = i == it.Length() - 1;
 			bool IsCurrent = d->Current == i;
 
-			GRect r(0, 0, ds->X() + 23, d->Tabs.Y() - 1);
+			GRect r(0, 0, Tab->GetTabPx() - 1, d->Tabs.Y() - 1);
 			r.Offset(x, y);
 
 			#ifdef LGI_CARBON
@@ -938,7 +938,17 @@ void GTabView::OnPaint(GSurface *pDC)
 				Fore = Tab->GetCss()->Color();
 			tf->Fore(Fore.IsValid() ? (GColour)Fore : 
 					IsCurrent && Foc ? cFocusFore : GColour(LC_TEXT, 24));
-			ds->Draw(pDC, r.x1 + (r.X() - ds->X()) / 2, r.y1 + TAB_TXT_PAD + BaselineOff, &r);
+			
+			int DsX = r.x1 + TAB_MARGIN_X;
+			int DsY = r.y1 + TAB_TXT_PAD + BaselineOff;
+			ds->Draw(pDC, DsX, DsY, &r);
+			if (Tab->HasButton())
+			{
+				Tab->BtnPos.ZOff(CLOSE_BTN_SIZE-1, CLOSE_BTN_SIZE-1);
+				Tab->BtnPos.Offset(DsX + ds->X() + CLOSE_BTN_GAP, r.y1 + ((r.Y()-Tab->BtnPos.Y()) >> 1));
+				Tab->OnButtonPaint(pDC);				
+			}
+			else Tab->BtnPos.ZOff(-1, -1);
 			
 			it[i]->TabPos = r;
 			x += r.X()

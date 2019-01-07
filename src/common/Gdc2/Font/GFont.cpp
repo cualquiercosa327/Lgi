@@ -968,6 +968,7 @@ bool GFont::Create(const char *face, GCss::Len size, GSurface *pSurface)
 
 	d->OwnerUnderline = Face() &&
 						stricmp(Face(), "Courier New") == 0 && 
+						Size().Type == GCss::LenPt &&
 						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
