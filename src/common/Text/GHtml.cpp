@@ -473,6 +473,16 @@ public:
 		InBody = r.InBody; 
 	}
 
+	GString ToString()
+	{
+		GString s;
+		s.Printf("Flow: x=%i(%i)%i y=%i,%i my=%i inline=%i",
+			x1, cx, x2,
+			y1, y2, my,
+			Inline);
+		return s;
+	}
+
 	int X()
 	{
 		return x2 - cx;
@@ -5160,11 +5170,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	GRect rc(Flow->X(), Html->Y());
 	PadPx = Tools.GetPadding(rc);
 
-	if (Debug)
-	{
-		int asd=0;
-	}
-
 	switch (TagId)
 	{
 		default:
@@ -5381,6 +5386,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->EndBlock(GetAlign(true));
 		}
 		
+		/*
+		if (Debug)
+			LgiTrace("Before %s\n", Flow->ToString().Get());
+		*/
+
 		BlockFlowWidth = Flow->X();
 		
 		// Indent the margin...
@@ -5440,6 +5450,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->cx = Flow->x1;
 			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), true) +
 						Flow->ResolveY(PaddingTop(), GetFont(), true);
+			Flow->y2 = Flow->y1;
 			
 			if (!IsTableTag())
 				Flow->Inline++;
@@ -5748,6 +5759,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		Flow->y2 += Pos.y;
 		Flow->MAX.y = MAX(Flow->MAX.y, Flow->y2);
 	}
+
+	/*
+	if (Debug)
+		LgiTrace("After %s\n", Flow->ToString().Get());
+	*/
 
 	if (XAlign == GCss::AlignCenter)
 	{

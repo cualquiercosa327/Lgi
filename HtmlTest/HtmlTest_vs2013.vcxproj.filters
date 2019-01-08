@@ -123,10 +123,7 @@
     <None Include="Files\Evite.html">
       <Filter>Test cases</Filter>
     </None>
-    <None Include="Files\ebay10.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\austpost2.html">
+    <None Include="Files\eve.html">
       <Filter>Test cases</Filter>
     </None>
   </ItemGroup>
