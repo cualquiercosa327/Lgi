@@ -1263,8 +1263,16 @@ char16 *GHtmlParser::CleanText(const char *s, ssize_t Len, bool ConversionAllowe
 		{
 			const char *ViewCs = View->GetCharset();
 			char *DocText = (char*)LgiNewConvertCp(DocCharSet, s, ViewCs, Len);
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, DocText, DocCharSet, -1);
-			DeleteArray(DocText);
+			if (DocText)
+			{
+				t = (char16*) LgiNewConvertCp(LGI_WideCharset, DocText, DocCharSet, -1);
+				DeleteArray(DocText);
+			}
+			else
+			{
+				// Can't convert to doc charset? iconv missing?
+				t = Utf8ToWide(s, Len);
+			}
 		}
 		else if (DocCharSet)
 		{

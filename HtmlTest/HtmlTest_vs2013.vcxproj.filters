@@ -126,5 +126,8 @@
     <None Include="Files\eve.html">
       <Filter>Test cases</Filter>
     </None>
+    <None Include="Files\WeirdFont.html">
+      <Filter>Test cases</Filter>
+    </None>
   </ItemGroup>
 </Project>

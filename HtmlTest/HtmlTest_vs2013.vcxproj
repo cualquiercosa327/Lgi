@@ -217,6 +217,7 @@
   <ItemGroup>
     <None Include="Files\eve.html" />
     <None Include="Files\Evite.html" />
+    <None Include="Files\WeirdFont.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

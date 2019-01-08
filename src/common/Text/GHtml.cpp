@@ -1663,7 +1663,7 @@ GColour GTag::_Colour(bool f)
 		}
 
 		#if 1
-		if (!f || t->TagId == TAG_TABLE)
+		if (!f && t->TagId == TAG_TABLE)
 			break;
 		#else
 		/*	This implements some basic level of colour inheritance for
