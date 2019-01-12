@@ -6032,6 +6032,10 @@ public:
 					ClipRgn(NULL);
 				}
 				
+				#ifdef MAC
+				ConvertPreMulAlpha(true);
+				#endif
+				
 				#if 0
 				static int count = 0;
 				GString file;
@@ -6111,111 +6115,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	float RadPx = Radius.Type == GCss::LenPx ? Radius.Value : Radius.ToPx(Size.x, GetFont());
 	bool HasRadius = Radius.Type != GCss::LenInherit && RadPx > 0.0f;
 
-	/*
-	if (Radius.Type != GCss::LenInherit &&
-		RadPx > 0.0f)
-	{
-		Px = (int)ceil(RadPx);
-		Px2 = Px << 1;
-		if (Px2 > Size.y)
-		{
-			Px = Size.y / 2;
-			Px2 = Px << 1;
-		}		
-		
-		if (Corners.Reset(new GMemDC(Px2, Px2, System32BitColourSpace)))
-		{
-			#if 1
-			Corners->Colour(0, 32);
-			#else
-			Corners->Colour(GColour(255, 0, 255));
-			#endif
-			Corners->Rectangle();
-
-			GPointF ctr(Px, Px);
-			GPointF LeftPt(0.0, Px);
-			GPointF TopPt(Px, 0.0);
-			GPointF RightPt(Corners->X(), Px);
-			GPointF BottomPt(Px, Corners->Y());
-			int x_px[4] = {BorderPx->x1, BorderPx->x2, BorderPx->x2, BorderPx->x1};
-			int y_px[4] = {BorderPx->y1, BorderPx->y1, BorderPx->y2, BorderPx->y2};
-			GPointF *pts[4] = {&LeftPt, &TopPt, &RightPt, &BottomPt};
-			GCss::BorderDef *defs[4] = {&Left, &Top, &Right, &Bottom};
-			
-			// Draw border parts..
-			for (int i=0; i<4; i++)
-			{
-				int k = (i + 1) % 4;
-
-				// Setup the stops					
-				GBlendStop stops[2] = { {0.0, 0}, {1.0, 0} };
-				uint32 iColour = defs[i]->Color.IsValid() ? defs[i]->Color.Rgb32 : Back.c32();
-				uint32 kColour = defs[k]->Color.IsValid() ? defs[k]->Color.Rgb32 : Back.c32();
-				if (defs[i]->IsValid() && defs[k]->IsValid())
-				{
-					stops[0].c32 = iColour;
-					stops[1].c32 = kColour;
-				}
-				else if (defs[i]->IsValid())
-				{
-					stops[0].c32 = stops[1].c32 = iColour;
-				}
-				else
-				{
-					stops[0].c32 = stops[1].c32 = kColour;
-				}
-				
-				// Create a brush
-				GLinearBlendBrush br
-				(
-					*pts[i],
-					*pts[k],
-					2,
-					stops
-				);
-				
-				// Setup the clip
-				GRect clip(	(int)MIN(pts[i]->x, pts[k]->x),
-							(int)MIN(pts[i]->y, pts[k]->y),
-							(int)MAX(pts[i]->x, pts[k]->x)-1,
-							(int)MAX(pts[i]->y, pts[k]->y)-1);
-				Corners->ClipRgn(&clip);
-				
-				// Draw the arc...
-				GPath p;
-				p.Circle(ctr, Px);
-				if (defs[i]->IsValid() || defs[k]->IsValid())
-					p.Fill(Corners, br);
-				
-				// Fill the background
-				p.Empty();
-				p.Ellipse(ctr, Px-x_px[i], Px-y_px[i]);
-				if (DrawBackground)
-				{
-					GSolidBrush br(Back);
-					p.Fill(Corners, br);					
-				}
-				else
-				{
-					GEraseBrush br;
-					p.Fill(Corners, br);
-				}
-				
-				Corners->ClipRgn(NULL);
-			}
-			
-			#if 0
-			static int count = 0;
-			GString file;
-			file.Printf("c:\\temp\\img-%i.bmp", ++count);
-			GdcD->Save(file, Corners);
-			#endif
-		}
-	}
-	*/
-
 	// Loop over the rectangles and draw everything
-	// bool IsAlpha = Back.a() < 0xff;
 	int Op = pDC->Op(GDC_ALPHA);
 
 	for (unsigned i=0; i<r.Length(); i++)

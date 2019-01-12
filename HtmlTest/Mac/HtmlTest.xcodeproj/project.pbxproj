@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		342D52A50F0CBA2F002A1C7C /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */; };
+		3468AB9021EA9B0700865645 /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 347D1D221FB079BF00E7B04D /* Lgi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		347D1D241FB07CB200E7B04D /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 347D1D221FB079BF00E7B04D /* Lgi.framework */; };
 		34F93C711AB6FDCB00B557EC /* TestSuite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93C701AB6FDCB00B557EC /* TestSuite.cpp */; };
 		34F93CA31AB705FE00B557EC /* GLexCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93C9F1AB705FE00B557EC /* GLexCpp.cpp */; };
@@ -47,6 +48,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				3468AB9021EA9B0700865645 /* Lgi.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

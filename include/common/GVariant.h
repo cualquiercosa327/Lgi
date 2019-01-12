@@ -17,10 +17,8 @@
 
 class GCompiledCode;
 
-#if !defined(_MSC_VER) && defined(LGI_64BIT)
+#if !defined(_MSC_VER) && (defined(LGI_64BIT) || defined(MAC))
 	#define GVARIANT_SIZET	1
-#endif
-#if !defined(_MSC_VER) && (LGI_64BIT || defined(MAC))
 	#define GVARIANT_SSIZET	1
 #endif
 
