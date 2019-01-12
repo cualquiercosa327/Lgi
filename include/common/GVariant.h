@@ -17,6 +17,13 @@
 
 class GCompiledCode;
 
+#if !defined(_MSC_VER) && defined(LGI_64BIT)
+	#define GVARIANT_SIZET	1
+#endif
+#if !defined(_MSC_VER) && (LGI_64BIT || defined(MAC))
+	#define GVARIANT_SSIZET	1
+#endif
+
 /// The different types the varient can be 
 enum GVariantType
 {
@@ -264,11 +271,11 @@ public:
 	GVariant(uint32 i);
 	GVariant(int64 i);
 	GVariant(uint64 i);
-	#ifndef _MSC_VER
+	#if GVARIANT_SIZET
 	GVariant(size_t i);
-	#if LGI_64BIT || defined(MAC)
-	GVariant(ssize_t i);
 	#endif
+	#if GVARIANT_SSIZET
+	GVariant(ssize_t i);
 	#endif
 	/// Constructor for double
 	GVariant(double i);
@@ -298,11 +305,11 @@ public:
 	GVariant &operator =(uint32 i);
 	GVariant &operator =(int64 i);
 	GVariant &operator =(uint64 i);
-	#ifndef _MSC_VER
+	#if GVARIANT_SIZET
 	GVariant &operator =(size_t i);
-	#if LGI_64BIT || defined(MAC)
-	GVariant &operator =(ssize_t i);
 	#endif
+	#if GVARIANT_SSIZET
+	GVariant &operator =(ssize_t i);
 	#endif
 	/// Assign double value
 	GVariant &operator =(double i);
@@ -335,10 +342,10 @@ public:
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
 	bool SetHashTable(LHash *Table = 0, bool Copy = true);
-    /// Set the value to a surface
-    bool SetSurface(class GSurface *Ptr, bool Own);
-    /// Set the value to a stream
-    bool SetStream(class GStream *Ptr, bool Own);
+	/// Set the value to a surface
+	bool SetSurface(class GSurface *Ptr, bool Own);
+	/// Set the value to a stream
+	bool SetStream(class GStream *Ptr, bool Own);
 
 	/// Returns the string if valid (will convert a GV_WSTRING to utf)
 	char *Str();

@@ -920,11 +920,16 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 			case Gtk::GDK_VISUAL_TRUE_COLOR:
 			case Gtk::GDK_VISUAL_DIRECT_COLOR:
 			{
-				int red = (CtRed   << 4) | v->red_prec;
+				int red =   (CtRed   << 4) | v->red_prec;
 				int green = (CtGreen << 4) | v->green_prec;
-				int blue = (CtBlue  << 4) | v->blue_prec;
+				int blue =  (CtBlue  << 4) | v->blue_prec;
 				#ifdef __arm__
-				if (v->depth == 16 && v->red_shift < v->blue_shift)
+				if
+				(
+					(v->depth == 16 && v->red_shift < v->blue_shift)
+					||
+					(v->depth != 16 && v->red_shift > v->blue_shift)
+				)
 				#else
 				if (v->red_shift > v->blue_shift)
 				#endif
@@ -976,6 +981,9 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	{
 		if (v->byte_order == Gtk::GDK_LSB_FIRST)
 		{
+			#if VisualToColourSpaceDebug
+			printf("GdkVisualToColourSpace swapping\n");
+			#endif
 			c = LgiSwap32(c);
 			while (!(c & 0xff))
 				c >>= 8;

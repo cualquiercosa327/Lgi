@@ -57,22 +57,20 @@ typedef GRgba64 Png64;
 #if LIBPNG_SHARED
 #define LIBPNG Lib->
 const char sLibrary[] =
-	#if defined(LINUX)
-		"libpng12"
-	#elif defined(MAC) || defined(BEOS)
+	#if defined(MAC)
 		"libpng15.15.4.0"
-	#elif defined(MAC)
-		"libpng"
 	#else
 		#if defined(__CYGWIN__)
 			"cygpng12"
 		#else
 			"libpng"
-			_MSC_VER_STR
-			#if defined(WIN64)
-			"x64"
-			#else
-			"x32"
+			#ifdef _MSC_VER
+				_MSC_VER_STR
+				#if defined(WIN64)
+				"x64"
+				#else
+				"x32"
+				#endif
 			#endif
 		#endif
 	#endif

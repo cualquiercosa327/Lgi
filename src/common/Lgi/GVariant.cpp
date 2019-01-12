@@ -83,20 +83,20 @@ GVariant::GVariant(GVariant const &v)
 	*this = v;
 }
 
-#ifndef _MSC_VER
+#if GVARIANT_SIZET
 GVariant::GVariant(size_t i)
 {
 	Type = GV_NULL;
 	*this = i;
 }
+#endif
 
-#if LGI_64BIT || defined(MAC)
+#if GVARIANT_sSIZET
 GVariant::GVariant(ssize_t i)
 {
 	Type = GV_NULL;
 	*this = i;
 }
-#endif
 #endif
 
 GVariant::GVariant(int32 i)
@@ -308,7 +308,7 @@ GVariant &GVariant::operator =(bool i)
 	return *this;
 }
 
-#ifndef _MSC_VER
+#if GVARIANT_SIZET
 GVariant &GVariant::operator =(size_t i)
 {
 	Empty();
@@ -323,8 +323,9 @@ GVariant &GVariant::operator =(size_t i)
 	
 	return *this;
 }
+#endif
 
-#if LGI_64BIT || defined(MAC)
+#if GVARIANT_SSIZET
 GVariant &GVariant::operator =(ssize_t i)
 {
 	Empty();
@@ -339,7 +340,6 @@ GVariant &GVariant::operator =(ssize_t i)
 	
 	return *this;
 }
-#endif
 #endif
 
 GVariant &GVariant::operator =(int32 i)

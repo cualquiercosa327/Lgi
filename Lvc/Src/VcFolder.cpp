@@ -1022,27 +1022,34 @@ bool VcFolder::ParseFiles(int Result, GString s, ParseParams *Params)
 void VcFolder::OnPulse()
 {
 	bool Reselect = false, CmdsChanged = false;
-		
-	for (unsigned i=0; i<Cmds.Length(); i++)
-	{
-		Cmd *c = Cmds[i];
-		if (c && c->Rd->IsExited())
+	static bool Processing = false;
+	
+	if (!Processing)
+	{	
+		Processing = true; // Lock out processing, if it puts up a dialog or something...
+		// bad things happen if we try and re-process something.	
+		for (unsigned i=0; i<Cmds.Length(); i++)
 		{
-			GString s = c->GetBuf();
-			int Result = c->Rd->ExitCode();
-			if (Result == ErrSubProcessFailed)
+			Cmd *c = Cmds[i];
+			if (c && c->Rd->IsExited())
 			{
-				if (!CmdErrors)
-					d->Log->Print("Error: Can't run '%s'\n", GetVcName());
-				CmdErrors++;
-			}
+				GString s = c->GetBuf();
+				int Result = c->Rd->ExitCode();
+				if (Result == ErrSubProcessFailed)
+				{
+					if (!CmdErrors)
+						d->Log->Print("Error: Can't run '%s'\n", GetVcName());
+					CmdErrors++;
+				}
 
-			if (c->PostOp)
-				Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
-			Cmds.DeleteAt(i--, true);
-			delete c;
-			CmdsChanged = true;
+				if (c->PostOp)
+					Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
+				Cmds.DeleteAt(i--, true);
+				delete c;
+				CmdsChanged = true;
+			}
 		}
+		Processing = false;
 	}
 
 	if (Reselect)
@@ -1582,7 +1589,38 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	IsCommit = false;
 
 	if (Result)
+	{
+		switch (GetType())
+		{
+			case VcGit:
+			{
+				if (s.Find("Please tell me who you are") >= 0)
+				{
+					{
+						GInput i(GetTree(), "", "Git user name:", AppName);
+						if (i.DoModal())
+						{
+							GString Args;
+							Args.Printf("config --global user.name \"%s\"", i.GetStr().Get());
+							StartCmd(Args);
+						}
+					}
+					{
+						GInput i(GetTree(), "", "Git user email:", AppName);
+						if (i.DoModal())
+						{
+							GString Args;
+							Args.Printf("config --global user.email \"%s\"", i.GetStr().Get());
+							StartCmd(Args);
+						}
+					}
+				}
+				break;
+			}		
+		}
+		
 		return false;
+	}
 
 	if (Result == 0 && GTreeItem::Select())
 	{

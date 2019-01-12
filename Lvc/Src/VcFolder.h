@@ -151,7 +151,7 @@ class VcFolder : public GTreeItem, public GCss
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
-	bool StartCmd(const char *Args, ParseFn Parser, ParseParams *Params = NULL, LoggingType Logging = LogNone);
+	bool StartCmd(const char *Args, ParseFn Parser = NULL, ParseParams *Params = NULL, LoggingType Logging = LogNone);
 	void OnBranchesChange();
 	void OnCmdError(GString Output, const char *Msg);
 	void ClearError();
