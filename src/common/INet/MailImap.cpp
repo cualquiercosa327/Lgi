@@ -874,11 +874,15 @@ bool MailIMap::Read(GStreamI *Out, int Timeout)
 			{
 				r = Socket->Read(Buffer, sizeof(Buffer));
 				if (r < 0)
+				{
+					Socket->Close();
 					LgiTrace("%s:%i - Wut? IsReadable/Read mismatch.\n", _FL);
+					return false;
+				}
 			}
 			else
 			{
-				if (End - St < Timeout - 10)
+				if (End - St < Timeout - 20)
 					LgiTrace("%s:%i - IsReadable broken (again)\n", _FL);
 				return false;
 			}
