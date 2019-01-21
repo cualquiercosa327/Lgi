@@ -886,8 +886,14 @@ GString GSubProcess::Read()
 	GStringPipe p(512);
 	char Buf[512];
 	ssize_t Rd;
-	while ((Rd = Read(Buf, sizeof(Buf))) > 0)
-		p.Write(Buf, Rd);
+	while (Peek())
+	{
+		Rd = Read(Buf, sizeof(Buf));
+		if (Rd > 0)
+			p.Write(Buf, Rd);
+		else
+			break;
+	}
 
 	return p.NewGStr();
 }
